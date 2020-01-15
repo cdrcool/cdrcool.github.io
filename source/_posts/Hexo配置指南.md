@@ -65,7 +65,7 @@ deploy:
 ## 集成 Gitalk
 1. 访问 [https://github.com/settings/developers](https://github.com/settings/developers)
 2. 创建 OAuth App：
-![OAuth App 创建示例](/images/hexo/OAuth App 创建示例.png)
+![OAuth App 创建示例](/images/hexo/OAuth-App创建示例.png)
 3. 打开 \themes\next\_config.yml 文件，配置 gittalk 相关属性：
 ```yaml
 # Gitalk
