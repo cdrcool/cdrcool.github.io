@@ -8,11 +8,11 @@ tags:
 ## Maven 依赖
 ```xml
 <dependencies>
-        <dependency>
-            <groupId>org.springframework.kafka</groupId>
-            <artifactId>spring-kafka</artifactId>
-        </dependency>
-    </dependencies>
+    <dependency>
+        <groupId>org.springframework.kafka</groupId>
+        <artifactId>spring-kafka</artifactId>
+    </dependency>
+</dependencies>
 ```
 
 ## 配置属性
@@ -130,11 +130,11 @@ public class KafkaConfiguration {
 public class MessageReceiver {
 
     @KafkaListener(topics = {"topic-1"})
-    public void receive(ConsumerRecord<?, ?> record) {
+    public void receive(ConsumerRecord<String, String> record) {
         log.info("receive record: {}", record);
-        Optional<?> messageOptional = Optional.ofNullable(record.value());
+        Optional<String> messageOptional = Optional.ofNullable(record.value());
         if (messageOptional.isPresent()) {
-            Object message = messageOptional.get();
+            String message = messageOptional.get();
             log.info("receive message: {}", message);
         }
     }
