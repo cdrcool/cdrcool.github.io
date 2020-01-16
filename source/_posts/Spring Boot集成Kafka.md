@@ -273,7 +273,7 @@ spring:
         isolation.level: read_committed
 ```
 如上所示，首先需要添加配置`transaction-id-prefix: tx.`，然后需要将`retries`的值设置为大于 0，并将`acks`的值设置为 all 或 -1。
-另外需要注意的是，生产者开启事务之后，所有发送消息的地方都必须在事务中执行。
+另外需要注意的是，生产者开启事务之后，所有发送消息的地方都必须放在事务中执行。
 
 ### 手动提交 offset （ack）
 默认情况下，Kafka 会自动帮我们提交 offset，但是这样做容易导致消息重复消费或消失丢失：
