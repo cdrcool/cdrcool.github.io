@@ -43,7 +43,7 @@ spring:
     # 消费者
     consumer:
       # 用来唯一标识 consumer 进程所在组的字符串，如果设置同样的 group id，表示这些 processes 都是属于同一个 consumer group
-      group-id: group-1
+      group-id: group-x
       # 如果为真，消费者所 fetch 的消息的 offset 将会自动的同步到 zookeeper
       enable-auto-commit: true
       # 消费者向 zookeeper 提交 offset 的频率，当 enable-auto-commit 为 true 时生效，默认值 5s
@@ -77,10 +77,10 @@ public class KafkaConfiguration {
 @Slf4j
 @Component
 public class MessageSender {
-    private final KafkaTemplate<String, String> kafkaTemplate;
+    private final KafkaTemplate<Object, Object> kafkaTemplate;
 
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
-    public MessageSender(KafkaTemplate<String, String> kafkaTemplate) {
+    public MessageSender(KafkaTemplate<Object, Object> kafkaTemplate) {
         this.kafkaTemplate = kafkaTemplate;
     }
 
@@ -129,12 +129,12 @@ public class KafkaConfiguration {
 @Component
 public class MessageReceiver {
 
-    @KafkaListener(topics = {"topic-1"})
-    public void receive(ConsumerRecord<String, String> record) {
+    @KafkaListener(id = "group-2-1", topics = {"topic-1"})
+    public void receive(ConsumerRecord<Object, Object> record) {
         log.info("receive record: {}", record);
-        Optional<String> messageOptional = Optional.ofNullable(record.value());
+        Optional<Object> messageOptional = Optional.ofNullable(record.value());
         if (messageOptional.isPresent()) {
-            String message = messageOptional.get();
+            Object message = messageOptional.get();
             log.info("receive message: {}", message);
         }
     }
@@ -148,3 +148,96 @@ public class ConsumerApplication {
     }
 }
 ```
+
+## 高级配置
+### 多方法处理消息
+组合使用 @KafkaListener 和 @KafkaHandler，能够让我们在传递消息时，根据转换后的消息有效负载类型来确定调用哪个方法。如下：
+```java
+@Slf4j
+@KafkaListener(id = "group-2-2", topics = {"topic-1"})
+@Component
+public class MessageReceiverMultipleMethods {
+
+    @KafkaHandler
+    public void handlerStr(String message, Acknowledgment acknowledgment) {
+        log.info("receive message: {}, type of String", message);
+        acknowledgment.acknowledge();
+    }
+
+    @KafkaHandler
+    public void handlerMessage(Message message, Acknowledgment acknowledgment) {
+        log.info("receive message: {}, type of Message", message);
+        acknowledgment.acknowledge();
+    }
+
+    @KafkaHandler(isDefault = true)
+    public void handlerUnknown(Object message, Acknowledgment acknowledgment) {
+        log.info("receive message: {}, type of Unknown", message);
+        acknowledgment.acknowledge();
+    }
+}
+```
+当生产者发送字符串类型消息时，会执行方法 handlerStr；当生产者发送 Message 类型消息时，会执行方法 handlerMessage；当生产者发送其它类型（如整形）消息时，则会执行方法 handlerUnknown。
+
+当然，要将消息映射到不同的类型上，我们需要做一些额外的配置：
+* 修改 application.yml
+```yaml
+spring:
+  kafka:
+    # 生产者
+    producer:
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      spring.json.type.mapping: message:samples.Message
+```
+* 配置 RecordMessageConverter Bean
+```java
+@Bean
+public RecordMessageConverter converter() {
+    DefaultJackson2JavaTypeMapper typeMapper = new DefaultJackson2JavaTypeMapper();
+    typeMapper.setTypePrecedence(Jackson2JavaTypeMapper.TypePrecedence.TYPE_ID);
+    typeMapper.addTrustedPackages("samples");
+    Map<String, Class<?>> mappings = new HashMap<>(1);
+    mappings.put("message", Message.class);
+    typeMapper.setIdClassMapping(mappings);
+
+    StringJsonMessageConverter converter = new StringJsonMessageConverter();
+    converter.setTypeMapper(typeMapper);
+    return converter;
+}
+```
+
+### 手动提交 offset （ack）
+默认情况下，Kafka 会自动帮我们提交 offset，但是这样做容易导致消息重复消费或消失丢失：
+* 在消费者收到消息之后，且 kafka 未自动提交 offset 之前，broker 宕机了，然后重启 broker，此时消费者会从原来的 offset 开始消费，于是出现了重复消费；
+* 在消费者收到消息之后，且消费者还没有处理完消息时，由于自动提交的间隔时间到了，于是 kafka 自动提交了 offset，但是之后消费者又挂掉了，那么当消费者重启之后，会从下一个 offset 开始消费，这样前面的消息就丢失了。
+我们可以改为使用手动提交 offset，只需要做两处调整：
+1. 修改 application.yml
+```yaml
+spring:
+  kafka:
+    # 消费方
+    consumer:
+      enable-auto-commit: false
+    listener:
+      # 手动 ack，默认值 batch
+      ack-mode: manual
+```
+2. 消息处理完成之后，调用 Acknowledgment 的 acknowledge 方法
+```java
+@Slf4j
+@Component
+public class MessageReceiver {
+
+    @KafkaListener(topics = {"topic-1"})
+    public void receive(ConsumerRecord<String, String> record, Acknowledgment acknowledgment) {
+        log.info("receive record: {}", record);
+        Optional<String> messageOptional = Optional.ofNullable(record.value());
+        if (messageOptional.isPresent()) {
+            String message = messageOptional.get();
+            log.info("receive message: {}", message);
+        }
+        acknowledgment.acknowledge();
+    }
+}
+```
+
