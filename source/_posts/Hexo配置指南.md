@@ -84,7 +84,7 @@ gitalk:
   language: zh-CN
 ```
 
-注意：文件名中不能带有空格，不然授权成功后回调时会报 redirect_uri_mismatch 异常。
+注意：文件名中中英文之间不能带有空格，不然授权成功后回调时会报 redirect_uri_mismatch 异常。
 
 ## 启用打赏
 打开 \themes\next\_config.yml 文件，配置 reward 相关属性：

@@ -4,7 +4,6 @@ date: 2020-01-15 17:29:00
 categories: Kafka
 tags:
     - Docker
-    - Docker Compose
 ---
 1. 创建 network
 ```bash
