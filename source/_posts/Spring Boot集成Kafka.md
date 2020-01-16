@@ -179,7 +179,7 @@ public class MessageReceiverMultipleMethods {
 ```
 当生产者发送字符串类型消息时，会执行方法 handlerStr；当生产者发送 Message 类型消息时，会执行方法 handlerMessage；当生产者发送其它类型（如整形）消息时，则会执行方法 handlerUnknown。
 
-当然，要将消息映射到不同的类型上，我们需要做一些额外的配置：
+当然，要将消息映射到不同的类型上，我们需要做一点额外的配置：
 * 修改 application.yml
 ```yaml
 spring:
@@ -205,6 +205,75 @@ public RecordMessageConverter converter() {
     return converter;
 }
 ```
+
+### 开启事务
+使用 kafka 事务，我们能够保证生产者发送到多个分区的消息要么都成功要么都失败。Spring 提供了两种方式使用事务：
+* 使用 @Transactional
+* 调用 KafkaTemplate 的 executeInTransaction 方法
+
+以下代码演示了如何使用事务：
+```java
+@Slf4j
+@Component
+public class MessageSenderTransaction {
+    private final KafkaTemplate<Object, Object> kafkaTemplate;
+
+    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
+    public MessageSenderTransaction(KafkaTemplate<Object, Object> kafkaTemplate) {
+        this.kafkaTemplate = kafkaTemplate;
+    }
+
+    public void sendByInvokeMethod() {
+        kafkaTemplate.executeInTransaction(kafkaTemplate -> {
+            send();
+
+            //noinspection ConstantConditions
+            return null;
+//            throw new RuntimeException("fail");
+        });
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void sendWithAnnotation() {
+        send();
+//        throw new RuntimeException("fail");
+    }
+
+    private void send() {
+        Message message = new Message();
+        message.setId(System.currentTimeMillis());
+        message.setMsg(UUID.randomUUID().toString());
+        message.setSendTime(new Date());
+        log.info("send message: {}", message);
+        kafkaTemplate.send("topic-1", message);
+    }
+}
+```
+
+当然，要想使用事务，我们需要做一点额外的配置：
+* 修改 application.yml
+```yaml
+spring:
+  kafka:
+    # 生产者
+    producer:
+      # 生产者发送数据失败时重试的次数，默认值 0
+      retries: 3
+      # 指定了必须要有多少个分区副本收到消息，生产者才会认为写入消息是成功的，这个参数对消息丢失的可能性有重大影响。默认值 1
+      # 0：生产者往集群发送数据不需要等到集群的返回，不确保消息发送成功。安全性最低但是效率最高。
+      # 1：生产者往集群发送数据只要 Leader 应答就可以发送下一条，只确保 Leader 接收成功。
+      # all或-1：往集群发送数据需要所有的 ISR Follower 都完成从 Leader 的同步才会发送下一条，确保 Leader 发送成功和所有的副本都成功接收。安全性最高，但是效率最低。
+      acks: -1
+      # 事务 id 前缀，设置该属性后会开启事务
+      transaction-id-prefix: tx.
+    # 消费者
+    consumer:
+      properties:
+        # 事务隔离级别（read_committed 和 read_uncommitted）
+        isolation.level: read_committed
+```
+如上所示，首先需要添加配置`transaction-id-prefix: tx.`，然后需要将`retries`的值设置为大于 0，并将`acks`的值设置为 all 或 -1。
+另外需要注意的是，生产者开启事务之后，所有发送消息的地方都必须在事务中执行。
 
 ### 手动提交 offset （ack）
 默认情况下，Kafka 会自动帮我们提交 offset，但是这样做容易导致消息重复消费或消失丢失：
