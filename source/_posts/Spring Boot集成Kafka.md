@@ -206,6 +206,39 @@ public RecordMessageConverter converter() {
 }
 ```
 
+### 转发消息
+消费者收到消息之后，可以将消息重新发送出去，如下所示：
+```java
+@Bean
+public NewTopic topic2() {
+    return TopicBuilder.name("topic-2").partitions(1).replicas(1).build();
+}
+
+@Slf4j
+@Component
+public class MessageReceiverResend {
+    private final KafkaTemplate<Object, Object> kafkaTemplate;
+
+    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
+    public MessageReceiverResend(KafkaTemplate<Object, Object> kafkaTemplate) {
+        this.kafkaTemplate = kafkaTemplate;
+    }
+
+    @KafkaListener(id = "group-2-3", topics = {"topic-1"})
+    public void receive(Message message, Acknowledgment acknowledgment) {
+        log.info("receive message: {}", message);
+        acknowledgment.acknowledge();
+        kafkaTemplate.send("topic-2", message.getMsg());
+    }
+
+    @KafkaListener(id = "group-2-4", topics = "topic-2")
+    public void listen2(String msg, Acknowledgment acknowledgment) {
+        log.info("receive msg: {}", msg);
+        acknowledgment.acknowledge();
+    }
+}
+```
+
 ### 开启事务
 使用 kafka 事务，我们能够保证生产者发送到多个分区的消息要么都成功要么都失败。Spring 提供了两种方式使用事务：
 * 使用 @Transactional
