@@ -272,7 +272,7 @@ spring:
         # 事务隔离级别（read_committed 和 read_uncommitted）
         isolation.level: read_committed
 ```
-如上所示，首先需要添加配置`transaction-id-prefix: tx.`，然后需要将`retries`的值设置为大于 0，并将`acks`的值设置为 all 或 -1。
+如上所示，首先需要添加配置 transaction-id-prefix: tx. ，然后需要将 retries 的值设置为大于 0，并将 acks 的值设置为 all 或 -1。
 另外需要注意的是，生产者开启事务之后，所有发送消息的地方都必须放在事务中执行。
 
 ### 手动提交 offset （ack）
