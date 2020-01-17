@@ -297,12 +297,12 @@ spring:
 @Component
 public class MessageReceiver {
 
-    @KafkaListener(topics = {"topic-1"})
-    public void receive(ConsumerRecord<String, String> record, Acknowledgment acknowledgment) {
+    @KafkaListener(id = "group-2-1", topics = {"topic-1"})
+    public void receive(ConsumerRecord<Object, Object> record, Acknowledgment acknowledgment) {
         log.info("receive record: {}", record);
-        Optional<String> messageOptional = Optional.ofNullable(record.value());
+        Optional<Object> messageOptional = Optional.ofNullable(record.value());
         if (messageOptional.isPresent()) {
-            String message = messageOptional.get();
+            Object message = messageOptional.get();
             log.info("receive message: {}", message);
         }
         acknowledgment.acknowledge();
