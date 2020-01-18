@@ -67,10 +67,14 @@ public class Message {
 
 @Configuration
 public class KafkaConfiguration {
+    public static final String TOPIC = "topic";
 
+    /**
+     * 当主题不存在时才会创建新的主题
+     */
     @Bean
-    public NewTopic topic1() {
-        return TopicBuilder.name("topic-1").partitions(1).replicas(1).build();
+    public NewTopic topic() {
+        return TopicBuilder.name(TOPIC).partitions(1).replicas(1).build();
     }
 }
 
@@ -79,37 +83,15 @@ public class KafkaConfiguration {
 public class MessageSender {
     private final KafkaTemplate<Object, Object> kafkaTemplate;
 
-    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     public MessageSender(KafkaTemplate<Object, Object> kafkaTemplate) {
         this.kafkaTemplate = kafkaTemplate;
     }
 
-    public void send() throws JsonProcessingException {
-        Message message = new Message();
-        message.setId(System.currentTimeMillis());
-        message.setMsg(UUID.randomUUID().toString());
-        message.setSendTime(new Date());
-        String messageStr = new ObjectMapper().writeValueAsString(message);
-        log.info("send message: {}", messageStr);
-        kafkaTemplate.send("topic-1", messageStr);
-    }
-}
-
-@SpringBootApplication
-public class ProducerApplication implements CommandLineRunner {
-    private final MessageSender messageSender;
-
-    public ProducerApplication(MessageSender messageSender) {
-        this.messageSender = messageSender;
-    }
-
-    public static void main(String[] args) {
-        SpringApplication.run(ProducerApplication.class, args);
-    }
-
-    @Override
-    public void run(String... args) throws Exception {
-        messageSender.send();
+    /**
+     * 简单发送消息
+     */
+    public void send(Message message) {
+        kafkaTemplate.send(TOPIC, message);
     }
 }
 ```
@@ -118,10 +100,14 @@ public class ProducerApplication implements CommandLineRunner {
 ```java
 @Configuration
 public class KafkaConfiguration {
+    public static final String TOPIC = "topic";
 
+    /**
+     * 当主题不存在时才会创建新的主题
+     */
     @Bean
-    public NewTopic topic1() {
-        return TopicBuilder.name("topic-1").partitions(1).replicas(1).build();
+    public NewTopic topic() {
+        return TopicBuilder.name(TOPIC).partitions(1).replicas(1).build();
     }
 }
 
@@ -129,162 +115,131 @@ public class KafkaConfiguration {
 @Component
 public class MessageReceiver {
 
-    @KafkaListener(id = "group-2-1", topics = {"topic-1"})
-    public void receive(ConsumerRecord<Object, Object> record) {
-        log.info("receive record: {}", record);
+    /**
+     * 接收消息，参数类型为 ConsumerRecord
+     */
+    @KafkaListener(id = "group-2-1", topics = {TOPIC})
+    public void receive(ConsumerRecord<Object, Object> record, Acknowledgment acknowledgment) {
         Optional<Object> messageOptional = Optional.ofNullable(record.value());
         if (messageOptional.isPresent()) {
             Object message = messageOptional.get();
-            log.info("receive message: {}", message);
+            log.info("Receive message: {}", message);
         }
+
+        // 设置了手动 ack 模式时，需要在消息处理完毕之后，手动调用 acknowledge
+        acknowledgment.acknowledge();
     }
-}
 
-@SpringBootApplication
-public class ConsumerApplication {
-
-    public static void main(String[] args) {
-        SpringApplication.run(ConsumerApplication.class, args);
+    /**
+     * 接收消息，参数类型为 String
+     */
+    @KafkaListener(id = "group-2-2", topics = {TOPIC})
+    public void receive(String message, Acknowledgment acknowledgment) {
+        log.info("Receive message: {}", message);
+        acknowledgment.acknowledge();
     }
 }
 ```
 
 ## 高级配置
-### 多方法处理消息
-组合使用 @KafkaListener 和 @KafkaHandler，能够让我们在传递消息时，根据转换后的消息有效负载类型来确定调用哪个方法。如下：
-```java
-@Slf4j
-@KafkaListener(id = "group-2-2", topics = {"topic-1"})
-@Component
-public class MessageReceiverMultipleMethods {
-
-    @KafkaHandler
-    public void handlerStr(String message, Acknowledgment acknowledgment) {
-        log.info("receive message: {}, type of String", message);
-        acknowledgment.acknowledge();
-    }
-
-    @KafkaHandler
-    public void handlerMessage(Message message, Acknowledgment acknowledgment) {
-        log.info("receive message: {}, type of Message", message);
-        acknowledgment.acknowledge();
-    }
-
-    @KafkaHandler(isDefault = true)
-    public void handlerUnknown(Object message, Acknowledgment acknowledgment) {
-        log.info("receive message: {}, type of Unknown", message);
-        acknowledgment.acknowledge();
-    }
-}
-```
-当生产者发送字符串类型消息时，会执行方法 handlerStr；当生产者发送 Message 类型消息时，会执行方法 handlerMessage；当生产者发送其它类型（如整形）消息时，则会执行方法 handlerUnknown。
-
-当然，要将消息映射到不同的类型上，我们需要做一点额外的配置：
-* 修改 application.yml
+### 序列化/反序列化
+当我们发送对象类型消息数据时，在消费者方默认接收到的数据类型是字符串，如果我们希望接收到的是对象类型，可以在生产者/消费者两方都添加一点配置。
+* 生产方
 ```yaml
 spring:
   kafka:
     # 生产者
     producer:
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-      spring.json.type.mapping: message:samples.Message
+      properties:
+        # 建立映射：message 与 samples.dto.Message 对应
+        spring.json.type.mapping: message:samples.dto.Message
 ```
-* 配置 RecordMessageConverter Bean
+
+* 消费方
 ```java
-@Bean
-public RecordMessageConverter converter() {
-    DefaultJackson2JavaTypeMapper typeMapper = new DefaultJackson2JavaTypeMapper();
-    typeMapper.setTypePrecedence(Jackson2JavaTypeMapper.TypePrecedence.TYPE_ID);
-    typeMapper.addTrustedPackages("samples");
-    Map<String, Class<?>> mappings = new HashMap<>(1);
-    mappings.put("message", Message.class);
-    typeMapper.setIdClassMapping(mappings);
+@Configuration
+public class KafkaConfiguration {
 
-    StringJsonMessageConverter converter = new StringJsonMessageConverter();
-    converter.setTypeMapper(typeMapper);
-    return converter;
+    /**
+     * 消息类型转换
+     */
+    @Bean
+    public RecordMessageConverter converter() {
+        DefaultJackson2JavaTypeMapper typeMapper = new DefaultJackson2JavaTypeMapper();
+        typeMapper.setTypePrecedence(Jackson2JavaTypeMapper.TypePrecedence.TYPE_ID);
+        typeMapper.addTrustedPackages("samples.dto");
+        Map<String, Class<?>> mappings = new HashMap<>(10);
+        mappings.put("message", Message.class);
+        typeMapper.setIdClassMapping(mappings);
+
+        StringJsonMessageConverter converter = new StringJsonMessageConverter();
+        converter.setTypeMapper(typeMapper);
+        return converter;
+    }
 }
 ```
 
-### 转发消息
-消费者收到消息之后，可以将消息重新发送出去，如下所示：
+之后，我们就能够像下面这样接收 Message 参数的消息了：
 ```java
-@Bean
-public NewTopic topic2() {
-    return TopicBuilder.name("topic-2").partitions(1).replicas(1).build();
-}
+/**
+ * 接收消息，参数类型为 Message
+ */
+@KafkaListener(id = "group-2-3", topics = {TOPIC})
+public void receive(Message message, Acknowledgment acknowledgment) {
+    log.info("Receive message: {}", message);
 
-@Slf4j
-@Component
-public class MessageReceiverResend {
-    private final KafkaTemplate<Object, Object> kafkaTemplate;
-
-    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
-    public MessageReceiverResend(KafkaTemplate<Object, Object> kafkaTemplate) {
-        this.kafkaTemplate = kafkaTemplate;
-    }
-
-    @KafkaListener(id = "group-2-3", topics = {"topic-1"})
-    public void receive(Message message, Acknowledgment acknowledgment) {
-        log.info("receive message: {}", message);
-        acknowledgment.acknowledge();
-        kafkaTemplate.send("topic-2", message.getMsg());
-    }
-
-    @KafkaListener(id = "group-2-4", topics = "topic-2")
-    public void listen2(String msg, Acknowledgment acknowledgment) {
-        log.info("receive msg: {}", msg);
-        acknowledgment.acknowledge();
-    }
+    // 设置了手动 ack 模式时，需要在消息处理完毕之后，手动调用 acknowledge
+    acknowledgment.acknowledge();
 }
 ```
 
-### 开启事务
-使用 kafka 事务，我们能够保证生产者发送到多个分区的消息要么都成功要么都失败。Spring 提供了两种方式使用事务：
-* 使用 @Transactional
-* 调用 KafkaTemplate 的 executeInTransaction 方法
+在后续演示代码中，默认都会配置序列化/反序列化，就不再一一列举了。
 
-以下代码演示了如何使用事务：
+### 获取消息发送结果
+在发送消息之后，我们可以获取到消息发送结果，既可以以同步方式获取结果，也可以以异步方式获取结果。
+* 同步方式
 ```java
-@Slf4j
-@Component
-public class MessageSenderTransaction {
-    private final KafkaTemplate<Object, Object> kafkaTemplate;
-
-    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
-    public MessageSenderTransaction(KafkaTemplate<Object, Object> kafkaTemplate) {
-        this.kafkaTemplate = kafkaTemplate;
-    }
-
-    public void sendByInvokeMethod() {
-        kafkaTemplate.executeInTransaction(kafkaTemplate -> {
-            send();
-
-            //noinspection ConstantConditions
-            return null;
-//            throw new RuntimeException("fail");
-        });
-    }
-
-    @Transactional(rollbackFor = Exception.class)
-    public void sendWithAnnotation() {
-        send();
-//        throw new RuntimeException("fail");
-    }
-
-    private void send() {
-        Message message = new Message();
-        message.setId(System.currentTimeMillis());
-        message.setMsg(UUID.randomUUID().toString());
-        message.setSendTime(new Date());
-        log.info("send message: {}", message);
-        kafkaTemplate.send("topic-1", message);
+/**
+ * 发送消息，同时同步获取消息发送结果
+ */
+public void sendAndGetResultSync(Message message) {
+    ListenableFuture<SendResult<Object, Object>> future = kafkaTemplate.send(TOPIC, message);
+    try {
+        SendResult<Object, Object> result = future.get();
+        log.info("Sync get send result success, result: {}", result);
+    } catch (Throwable e) {
+        log.error("Sync get send result failure", e);
     }
 }
 ```
 
-当然，要想使用事务，我们需要做一点额外的配置：
-* 修改 application.yml
+* 异步方式
+```java
+/**
+ * 发送消息，同时异步获取消息发送结果
+ */
+public void sendAndGetResultAsync(Message message) {
+    kafkaTemplate.send(TOPIC, message).addCallback(new ListenableFutureCallback<SendResult<Object, Object>>() {
+
+        @Override
+        public void onSuccess(SendResult<Object, Object> result) {
+            log.info("Async get send result success, result: {}", result);
+
+        }
+
+        @Override
+        public void onFailure(Throwable e) {
+            log.error("Async get send result failure", e);
+        }
+    });
+}
+```
+
+### 使用事务
+#### 开启事务
+当我们在生产者方配置了属性 transaction-id-prefix 后，Spring 会自动帮我们开启事务。
+不过开启事务之后，retries 属性需要设置为大于 0，acks 属性需要设置为 all 或 -1。
+另外，我们还需要将消费者方的 isolation.level 设置为 read_committed，这样对于未提交事务的消息，消费者就不会读取到。
 ```yaml
 spring:
   kafka:
@@ -305,8 +260,323 @@ spring:
         # 事务隔离级别（read_committed 和 read_uncommitted）
         isolation.level: read_committed
 ```
-如上所示，首先需要添加配置 transaction-id-prefix: tx. ，然后需要将 retries 的值设置为大于 0，并将 acks 的值设置为 all 或 -1。
-另外需要注意的是，生产者开启事务之后，所有发送消息的地方都必须放在事务中执行。
+
+#### 使用事务
+有两种方式
+Spring 提供了两种方式使用事务：调用 KafkaTemplate 的 executeInTransaction 方法，或使用 @Transactional。
+
+* 调用 KafkaTemplate 的 executeInTransaction 方法
+```java
+/**
+ * 发送消息，并开启事务，使用 kafkaTemplate.executeInTransaction
+ */
+public void sendInTransactionByMethod(Message message) {
+    kafkaTemplate.executeInTransaction(kafkaTemplate -> {
+        kafkaTemplate.send(TOPIC, message);
+        log.info("Send in transaction by method success");
+        //noinspection ConstantConditions
+        return null;
+        // throw new RuntimeException("fail");
+    });
+}
+```
+
+* 使用 @Transactional
+```java
+/**
+ * 发送消息，并开启事务，使用 @Transactional
+ */
+@Transactional(rollbackFor = Exception.class)
+public void sendInTransactionByAnnotation(Message message) {
+    kafkaTemplate.send(TOPIC, message);
+    log.info("Send in transaction by annotation success");
+    // throw new RuntimeException("fail");
+}
+```
+
+需要注意的是，在生产者开启事务之后，所有发送消息的地方都必须放在事务中执行。
+
+### 转发消息
+消费者在收到消息并对消息进行处理之后，可以再将新的消息发送出去。
+* 生产方
+```java
+@Configuration
+public class KafkaConfiguration {
+    public static final String TOPIC_RESEND = "topic-resend";
+    public static final String TOPIC_RESEND_NEXT = "topic-resend-next";
+
+    @Bean
+    public NewTopic topicResend() {
+        return TopicBuilder.name(TOPIC_RESEND).partitions(1).replicas(1).build();
+    }
+
+    @Bean
+    public NewTopic topicResendNext() {
+        return TopicBuilder.name(TOPIC_RESEND_NEXT).partitions(1).replicas(1).build();
+    }
+}
+
+/**
+ * 消息生产方同时作为消费者，接收其对应的消费者返回的消息
+ */
+@Slf4j
+@Component
+public class MessageReceiver {
+
+    /**
+     * 接收消息，参数类型为 ConsumerRecord
+     */
+    @KafkaListener(id = "group-1-1", topics = {TOPIC_RESEND_NEXT})
+    public void receive(ConsumerRecord<Object, Object> record, Acknowledgment acknowledgment) {
+        Optional<Object> messageOptional = Optional.ofNullable(record.value());
+        if (messageOptional.isPresent()) {
+            Object message = messageOptional.get();
+            log.info("Receive message: {}", message);
+        }
+        acknowledgment.acknowledge();
+    }
+
+    /**
+     * 接收消息，参数类型为 Message
+     */
+    @KafkaListener(id = "group-1-2", topics = {TOPIC_RESEND_NEXT})
+    public void receive(String msg, Acknowledgment acknowledgment) {
+        log.info("Receive msg: {}", msg);
+        acknowledgment.acknowledge();
+    }
+}
+
+@Slf4j
+@Component
+public class MessageReceiver {
+
+    @KafkaListener(id = "group-1-1", topics = {TOPIC_RESEND_NEXT})
+    public void receive(ConsumerRecord<Object, Object> record, Acknowledgment acknowledgment) {
+        Optional<Object> messageOptional = Optional.ofNullable(record.value());
+        if (messageOptional.isPresent()) {
+            Object message = messageOptional.get();
+            log.info("Receive message: {}", message);
+        }
+        acknowledgment.acknowledge();
+    }
+
+    @KafkaListener(id = "group-1-2", topics = {TOPIC_RESEND_NEXT})
+    public void receive(String msg, Acknowledgment acknowledgment) {
+        log.info("Receive msg: {}", msg);
+        acknowledgment.acknowledge();
+    }
+}
+```
+
+* 消费方
+```java
+@Configuration
+public class KafkaConfiguration {
+    public static final String TOPIC_RESEND = "topic-resend";
+    public static final String TOPIC_RESEND_NEXT = "topic-resend-next";
+
+    @Bean
+    public NewTopic topicResend() {
+        return TopicBuilder.name(TOPIC_RESEND).partitions(1).replicas(1).build();
+    }
+
+    @Bean
+    public NewTopic topicResendNext() {
+        return TopicBuilder.name(TOPIC_RESEND_NEXT).partitions(1).replicas(1).build();
+    }
+}
+
+@Slf4j
+@Component
+public class MessageReceiver {
+    private final KafkaTemplate<Object, Object> kafkaTemplate;
+
+    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
+    public MessageReceiver(KafkaTemplate<Object, Object> kafkaTemplate) {
+        this.kafkaTemplate = kafkaTemplate;
+    }
+
+    /**
+     * 接收消息，在处理完消息之后，再将新的消息重新发送出去
+     */
+    @SendTo
+    @KafkaListener(id = "group-2-4", topics = {TOPIC_RESEND})
+    public void receiveAndResend(Message message, Acknowledgment acknowledgment) {
+        log.info("Receive message: {}", message);
+        acknowledgment.acknowledge();
+        kafkaTemplate.send(TOPIC_RESEND_NEXT, message.getMsg());
+    }
+}
+```
+
+### 获取消息回复
+生产者在发送消息之后，可以同时等待获取消费者接收并处理消息之后的回复，就像传统的 RPC 交互那样，要实现这个功能，我们需要使用 ReplyingKafkaTemplate。
+ReplyingKafkaTemplate 是 KafkaTemplate 的一个子类，它除了继承父类的方法，还新增了方法 sendAndReceive ，该方法实现了消息发送/回复的语义。
+Spring Boot 没有提供开箱即用的 ReplyingKafkaTemplate，我们需要做些额外的配置。
+
+* 生产方
+```java
+@Configuration
+public class KafkaConfiguration {
+    public static final String TOPIC_RECEIVE = "topic-receive";
+
+    public static final String TOPIC_REPLIES = "replies";
+    public static final String GROUP_REPLIES = "repliesGroup";
+
+    @Bean
+    public NewTopic topicReceive() {
+        return TopicBuilder.name(TOPIC_RECEIVE).partitions(1).replicas(1).build();
+    }
+
+    @Bean
+    public NewTopic topicReplies() {
+        return TopicBuilder.name(TOPIC_REPLIES).partitions(1).replicas(1).build();
+    }
+
+    @Bean
+    public ConcurrentMessageListenerContainer<Object, Object> concurrentMessageListenerContainer(
+            ConcurrentKafkaListenerContainerFactory<Object, Object> containerFactory) {
+        ConcurrentMessageListenerContainer<Object, Object> container =
+                containerFactory.createContainer(TOPIC_REPLIES);
+        container.getContainerProperties().setGroupId(GROUP_REPLIES);
+        container.setAutoStartup(false);
+        return container;
+    }
+
+    @Bean
+    public ReplyingKafkaTemplate<Object, Object, Object> replyingKafkaTemplate(
+            ProducerFactory<Object, Object> producerFactory,
+            ConcurrentMessageListenerContainer<Object, Object> concurrentMessageListenerContainer) {
+        ReplyingKafkaTemplate<Object, Object, Object> kafkaTemplate =
+                new ReplyingKafkaTemplate<>(producerFactory, concurrentMessageListenerContainer);
+        // kafkaTemplate.setSharedReplyTopic(true);
+        return kafkaTemplate;
+    }
+
+    /**
+     * 如果不配置 kafkaTemplate，启动时会抛出循环依赖异常
+     */
+    @Bean
+    public KafkaTemplate<Object, Object> kafkaTemplate(ProducerFactory<Object, Object> producerFactory) {
+        return new KafkaTemplate<>(producerFactory);
+    }
+}
+```
+
+* 消费方
+```java
+@Configuration
+public class KafkaConfiguration {
+    public static final String TOPIC_RECEIVE = "topic-receive";
+
+    @Bean
+    public NewTopic topicReceive() {
+        return TopicBuilder.name(TOPIC_RECEIVE).partitions(1).replicas(1).build();
+    }
+}
+
+@Slf4j
+@Component
+public class MessageReceiver {
+
+    /**
+     * 接收消息，在处理完消息之后，将处理结果返回给生产方
+     */
+    @SendTo
+    @KafkaListener(id = "group-2-5", topics = {TOPIC_RECEIVE})
+    public String receiveAndReply(Message message, Acknowledgment acknowledgment) {
+        log.info("Receive message: {}", message);
+        acknowledgment.acknowledge();
+        return "successful";
+    }
+}
+```
+
+### 多方法处理消息
+组合使用 @KafkaListener 和 @KafkaHandler，能够让我们在传递消息时，根据转换后的消息有效负载类型来确定调用哪个方法。
+
+* 生产方
+```java
+@Configuration
+public class KafkaConfiguration {
+    public static final String TOPIC_MULTIPLE = "topic-multiple";
+
+    @Bean
+    public NewTopic topicMultiple() {
+        return TopicBuilder.name(TOPIC_MULTIPLE).partitions(1).replicas(1).build();
+    }
+}
+
+@Slf4j
+@Component
+public class MessageSender {
+    private final KafkaTemplate<Object, Object> kafkaTemplate;
+
+    public MessageSender(KafkaTemplate<Object, Object> kafkaTemplate) {
+        this.kafkaTemplate = kafkaTemplate;
+    }
+
+    /**
+     * 发送消息，消息类型为字符串，消费者根据消息类型决定执行哪个方法
+     */
+    public void sendToMultipleHandlers(String msg) {
+        kafkaTemplate.send(TOPIC_MULTIPLE, msg);
+    }
+
+    /**
+     * 发送消息，消息类型为 Message，消费者根据消息类型决定执行哪个方法
+     */
+    public void sendToMultipleHandlers(Message message) {
+        kafkaTemplate.send(TOPIC_MULTIPLE, message);
+    }
+}
+```
+
+* 消费方
+```java
+@Configuration
+public class KafkaConfiguration {
+    public static final String TOPIC_MULTIPLE = "topic-multiple";
+
+    @Bean
+    public NewTopic topicMultiple() {
+        return TopicBuilder.name(TOPIC_MULTIPLE).partitions(1).replicas(1).build();
+    }
+}
+
+@Slf4j
+@KafkaListener(id = "group-2-6", topics = {TOPIC_MULTIPLE})
+@Component
+public class MessageReceiverMultipleMethods {
+
+    /**
+     * 处理字符串类型的消息
+     */
+    @KafkaHandler
+    public void handlerStr(String message, Acknowledgment acknowledgment) {
+        log.info("Receive message: {}, type of String", message);
+        acknowledgment.acknowledge();
+    }
+
+    /**
+     * 处理 Message 类型的消息
+     */
+    @KafkaHandler
+    public void handlerMessage(Message message, Acknowledgment acknowledgment) {
+        log.info("Receive message: {}, type of Message", message);
+        acknowledgment.acknowledge();
+    }
+
+    /**
+     * 处理其它类型的消息
+     */
+    @KafkaHandler(isDefault = true)
+    public void handlerUnknown(Object message, Acknowledgment acknowledgment) {
+        log.info("Receive message: {}, type of Unknown", message);
+        acknowledgment.acknowledge();
+    }
+}
+```
 
 ### 手动提交 offset （ack）
 默认情况下，Kafka 会自动帮我们提交 offset，但是这样做容易导致消息重复消费或消失丢失：
@@ -324,6 +594,7 @@ spring:
       # 手动 ack，默认值 batch
       ack-mode: manual
 ```
+
 2. 消息处理完成之后，调用 Acknowledgment 的 acknowledge 方法
 ```java
 @Slf4j
