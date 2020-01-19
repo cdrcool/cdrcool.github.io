@@ -479,6 +479,35 @@ public class KafkaConfiguration {
         return new KafkaTemplate<>(producerFactory);
     }
 }
+
+@Slf4j
+@Component
+public class MessageSender {
+    /**
+     * KafkaTemplate 的子类，除了继承父类的方法之外，还提供了 sendAndReceive 方法，可以用来实现类似传统 RPC 那样的交互：即发送消息，并等待消息处理结果。
+     */
+    private final ReplyingKafkaTemplate<Object, Object, Object> replyingKafkaTemplate;
+
+    public MessageSender(ReplyingKafkaTemplate<Object, Object, Object> replyingKafkaTemplate) {
+        this.replyingKafkaTemplate = replyingKafkaTemplate;
+    }
+
+    /**
+     * 发送消息，同时等待消息结果
+     */
+    public void sendAndReceive(Message message) {
+        ProducerRecord<Object, Object> producerRecord = new ProducerRecord<>(TOPIC_RECEIVE, message);
+        // producerRecord.headers().add(new RecordHeader(KafkaHeaders.REPLY_TOPIC, TOPIC_REPLIES.getBytes()));
+        RequestReplyFuture<Object, Object, Object> replyFuture = replyingKafkaTemplate.sendAndReceive(producerRecord);
+        ConsumerRecord<Object, Object> consumerRecord;
+        try {
+            consumerRecord = replyFuture.get();
+            log.info("Receive reply success, result: {}", consumerRecord.value());
+        } catch (InterruptedException | ExecutionException e) {
+            log.error("Receive reply failure", e);
+        }
+    }
+}
 ```
 
 * 消费方
