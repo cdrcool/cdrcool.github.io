@@ -298,6 +298,7 @@ public void sendInTransactionByAnnotation(Message message) {
 
 ### 转发消息
 消费者在收到消息并对消息进行处理之后，可以再将新的消息发送出去。
+在消费方，我们既可以使用 kafkaTemplate.send 实现手动发送消息，也可以使用 @Send 实现自动发送消息。
 * 生产方
 ```java
 @Configuration
@@ -337,7 +338,7 @@ public class MessageReceiver {
     }
 
     /**
-     * 接收消息，参数类型为 Message
+     * 接收消息，参数类型为 String
      */
     @KafkaListener(id = "group-1-2", topics = {TOPIC_RESEND_NEXT})
     public void receive(String msg, Acknowledgment acknowledgment) {
@@ -350,6 +351,9 @@ public class MessageReceiver {
 @Component
 public class MessageReceiver {
 
+    /**
+     * 接收消息，参数类型为 ConsumerRecord
+     */
     @KafkaListener(id = "group-1-1", topics = {TOPIC_RESEND_NEXT})
     public void receive(ConsumerRecord<Object, Object> record, Acknowledgment acknowledgment) {
         Optional<Object> messageOptional = Optional.ofNullable(record.value());
@@ -360,6 +364,9 @@ public class MessageReceiver {
         acknowledgment.acknowledge();
     }
 
+    /**
+     * 接收消息，参数类型为 String
+     */
     @KafkaListener(id = "group-1-2", topics = {TOPIC_RESEND_NEXT})
     public void receive(String msg, Acknowledgment acknowledgment) {
         log.info("Receive msg: {}", msg);
@@ -397,14 +404,25 @@ public class MessageReceiver {
     }
 
     /**
-     * 接收消息，在处理完消息之后，再将新的消息重新发送出去
+     * 接收消息，在处理完消息之后，再将新的消息 手动 重新发送出去
      */
     @SendTo
     @KafkaListener(id = "group-2-4", topics = {TOPIC_RESEND})
-    public void receiveAndResend(Message message, Acknowledgment acknowledgment) {
+    public void receiveAndResendManual(Message message, Acknowledgment acknowledgment) {
         log.info("Receive message: {}", message);
         acknowledgment.acknowledge();
         kafkaTemplate.send(TOPIC_RESEND_NEXT, message.getMsg());
+    }
+
+    /**
+     * 接收消息，在处理完消息之后，再将新的消息 自动 重新发送出去
+     */
+    @SendTo(TOPIC_RESEND_NEXT)
+    @KafkaListener(id = "group-2-5", topics = {TOPIC_RESEND})
+    public String receiveAndResendAuto(Message message, Acknowledgment acknowledgment) {
+        log.info("Receive message: {}", message);
+        acknowledgment.acknowledge();
+        return message.getMsg();
     }
 }
 ```
@@ -483,7 +501,7 @@ public class MessageReceiver {
      * 接收消息，在处理完消息之后，将处理结果返回给生产方
      */
     @SendTo
-    @KafkaListener(id = "group-2-5", topics = {TOPIC_RECEIVE})
+    @KafkaListener(id = "group-2-6", topics = {TOPIC_RECEIVE})
     public String receiveAndReply(Message message, Acknowledgment acknowledgment) {
         log.info("Receive message: {}", message);
         acknowledgment.acknowledge();
@@ -545,7 +563,7 @@ public class KafkaConfiguration {
 }
 
 @Slf4j
-@KafkaListener(id = "group-2-6", topics = {TOPIC_MULTIPLE})
+@KafkaListener(id = "group-2-7", topics = {TOPIC_MULTIPLE})
 @Component
 public class MessageReceiverMultipleMethods {
 
