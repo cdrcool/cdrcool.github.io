@@ -632,3 +632,45 @@ public class MessageReceiver {
 }
 ```
 
+### 异常处理
+对于消费者在处理消息过程中抛出的异常，我们可以设置 errorHandler，然后在 errorHandler 中统一处理。
+
+```java
+/**
+ * 接收消息，处理消息时抛出异常，异常由 errorHandler 进行处理
+ */
+@KafkaListener(id = "group-2-8", topics = {TOPIC_EXCEPTION}, errorHandler = "customErrorHandler")
+public void receiveWithException(Message message, Acknowledgment acknowledgment) {
+    log.info("Receive message: {}", message);
+    throw new RuntimeException("error");
+}
+
+@Slf4j
+@Service("customErrorHandler")
+public class CustomKafkaListenerErrorHandler implements KafkaListenerErrorHandler {
+    @Override
+    public Object handleError(Message<?> message, ListenerExecutionFailedException exception) {
+        log.error("Handle message with exception, message: {}", message.getPayload().toString());
+        return null;
+    }
+
+    @Override
+    public Object handleError(Message<?> message, ListenerExecutionFailedException exception, Consumer<?, ?> consumer) {
+        log.error("Handle message with exception, message: {}", message.getPayload().toString());
+        return null;
+    }
+}
+```
+
+### 并发接收消息
+```java
+ /**
+ * 并发接收消息
+ */
+@KafkaListener(id = "group-2-9", topics = {TOPIC_CONCURRENT}, concurrency = "3")
+public void receiveConcurrent(Message message, Acknowledgment acknowledgment) {
+    log.info("Receive message: {}", message);
+    acknowledgment.acknowledge();
+}
+```
+
