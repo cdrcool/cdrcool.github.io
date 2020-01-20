@@ -767,4 +767,117 @@ public void receiveByDeadLetter(ConsumerRecord<Object, Object> record, Acknowled
 }
 ```
 
+### 拦截器
+Apache Kafka 提供了一种向生产者和消费者添加拦截器的机制。下面我们将演示如何在 Spring Boot 中配置拦截器。
+
+* 生产方
+```java
+@Configuration
+public class KafkaConfiguration {
+    @Bean
+    public ProducerFactory<Object, Object> kafkaProducerFactory(KafkaProperties properties, CustomComponent customComponent) {
+        Map<String, Object> producerProperties = properties.buildProducerProperties();
+        producerProperties.put(ProducerConfig.INTERCEPTOR_CLASSES_CONFIG, CustomProducerInterceptor.class.getName());
+        producerProperties.put("custom.component", customComponent);
+        DefaultKafkaProducerFactory<Object, Object> factory = new DefaultKafkaProducerFactory<>(producerProperties);
+        String transactionIdPrefix = properties.getProducer().getTransactionIdPrefix();
+        if (transactionIdPrefix != null) {
+            factory.setTransactionIdPrefix(transactionIdPrefix);
+        }
+        return factory;
+    }
+}
+
+@Slf4j
+@Component
+public class CustomComponent {
+
+    public void doSomething() {
+        log.info("Do something");
+    }
+}
+
+@Slf4j
+public class CustomProducerInterceptor implements ProducerInterceptor<Object, Object> {
+    private CustomComponent customComponent;
+
+    @Override
+    public ProducerRecord<Object, Object> onSend(ProducerRecord<Object, Object> record) {
+        log.info("Before send message, do your own business");
+        customComponent.doSomething();
+        return record;
+    }
+
+    @Override
+    public void onAcknowledgement(RecordMetadata metadata, Exception exception) {
+
+    }
+
+    @Override
+    public void close() {
+
+    }
+
+    @Override
+    public void configure(Map<String, ?> configs) {
+        this.customComponent = (CustomComponent) configs.get("custom.component");
+    }
+}
+```
+
+* 消费方
+```java
+@Configuration
+public class KafkaConfiguration {
+    @Bean
+    public ProducerFactory<Object, Object> kafkaProducerFactory(KafkaProperties properties, CustomComponent customComponent) {
+        Map<String, Object> producerProperties = properties.buildProducerProperties();
+        producerProperties.put(ProducerConfig.INTERCEPTOR_CLASSES_CONFIG, CustomProducerInterceptor.class.getName());
+        producerProperties.put("custom.component", customComponent);
+        DefaultKafkaProducerFactory<Object, Object> factory = new DefaultKafkaProducerFactory<>(producerProperties);
+        String transactionIdPrefix = properties.getProducer().getTransactionIdPrefix();
+        if (transactionIdPrefix != null) {
+            factory.setTransactionIdPrefix(transactionIdPrefix);
+        }
+        return factory;
+    }
+}
+
+@Slf4j
+@Component
+public class CustomComponent {
+
+    public void doSomething() {
+        log.info("Do something");
+    }
+}
+
+@Slf4j
+public class CustomProducerInterceptor implements ProducerInterceptor<Object, Object> {
+    private CustomComponent customComponent;
+
+    @Override
+    public ProducerRecord<Object, Object> onSend(ProducerRecord<Object, Object> record) {
+        log.info("Before send message, do your own business");
+        customComponent.doSomething();
+        return record;
+    }
+
+    @Override
+    public void onAcknowledgement(RecordMetadata metadata, Exception exception) {
+
+    }
+
+    @Override
+    public void close() {
+
+    }
+
+    @Override
+    public void configure(Map<String, ?> configs) {
+        this.customComponent = (CustomComponent) configs.get("custom.component");
+    }
+}
+```
+
 
