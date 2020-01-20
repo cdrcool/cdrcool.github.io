@@ -703,3 +703,68 @@ public void receiveConcurrent(Message message, Acknowledgment acknowledgment) {
 }
 ```
 
+### 暂停与恢复消费
+通过使用 KafkaListenerEndpointRegistry，我们可以动态的暂停与恢复消费者消费消息。
+
+```java
+/**
+ * bean 的名称需是类名，不然会找不到 bean
+ */
+private final KafkaListenerEndpointRegistry kafkaListenerEndpointRegistry;
+
+public MessageSender(KafkaListenerEndpointRegistry kafkaListenerEndpointRegistry) {
+    this.kafkaListenerEndpointRegistry = kafkaListenerEndpointRegistry;
+}
+
+/**
+ * 指定消费者开始消费
+ */
+public void startListener(String listenerId) {
+    kafkaListenerEndpointRegistry.getListenerContainer(listenerId).start();
+}
+
+/**
+ * 指定消费者暂停消费
+ */
+public void stopListener(String listenerId) {
+    kafkaListenerEndpointRegistry.getListenerContainer(listenerId).pause();
+}
+
+/**
+ * 指定消费者恢复消费
+ */
+public void resumeListener(String listenerId) {
+    kafkaListenerEndpointRegistry.getListenerContainer(listenerId).resume();
+}
+```
+
+### 消息重试与死信队列
+当消费者在处理消息过程中发生异常时，我们可以进行多次重试，如果最终还是存在异常，我们可以将消息发送到预定的 Topic，即死信队列中。
+
+```java
+/**
+ * 在消费方配置 errorHandler
+ */
+@Bean
+public ConcurrentKafkaListenerContainerFactory<Object, Object> kafkaListenerContainerFactory(
+        ConcurrentKafkaListenerContainerFactoryConfigurer configurer,
+        ConsumerFactory<Object, Object> consumerFactory,
+        KafkaTemplate<Object, Object> kafkaTemplate) {
+    ConcurrentKafkaListenerContainerFactory<Object, Object> factory = new ConcurrentKafkaListenerContainerFactory<>();
+    configurer.configure(factory, consumerFactory);
+    factory.setErrorHandler(new SeekToCurrentErrorHandler(new DeadLetterPublishingRecoverer(kafkaTemplate), new FixedBackOff(0L, 3L)));
+    return factory;
+}
+
+/**
+ * 当消费者处理消息时发生异常，且多次重试后依然异常，那么消息会被发送到死信队列
+ * 这里的消息类型参数不能是 Message 类型，不然不会进入到该方法中
+ */
+@KafkaListener(id = "group-2-10-2", topics = {TOPIC_DEAD_LETTER + ".DLT"})
+public void receiveByDeadLetter(ConsumerRecord<Object, Object> record, Acknowledgment acknowledgment) {
+    log.info("Receive message from DLT, message: {}", record.value());
+    acknowledgment.acknowledge();
+}
+```
+
+
