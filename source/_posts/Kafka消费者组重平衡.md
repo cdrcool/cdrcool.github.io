@@ -15,10 +15,10 @@ Consumer Group 可以是用正则表达式的方式订阅主题，比如 consume
 * 订阅主题的分区数发生变更
 Kafka 当前只允许增加一个主题的分区数。当分区数增加时，就会触发订阅该主题的所有 Group 开启 Rebalance。
 
-### 分区分配策略
+## 分区分配策略
 Rebalance 发生时，Group 下所有的 Consumer 实例都会协调在一起共同参与。那每个 Consumer 实例怎么知道应该消费订阅主题的哪些分区呢？这就需要[Kafka 分区分配策略](https://cdrcool.github.io/2020/01/24/Kafka分区分配策略/)的协助了。
 
-### 弊端
+## 弊端
 * Rebalance 影响 Consumer 端 TPS
 这是因为在 Rebalance 过程中，所有 Consumer 实例都会停止消费，直到 Rebalance 完成。
 * Rebalance 很慢
@@ -26,7 +26,7 @@ Rebalance 发生时，Group 下所有的 Consumer 实例都会协调在一起共
 * Rebalance 效率不高
 当前 Kafka 的设计机制决定了每次 Rebalance 时，Group 下的所有成员都要参与进来，而且通常不会考虑局部性原理，但局部性原理对提升系统性能是特别重要的。
 
-### 避免 Rebalance
+## 避免 Rebalance
 在真实的业务场景中，很多 Rebalance 都是计划外的或者说是不必要的。
 
 要避免 Rebalance，还是要从 Rebalance 发生的时机入手。我们在前面说过，Rebalance 发生的时机有 3 个：
