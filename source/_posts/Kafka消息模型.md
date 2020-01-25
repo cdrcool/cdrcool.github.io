@@ -1,5 +1,5 @@
 ---
-title: Kafka消息模型
+title: Kafka 消息模型
 date: 2020-01-21 11:14:00
 categories: Kafka
 ---

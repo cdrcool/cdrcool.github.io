@@ -1,5 +1,5 @@
 ---
-title: Spring Boot集成Kafka
+title: Spring Boot 集成 Kafka
 date: 2020-01-16 17:22:00
 categories: Kafka
 tags:

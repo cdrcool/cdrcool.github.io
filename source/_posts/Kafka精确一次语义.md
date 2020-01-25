@@ -1,5 +1,5 @@
 ---
-title: Kafka精确一次语义
+title: Kafka 精确一次语义
 date: 2020-01-21 16:06:00
 categories: Kafka
 ---
