@@ -9,7 +9,7 @@ categories: Kafka
 老版本 Consumer 的位移管理是依托于 Apache ZooKeeper 的，它会自动或手动地将位移数据提交到 ZooKeeper 中保存。当 Consumer 重启后，它能自动从 ZooKeeper 中读取位移数据，从而在上次消费截止的地方继续消费。这种设计使得 Kafka Broker 不需要保存位移数据，减少了 Broker 端需要持有的状态空间，因而有利于实现高伸缩性。
 但是，ZooKeeper 其实并不适用于这种高频的写操作，因此，Kafka 最终在新版本 Consumer 中正式推出了全新的位移管理机制。
 
-新版本 Consumer 的位移管理机制其实很简单，就是将 Consumer 的位移数据作为一条条普通的 Kafka 消息，提交到 __consumer_offsets 中。可以这么说，__consumer_offsets 的主要作用是保存 Kafka 消费者的位移信息。它要求这个提交过程不仅要实现高持久性，还要支持高频的写操作。显然，Kafka的主题设计天然就满足这两个条件。
+新版本 Consumer 的位移管理机制其实很简单，就是将 Consumer 的位移数据作为一条条普通的 Kafka 消息，提交到 _ _consumer_offsets 中。可以这么说，__consumer_offsets 的主要作用是保存 Kafka 消费者的位移信息。它要求这个提交过程不仅要实现高持久性，还要支持高频的写操作。显然，Kafka的主题设计天然就满足这两个条件。
 
 需要强调的是，和我们创建的其他主题一样，位移主题就是普通的 Kafka 主题。我们可以手动地创建它、修改它，甚至是删除它。只不过，它同时也是一个内部主题，大部分情况下，我们其实并不需要“搭理”它，也不用花心思去管理它，把它丢给Kafka就完事了。
 
