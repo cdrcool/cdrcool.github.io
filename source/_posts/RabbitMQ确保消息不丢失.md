@@ -162,6 +162,7 @@ channel.basicReject(long, boolean)：拒绝消息，requeue=false 表示不再�
 
 当消息回滚到消息队列时，这条消息不会回到队列尾部，而是仍是在队列头部，这时消费者会又接收到这条消息，如果想消息进入队尾，须确认消息后再次发送消息。
 
+
 参考资料：
 [RabbitMQ的消息确认机制](https://www.cnblogs.com/fdzfd/p/9420333.html)
 [RabbitMQ (十一) 消息确认机制 - 消费者确认](https://www.cnblogs.com/refuge/p/10356750.html)

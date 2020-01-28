@@ -85,6 +85,7 @@ rabbitmqctl join_cluster --ram rabbitmq-3@rabbitmq-3
 rabbitmqctl start_app
 ```
 
+
 参考资料：
 1. [docker-compose配置rabbitmq集群服务器](https://blog.csdn.net/fqydhk/article/details/80624547)
 2. [使用 docker-compose 安装搭建 RabbitMQ 集群](https://michael728.github.io/2019/06/07/docker-rabbitmq-env/)
