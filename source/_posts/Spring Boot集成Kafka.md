@@ -7,12 +7,10 @@ tags:
 ---
 ## Maven 依赖
 ```xml
-<dependencies>
-    <dependency>
-        <groupId>org.springframework.kafka</groupId>
-        <artifactId>spring-kafka</artifactId>
-    </dependency>
-</dependencies>
+<dependency>
+    <groupId>org.springframework.kafka</groupId>
+    <artifactId>spring-kafka</artifactId>
+</dependency>
 ```
 
 ## 配置属性
