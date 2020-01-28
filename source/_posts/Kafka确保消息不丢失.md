@@ -84,6 +84,17 @@ public void sendAndGetResultAsync(Message message) {
 
 如果 Broker 是由多个节点组成的集群，需要将 Broker 集群配置成：至少将消息发送到 2 个以上的节点，再给客户端回复发送确认响应。这样当某个 Broker 宕机时，其它 Broker 可以替代宕机的 Broker，也不会发生消息丢失。
 
+另外，在 Broker 端，我们还需要设置以下参数的值：
+
+* unclean.leader.election.enable = false
+它控制的是哪些 Broker 有资格竞选分区的 Leader。如果一个Broker落后原先的 Leader 太多，那么它一旦成为新的 Leader，必然会造成消息的丢失。故一般都要将该参数设置成 false，即不允许这种情况的发生。
+
+* replication.factor >= 3
+它控制的是将消息多保存几份，毕竟目前防止消息丢失的主要机制就是冗余。
+
+* min.insync.replicas > 1
+它控制的是消息至少要被写入到多少个副本才算是“已提交”。设置成大于 1 可以提升消息持久性。在实际环境中千万不要使用默认值 1。
+
 ### 消费阶段
 消费阶段采用和生产阶段类似的确认机制来保证消息的可靠传递，客户端从 Broker 拉去消息后，执行用户的消费业务逻辑，成功后，才会给 Broker 发送消费确认响应。如果 Broker 没有收到确认响应，下次拉消息的时候还会返回同一条消息，确保消息不会在网络传输过程中丢失，也不会因为客户端在执行消费逻辑中出错导致丢失。
 
