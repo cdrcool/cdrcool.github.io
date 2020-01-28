@@ -4,15 +4,15 @@ date: 2020-01-26 16:43:00
 categories: Kafka
 ---
 ## Kafka 设置
-1. 设置 enable-auto-commit
+### 设置 enable-auto-commit
 Kafka 默认会自动提交消费者位移，但是这样容易出现重复消费：
 在默认情况下，Consumer 每 5 秒自动提交一次位移。
 现在，我们假设提交位移之后的 3 秒发生了 Rebalance 操作。在 Rebalance 之后，所有 Consumer 从上一次提交的位移处继续消费，但该位移已经是 3 秒前的位移数据了，故在 Rebalance 发生前 3 秒消费的所有数据都要重新再消费一次。
 虽然我们能够通过减少 auto.commit.interval.ms 的值来提高提交频率，但这么做只能缩小重复消费的时间窗口，不可能完全消除它。这是自动提交机制的一个缺陷。
 因此要设置 enable-auto-commit = false 来关闭位移自动提交。
 
-2. 合理设置 max.poll.interval.ms 与 max.poll.records
-如果消费者两次 poll 的时间间隔超出设置值，Kafka 服务端会进行 rebalance 操作，导致客户端连接失效，无法提交 offset 信息，从而引发重复消费。
+### 合理设置 max.poll.interval.ms 与 max.poll.records
+如果消费者两次 poll 的时间间隔超出设置值，Kafka 服务端会进行 Rebalance 操作，导致客户端连接失效，无法提交 offset 信息，从而引发重复消费。
 
 ## 业务逻辑处理
 一般解决重复消息的办法是，在消费端，让我们消费消息的操作具备幂等性。
