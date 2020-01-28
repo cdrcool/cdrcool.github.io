@@ -3,10 +3,6 @@ title: RabbitMQ 保证消息的顺序性
 date: 2020-01-28 16:55:00
 categories: RabbitMQ
 ---
-## 方案一
-* 一个 Queue 对应一个 Consumer
-* 关闭 auto ack, 设置为 manual ack
-* 设置 prefetchCount = 1，即 channel.basicQos(1)，默认即为 1
-
-## 方案二
-消息实体中增加：版本号 & 状态机 & msgid & parent_msgid，通过 parent_msgid 判断消息的顺序（需要全局存储，记录消息的执行状态）。
+同一个 Queue，如果有多个 Consumer，那么是做不到消息的有序性的。
+因此，我们可以基于同一规则（对唯一标识进行 hash），将单个 Queue 拆分成多个 Queue，再将拆分后的 Queue 与 Consumer 一一对应。
+同时，我们应该关闭 auto ack，改为 manual ack，并设置 prefetchCount = 1（默认），即 channel.basicQos(1)。
