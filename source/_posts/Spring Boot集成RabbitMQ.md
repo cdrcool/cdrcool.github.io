@@ -184,3 +184,45 @@ public class MessageReceiver {
     }
 }
 ```
+
+## 高级配置
+### 异常处理
+对于消费者在处理消息过程中抛出的异常，我们可以设置 errorHandler，然后在 errorHandler 中统一处理。
+
+```java
+/**
+ * 接收消息，处理消息时抛出异常，异常由 errorHandler 进行处理
+ */
+@RabbitListener(queues = EXCEPTION_QUEUE, errorHandler = "customErrorHandler")
+public void receiveWithException(Message message) {
+    log.info("Receive message: {}", message);
+    throw new RuntimeException("error");
+}
+
+@Slf4j
+@Service("customErrorHandler")
+public class CustomRabbitListenerErrorHandler implements RabbitListenerErrorHandler {
+
+    @Override
+    public Object handleError(Message amqpMessage, org.springframework.messaging.Message<?> message, ListenerExecutionFailedException exception) {
+        log.error("Handle message with exception, message: {}", message.getPayload().toString());
+        return null;
+    }
+}
+```
+
+### 并发接收消息
+```java
+/**
+ * 并发接收消息
+ */
+@RabbitListener(queues = CONCURRENT_QUEUE, concurrency = "3")
+public void receiveConcurrent(String message, Channel channel, @Header(AmqpHeaders.DELIVERY_TAG) long tag) {
+    log.info("Receive message: {}", message);
+    try {
+        channel.basicAck(tag, false);
+    } catch (IOException e) {
+        log.error("Confirm message error", e);
+    }
+}
+```
