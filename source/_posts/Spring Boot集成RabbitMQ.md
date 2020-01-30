@@ -186,6 +186,37 @@ public class MessageReceiver {
 ```
 
 ## 高级配置
+### 获取消息回复
+生产者在发送消息之后，可以同时等待获取消费者接收并处理消息之后的回复，就像传统的 RPC 交互那样。
+
+* 生产方
+```java
+/**
+ * 发送消息，同时等待消息结果
+ */
+public void sendAndReceive(String message) {
+    Object result = rabbitTemplate.convertSendAndReceive(RECEIVE_QUEUE, message);
+    log.info("Receive reply success, result: {}", result);
+}
+```
+
+* 消费方
+```java
+/**
+ * 接收消息，在处理完消息之后，将处理结果返回给生产方
+ */
+@RabbitListener(queues = RECEIVE_QUEUE)
+public String receiveAndReply(String message, Channel channel, @Header(AmqpHeaders.DELIVERY_TAG) long tag) {
+    log.info("Receive message: {}", message);
+    try {
+        channel.basicAck(tag, false);
+    } catch (IOException e) {
+        log.error("Confirm message error", e);
+    }
+    return "ok";
+}
+```
+
 ### 异常处理
 对于消费者在处理消息过程中抛出的异常，我们可以设置 errorHandler，然后在 errorHandler 中统一处理。
 
