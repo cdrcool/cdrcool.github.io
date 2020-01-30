@@ -223,6 +223,36 @@ public void receive(Message message, Channel channel, @Header(AmqpHeaders.DELIVE
 }
 ```
 
+### 使用事务
+1. 设置 RabbitTemplate
+```
+rabbitTemplate.setChannelTransacted(true);
+```
+
+2. 注入 RabbitTransactionManager Bean
+```java
+@Bean("rabbitTransactionManager")
+public RabbitTransactionManager rabbitTransactionManager(CachingConnectionFactory connectionFactory) {
+    return new RabbitTransactionManager(connectionFactory);
+}
+```
+
+3. 添加 @Transactional
+```java
+/**
+ * 发送消息，并开启事务，使用 @Transactional
+ */
+@Transactional(rollbackFor = Exception.class)
+public void sendInTransactionByAnnotation(String message) {
+    rabbitTemplate.convertAndSend(QUEUE, message);
+    // 与 Kafka 的是，即使后面抛出异常，下面这条日志还是会输出
+    log.info("Send in transaction by annotation success");
+    throw new RuntimeException("fail");
+}
+```
+
+需要注意的是，在生产者开启事务之后，属性 publisher-confirm-type 要设置为 NONE （默认）。
+
 ### 获取消息回复
 生产者在发送消息之后，可以同时等待获取消费者接收并处理消息之后的回复，就像传统的 RPC 交互那样。
 
