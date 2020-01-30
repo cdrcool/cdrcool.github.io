@@ -186,6 +186,43 @@ public class MessageReceiver {
 ```
 
 ## 高级配置
+### 序列化/反序列化
+当我们发送对象类型消息数据时，在消费者方默认接收到的数据类型是字符串，如果我们希望接收到的是对象类型，可以在生产者/消费者两方都添加以下配置：
+```java
+@Bean
+public Jackson2JsonMessageConverter jsonMessageConverter() {
+    Jackson2JsonMessageConverter jsonConverter = new Jackson2JsonMessageConverter();
+    jsonConverter.setClassMapper(classMapper());
+    return jsonConverter;
+}
+
+@Bean
+public DefaultClassMapper classMapper() {
+    DefaultClassMapper classMapper = new DefaultClassMapper();
+    Map<String, Class<?>> idClassMapping = new HashMap<>(1);
+    idClassMapping.put("message", Message.class);
+    classMapper.setIdClassMapping(idClassMapping);
+    return classMapper;
+}
+```
+
+之后，我们就能够像下面这样发送/接收 Message 参数的消息了：
+```java
+public void sendObject(samples.dto.Message message) {
+    rabbitTemplate.convertAndSend(OBJECT_QUEUE, message);
+}
+
+@RabbitListener(queues = QUEUE)
+public void receive(Message message, Channel channel, @Header(AmqpHeaders.DELIVERY_TAG) long tag) {
+    log.info("Receive message: {}", message);
+    try {
+        channel.basicAck(tag, false);
+    } catch (IOException e) {
+        log.error("Confirm message error", e);
+    }
+}
+```
+
 ### 获取消息回复
 生产者在发送消息之后，可以同时等待获取消费者接收并处理消息之后的回复，就像传统的 RPC 交互那样。
 
@@ -214,6 +251,74 @@ public String receiveAndReply(String message, Channel channel, @Header(AmqpHeade
         log.error("Confirm message error", e);
     }
     return "ok";
+}
+```
+
+### 多方法处理消息
+组合使用 @KafkaListener 和 @KafkaHandler，能够让我们在传递消息时，根据转换后的消息有效负载类型来确定调用哪个方法。
+
+* 生产方
+```java
+/**
+ * 发送消息，消息类型为字符串，消费者根据消息类型决定执行哪个方法
+ */
+public void sendToMultipleHandlers(String message) {
+    rabbitTemplate.convertSendAndReceive(MULTIPLE_QUEUE, message);
+}
+
+/**
+ * 发送消息，消息类型为 Message，消费者根据消息类型决定执行哪个方法
+ */
+public void sendToMultipleHandlers(samples.dto.Message message) {
+    rabbitTemplate.convertSendAndReceive(MULTIPLE_QUEUE, message);
+}
+```
+
+* 消费方
+```java
+@Slf4j
+@RabbitListener(queues = MULTIPLE_QUEUE)
+@Component
+public class MessageReceiverMultipleMethods {
+
+    /**
+     * 处理字符串类型的消息
+     */
+    @RabbitHandler
+    public void handlerStr(String message, Channel channel, @Header(AmqpHeaders.DELIVERY_TAG) long tag) {
+        log.info("Receive message: {}, type of String", message);
+        try {
+            channel.basicAck(tag, false);
+        } catch (IOException e) {
+            log.error("Confirm message error", e);
+        }
+    }
+
+    /**
+     * 处理 Message 类型的消息
+     */
+    @RabbitHandler
+    public void handlerMessage(Message message, Channel channel, @Header(AmqpHeaders.DELIVERY_TAG) long tag) {
+        log.info("Receive message: {}, type of Message", message);
+        try {
+            channel.basicAck(tag, false);
+        } catch (IOException e) {
+            log.error("Confirm message error", e);
+        }
+    }
+
+    /**
+     * 处理其它类型的消息
+     */
+    @RabbitHandler(isDefault = true)
+    public void handlerUnknown(Object message, Channel channel, @Header(AmqpHeaders.DELIVERY_TAG) long tag) {
+        log.info("Receive message: {}, type of Unknown", message);
+        try {
+            channel.basicAck(tag, false);
+        } catch (IOException e) {
+            log.error("Confirm message error", e);
+        }
+    }
 }
 ```
 
