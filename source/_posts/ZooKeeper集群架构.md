@@ -25,12 +25,24 @@ Follower 角色接受客户端请求并返回结果，参与 Leader 发起的投
 Observer 角色接受客户端连接，将写操作转给 Leader，但 Observer 不参与投票（即不参加一致性协议的达成），只同步 Leader 节点的状态，Observer 角色是为集群系统扩展而生的。
 
 应用场景：
-* 提高集群的读性能
+* 提高集群的读性能（未参与事务的提交过程）
 * 跨数据中心部署
 
-### 请求流程
-Follower-Leader请求流程：
+### Follower vs Observer 请求流程
+Follower-Leader 写请求流程：
 ![Follower-Leader请求流程](/images/zookeeper/Follower-Leader请求流程.png)
 
-Obeserver-Leader请求流程：
+1. 节点 1（Follower） 收到写请求，转发到节点 2（Leader）
+2. 节点 2 发送 Propose 给集群中所有 Follower 节点
+3. Follower 节点收到 Propose 后，返回 Accept 给 Leader
+4. Leader 收到大多数节点的 Accept 后，向所有节点发送 Commit
+5. 节点 1 收到 Commit 后，返回客户端，告诉客户端写成功
+
+Observer-Leader 写请求流程：
 ![Obeserver-请求流程](/images/zookeeper/Obeserver-Leader请求流程.png)
+
+1. 节点 1（Observer） 收到写请求，转发到节点 2（Leader）
+2. 节点 2 发送 Propose 给集群中所有 Follower 节点
+3. Follower 节点收到 Propose 后，返回 Accept 给 Leader
+4. Leader 收到大多数节点的 Accept 后，向所有节点发送 Commit
+5. 节点 1 不参与事务的提交过程，而是一直等待，等到收到 Leader 的 INFORM 后，返回客户端，告诉客户端写成功
