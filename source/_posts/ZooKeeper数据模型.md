@@ -7,7 +7,7 @@ ZooKeeper 的数据模型是**层次模型**。层次模型常见于文件系统
 1. 文件系统的树形结构便于表达数据之间的层次关系
 2. 文件系统的属性结构便于为不同的应用分配独立的命名空间（namespace）
 
-![ZooKeeper数据模型图](/images/zookeeper/ZooKeeper数据模型图.png)
+![ZooKeeper数据模型](/images/zookeeper/ZooKeeper数据模型.png)
 
 ZooKeeper 的层次模型称作 Data tree。Data tree 的每个节点叫做 znode。不同于文件系统，每个节点都可以保存数据。每个节点都有一个版本（version）。版本从 0 开始计数。
 
