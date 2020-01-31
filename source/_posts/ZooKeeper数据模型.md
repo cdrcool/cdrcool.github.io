@@ -13,13 +13,13 @@ ZooKeeper 的层次模型称作 Data tree。Data tree 的每个节点叫做 znod
 
 ## 节点类型
 一个 znode 可以是持久性的，也可以是临时性的；可以是顺序性的，也可以是非顺序性的。
-1.PERSISTENT
+1. PERSISTENT
 持久性的 znode，在创建之后即使发生 ZooKeeper 集群宕机或者 client 宕机也不会丢失。
-2.EPHEMERAL
+2. EPHEMERAL
 临时性的 znode，client 宕机或者 client 在指定的 timeout 时间内没有给 ZooKeeper 集群发消息，这样的节点就会消失。
-3.PERSISTENT_SEQUENTIAL
+3. PERSISTENT_SEQUENTIAL
 持久顺序性的 znode，除了具备持久性 znode 的特点之外，znode 的名字具备顺序性。
-4.EPHEMERAL_SEQUENTIAL
+4. EPHEMERAL_SEQUENTIAL
 临时顺序性的 znode，除了具备临时性 znode 的特点之外，znode 的名字具备顺序性。
 
 每一个顺序性的 znode 关联一个唯一的单调递增整数。这个单调递增整数是 znode 名字的后缀。
