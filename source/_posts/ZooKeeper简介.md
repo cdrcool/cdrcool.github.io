@@ -1,8 +1,30 @@
 ---
-title: ZooKeeper 数据模型
+title: ZooKeeper 简介
 date: 2020-01-31 10:52:00
 categories: ZooKeeper
 ---
+ZooKeeper 是一个开源的分布式协同服务系统。ZooKeeper 的设计目标是将那些复杂且容易出错的分布式协同服务封装起来，抽象出一个高效可靠的原语集，并以一系列简单的接口提供给用户使用。
+
+## 特性
+### 最终一致性
+客户端不论连接到哪个 Zookeeper 的哪一个节点，都会收到同一份状态。这是zookeeper最重要的性能。
+
+### 可靠性
+Zookeeper 集群具有简单、健壮、良好的性能，如果消息被到一台 server 接受，那么它将被所有的 server 接受。
+
+### 实时性
+Zookeeper 保证 client 将在一个时间间隔范围内获得 server 的更新信息，或者 server 失效的信息。但由于网络延时等原因，Zookeeper 不能保证两个 client 能同时得到刚更新的数据，如果需要最新数据，应该在读数据之前调用 sync() 接口。
+
+### 等待无关（wait-free）
+慢的或者失效的 client 不得干预快速的 client 的请求，使得每个 client 都能有效的等待。
+
+### 原子性
+更新只能成功或者失败，没有中间状态。
+
+### 顺序性
+包括全局有序和偏序两种：全局有序是指如果在一台 server 上消息 a 在消息 b 前发布，则在所有 Server 上消息 a 都将在消息 b 前被发布；偏序是指如果一个消息 b 在消息 a 后被同一个发送者发布，a 必将排在 b 前面。
+
+## 数据模型
 ZooKeeper 的数据模型是**层次模型**。层次模型常见于文件系统。层次模型和 key-value 模型是两种主流的数据模型。ZooKeeper 使用文件系统模型主要基于以下两点考虑：
 1. 文件系统的树形结构便于表达数据之间的层次关系
 2. 文件系统的属性结构便于为不同的应用分配独立的命名空间（namespace）
@@ -11,7 +33,7 @@ ZooKeeper 的数据模型是**层次模型**。层次模型常见于文件系统
 
 ZooKeeper 的层次模型称作 Data tree。Data tree 的每个节点叫做 znode。不同于文件系统，每个节点都可以保存数据。每个节点都有一个版本（version）。版本从 0 开始计数。
 
-## 节点类型
+### 节点类型
 一个 znode 可以是持久性的，也可以是临时性的；可以是顺序性的，也可以是非顺序性的。
 1. PERSISTENT
 持久性的 znode，在创建之后即使发生 ZooKeeper 集群宕机或者 client 宕机也不会丢失。
@@ -27,7 +49,7 @@ ZooKeeper 的层次模型称作 Data tree。Data tree 的每个节点叫做 znod
 其实除了以上 4 中节点类型，还有另外一类节点：container 节点。
 container 节点是一种新引入的 znode，目的在于下挂子节点。当一个 container 节点的所有子节点被删除之后，ZooKeeper 会删除掉这个 container 节点。服务发现的 base path 节点和服务节点就是 container 节点。
 
-## Data tree接口
+### Data tree接口
 ZooKeeper 对外提供一个用来访问 Data tree 的简化文件系统 API：
 * 使用 UNIX 风格的路径名来定位 znode，例如 /A/X 表示 znode A 的子节点 X。
 * znode 的数据只支持全量写入和读取，没有像通用文件系统那样支持部分写入和读取。
