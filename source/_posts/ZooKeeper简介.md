@@ -49,7 +49,8 @@ ZooKeeper 的层次模型称作 Data tree。Data tree 的每个节点叫做 znod
 其实除了以上 4 中节点类型，还有另外一类节点：container 节点。
 container 节点是一种新引入的 znode，目的在于下挂子节点。当一个 container 节点的所有子节点被删除之后，ZooKeeper 会删除掉这个 container 节点。服务发现的 base path 节点和服务节点就是 container 节点。
 
-### Data tree 接口
+### Data tree 
+接口
 ZooKeeper 对外提供一个用来访问 Data tree 的简化文件系统 API：
 * 使用 UNIX 风格的路径名来定位 znode，例如 /A/X 表示 znode A 的子节点 X。
 * znode 的数据只支持全量写入和读取，没有像通用文件系统那样支持部分写入和读取。
