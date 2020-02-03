@@ -10,8 +10,6 @@ categories: ZooKeeper
 
 一旦客户端开始创建 Zookeeper 对象，那么客户端状态就会变成 CONNECTING 状态，同时客户端开始尝试连接服务端，连接成功后，客户端状态变为 CONNECTED，通常情况下，由于断网或其他原因，客户端与服务端之间会出现断开情况，一旦碰到这种情况，Zookeeper 客户端会自动进行重连服务，同时客户端状态再次变成 CONNCTING，直到重新连上服务端后，状态又变为 CONNECTED，在通常情况下，客户端的状态总是介于 CONNECTING 和 CONNECTED 之间。但是，如果出现诸如会话超时、权限检查或是客户端主动退出程序等情况，客户端的状态就会直接变更为 CLOSE 状态。
 
-一旦客户端开始创建Zookeeper对象，那么客户端状态就会变成CONNECTING状态，同时客户端开始尝试连接服务端，连接成功后，客户端状态变为CONNECTED，通常情况下，由于断网或其他原因，客户端与服务端之间会出现断开情况，一旦碰到这种情况，Zookeeper客户端会自动进行重连服务，同时客户端状态再次变成CONNCTING，直到重新连上服务端后，状态又变为CONNECTED，在通常情况下，客户端的状态总是介于CONNECTING和CONNECTED之间。但是，如果出现诸如会话超时、权限检查或是客户端主动退出程序等情况，客户端的状态就会直接变更为CLOSE状态。
-
 ![session会话状态](/images/zookeeper/session会话状态.png)
 
 ## 会话创建
