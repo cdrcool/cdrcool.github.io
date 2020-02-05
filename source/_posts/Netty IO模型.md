@@ -39,6 +39,11 @@ IO | NIO
 阻塞 IO（Blocking IO） | 非阻塞 IO（Non Blocking IO）
 无 | 选择器（Selectors）
 
+### BIO VS NIO VS AIO
+BIO | NIO | AIO
+:-: | :-: | :-:
+Thread-Per-Connection | Reactor | Proactor
+
 ### BIO、NIO、AIO 适用场景
 * BIO 方式适用于连接数目比较小且固定的架构，这种方式对服务器资源要求比较高，并发局限于应用中，JDK1.4 以前的唯一选择。
 * NIO 方式适用于连接数目多且连接比较短（轻操作）的架构，比如聊天服务器，并发局限于应用中，编程比较复杂。
@@ -48,6 +53,14 @@ IO | NIO
 即经典的 **Reactor 设计模式**，有时也称为**异步阻塞 IO**，Java 中的 Selector 和 Linux 中的 epoll 都是这种模型。
 
 #### Reactor 模式
+Reactor 模式的核心流程：注册感兴趣的事件 -> 扫描是否有感兴趣的事件发生 -> 事件发生后做出响应的处理。
+
+Client/Server | SocketChannel/ServerSocketChannel | OP_ACCEPT | OP_CONNECT | OP_WRITE | OP_READ
+:-: | :-: | :-: | :-: | :-: | :-:
+client | SocketChannel | | Y | Y | Y
+server | ServerSocketChannel | Y | | |
+server | SocketChannel | | | Y | Y
+
 Reactor 模式有三种实现方式：Reactor 单线程、Reactor 多线程模式、Reactor 主从模式。
 
 1. Reactor 单线程模式
@@ -72,7 +85,11 @@ Reactor 模式有三种实现方式：Reactor 单线程、Reactor 多线程模�
 
 ![Reactor 主从模式](../images/netty/Reactor主从模式.png)
 
-Reactor 的主从多线程模型和 Reactor 多线程模型很类似，只不过 Reactor 的主从多线程模型的 acceptor 使用了线程池来处理大量的客户端请求。
+**举例说明：**
+以饭店规模变化为例：
+* Reactor 单线程模式：一个人包揽所有，迎宾、点菜、做饭、上菜、送客等；
+* Reactor 多线程模式：多招几个伙计，大家一起做上面的事情；
+* Reactor 主从模式：进一步分工，搞一个或多个人专门做迎宾。
 
 #### 核心概念
 1. 缓冲区 Buffer
@@ -101,6 +118,9 @@ Channel 有四种实现：
 
 3. 多路复用器 Selector
 Selector 会不断轮询注册在上面的 Channel，如果某个 Channel 上面有新的 TCP 连接接入、读或写事件，这个channel就处于就绪状态，会被 Selector 轮询出来，然后通过 SelectionKey 可以获取 Channel 的集合，进行后续的 I/O 操作。一个多路复用器 Selector 可以同时轮询多个 Channel，由于 JDK 使用了 epoll() 代替传统的 select 实现，所以它没有最大连接句柄 1024/2048 的限制。这就意味着只需一个线程负责 Selector 的轮询，就可以接入成千上万的客户端。
+
+## Netty IO 模型
+目前 Netty 只支持 NIO 模型。
 
 ## 参考资料
 1. (高并发编程系列：NIO、BIO、AIO的区别，及NIO的应用和框架选型)[https://youzhixueyuan.com/java-nio-introduce.html]
