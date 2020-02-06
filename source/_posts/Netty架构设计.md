@@ -18,5 +18,5 @@ Netty 采用了比较典型的三层网络架构进行设计，逻辑架构图�
 4. 容器集成：支持 OSGI、JBossMC、Spring、Guice 容器。
 
 ## 参考资料
-1. (高并发架构系列：Netty的实现原理、特点与优势、以及适用场景)[https://youzhixueyuan.com/netty-implementation-principle.html]
+1. [高并发架构系列：Netty的实现原理、特点与优势、以及适用场景](https://youzhixueyuan.com/netty-implementation-principle.html)
 

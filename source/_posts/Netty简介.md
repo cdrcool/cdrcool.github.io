@@ -54,4 +54,4 @@ JDK 原生也有一套网络应用程序 API，但是存在一系列问题，主
 * 其它参考：https://netty.io/wiki/adopters.html
 
 ## 参考资料
-1. (高并发架构系列：Netty的实现原理、特点与优势、以及适用场景)[https://youzhixueyuan.com/netty-implementation-principle.html]
+1. [高并发架构系列：Netty的实现原理、特点与优势、以及适用场景](https://youzhixueyuan.com/netty-implementation-principle.html)

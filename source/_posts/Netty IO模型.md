@@ -123,5 +123,5 @@ Selector 会不断轮询注册在上面的 Channel，如果某个 Channel 上面
 目前 Netty 只支持 NIO 模型。
 
 ## 参考资料
-1. (高并发编程系列：NIO、BIO、AIO的区别，及NIO的应用和框架选型)[https://youzhixueyuan.com/java-nio-introduce.html]
-2. (NIO相关概念介绍：缓冲区Buffer,通道Channel,多路复用器Selector)[https://blog.csdn.net/u011521382/article/details/81069457]
+1. [高并发编程系列：NIO、BIO、AIO的区别，及NIO的应用和框架选型](https://youzhixueyuan.com/java-nio-introduce.html)
+2. [NIO相关概念介绍：缓冲区Buffer,通道Channel,多路复用器Selector](https://blog.csdn.net/u011521382/article/details/81069457)
