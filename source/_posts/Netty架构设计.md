@@ -5,9 +5,9 @@ categories: Netty
 ---
 Netty 采用了比较典型的三层网络架构进行设计，逻辑架构图如下所示：
 
-![Netty架构设计](../images/netty/Netty架构设计.jpg)
+![Netty架构设计](/images/netty/Netty架构设计.jpg)
 
-![Netty架构设计-中文](../images/netty/Netty架构设计-中文.jpg)
+![Netty架构设计-中文](/images/netty/Netty架构设计-中文.jpg)
 
 1. Core 核心：可扩展事件模型、通用通信 API、支持零拷贝的 ByteBuf 缓冲对象。
 

@@ -322,9 +322,9 @@ public class HttpHelloWorldServerHandler extends SimpleChannelInboundHandler<Htt
 ## 网络应用程序编程基本步骤
 上面两个示例都非常简单，接下来我们会模拟真实订单场景（当然还是很简单的），以此来了解 Netty 更多的特性。但是在具体示例之前，我们有必要先了解下网络应用程序编程基本步骤。
 
-![网络应用程序编程基本步骤1](../images/netty/网络应用程序编程基本步骤1.png)
+![网络应用程序编程基本步骤1](/images/netty/网络应用程序编程基本步骤1.png)
 
-![网络应用程序编程基本步骤2](../images/netty/网络应用程序编程基本步骤2.png)
+![网络应用程序编程基本步骤2](/images/netty/网络应用程序编程基本步骤2.png)
 
 ## 点单示例
 ### Maven 依赖
@@ -343,13 +343,13 @@ public class HttpHelloWorldServerHandler extends SimpleChannelInboundHandler<Htt
 ### 案例介绍
 在本示例中，我们会模拟饭店点单：在哪一桌，要吃什么菜。因为示例本身是为了让我们了解 Netty 而非业务，所以本示例的业务非常简单，就是发送客户端一个订单操作给服务器，服务器收到请求后，再返回订单结果给客户端。
 
-![点单案例介绍](../images/netty/点单案例介绍.png)
+![点单案例介绍](/images/netty/点单案例介绍.png)
 
 如上图，我们处理 OrderOperation 之外，还定义了 AuthOperation 和 KeepOperation，这是为了演示 Netty 的高级特性。
 
 ### 数据结构设计
 **消息对象数据结构：**
-![消息对象数据结构](../images/netty/消息对象数据结构.png)
+![消息对象数据结构](/images/netty/消息对象数据结构.png)
 
 1. 消息体由消息头和消息体组成
 2. 消息头由版本号（version）、操作码（opCode）和消息id（streamId）组成
@@ -357,7 +357,7 @@ public class HttpHelloWorldServerHandler extends SimpleChannelInboundHandler<Htt
 4. 传输协议使用 TCP，因此要解决粘包/半包问题，因此消息对象需要指定 length
 
 **UML：**
-![点单示例UML](../images/netty/点单示例UML.png)
+![点单示例UML](/images/netty/点单示例UML.png)
 
 1. 消息对象基类 BaseMessage 有两个属性：消息头对象 MessageHeader 和 消息体对象 BaseMessageBody 基类，消息体对象具体类型由泛型 T 指定
 2. 操作对象基类 BaseOperation 和操作结果对象基类 BaseOperationResult 都继承自消息体对象 BaseMessageBody 基类

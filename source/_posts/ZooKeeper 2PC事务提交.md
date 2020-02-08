@@ -10,7 +10,7 @@ categories: ZooKeeper
 有两个参与者和一个协调者，参与者 1 操作成功后，参与者 2 也必须操作成功。参与者 1 和参与者 2 属于两台不同的机器，现在需要跨节点提交事务，也就是分布式事务提交。
 
 ### 参与者成功提交事务
-![2PC事务提交示例1](../images/zookeeper/2PC事务提交示例1.png)
+![2PC事务提交示例1](/images/zookeeper/2PC事务提交示例1.png)
 
 过程：
 1. 协调者给每一个参与者发起一个事务提交请求。
@@ -19,7 +19,7 @@ categories: ZooKeeper
 4. 参与者提交事务后，给协调者一个反馈。
 
 ### 某些参与者提交事务失败
-![2PC事务提交示例2](../images/zookeeper/2PC事务提交示例2.png)
+![2PC事务提交示例2](/images/zookeeper/2PC事务提交示例2.png)
 
 过程：
 1. 协调者给每一个参与者发起一个事务提交请求。
@@ -31,7 +31,7 @@ categories: ZooKeeper
 在 ZooKeeper 中，客户端会随机连接到 ZooKeeper 集群中的一个节点，如果是读请求，就直接从当前节点中读取数据，如果是写请求，那么请求会被转发给 Leader 提交事务，然后 Leader 会广播事务，只要有超过半数节点写入成功，那么写请求就会被提交。（类似 2PC 事务）
 所有事务请求必须由一个全局唯一的服务器来协调处理，这个服务器就是 Leader 服务器，其它的服务器就是 Follower。
 
-![ZooKeeper的2PC事务提交示例](../images/zookeeper/ZooKeeper的2PC事务提交示例.png)
+![ZooKeeper的2PC事务提交示例](/images/zookeeper/ZooKeeper的2PC事务提交示例.png)
 
 ## 事务及ZXID
 事务是指能够改变 Zookeeper 服务器状态的操作，一般包括数据节点的创建与删除、数据节点内容更新和客户端会话创建与失效等操作。对于每个事务请求，Zookeeper 都会为其分配一个全局唯一的事务 ID，即 ZXID，是一个 64 位的数字，高 32 位表示该事务发生的集群选举周期（集群每发生一次 Leader 选举，值加 1），低 32 位表示该事务在当前选择周期内的递增次序（Leader 每处理一个事务请求，值加 1，发生一次 Leader 选择，低 32 位要清 0）。
