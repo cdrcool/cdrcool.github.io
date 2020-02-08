@@ -38,6 +38,8 @@ TCP 连接改成短连接，一个请求一个短连接 | 建立连接到释放�
 分隔符 | DelimiterBasedFrameDecoder | 简单
 固定长度字段存内容的长度信息 | LengthFieldBasedFrameDecoder | LengthFieldPrepender
 
+上面三种解码器都继承自 ByteToMessageDecoder。
+
 下面以“固定长度字段存内容的长度信息”这种方式来演示如何在 Netty 中使用：
 
 ```java

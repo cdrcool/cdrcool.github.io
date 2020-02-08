@@ -69,12 +69,14 @@ ServerBootstrap serverBootstrap = new ServerBootstrap().group(eventLoopGroup)...
 ```
 
 ## 粘包/半包处理
-Netty 对三种常用封帧方式都提供了支持：
+为了处理 TCP 的粘包/半包问题，Netty 提供了三种常用的封帧方式：
 方式\支持 | 解码 | 编码
 :-: | :-: | :-:
 固定长度 | FixedLengthFrameDecoder | 简单
 分隔符 | DelimiterBasedFrameDecoder | 简单
 固定长度字段存内容的长度信息 | LengthFieldBasedFrameDecoder | LengthFieldPrepender
+
+上面三种解码器都继承自 ByteToMessageDecoder。
 
 在之前的示例代码中，我们选择的都是“固定长度字段存内容的长度信息”方式，如下面这样：
 
@@ -100,5 +102,171 @@ public class OrderFrameEncoder extends LengthFieldPrepender {
 }
 ```
 
-由于另外两种都各有弊端，这里就不演示怎么切换了。
+由于另外两种都不常用，这里就不演示怎么切换了。
+
+## 序列化/反序列化
+Netty 对一些常用的序列化/反序列化方式都提供了支持，如 base64、bytes、compression、json、marshaling、protobuf、serialization、string、xml 等，编码器都继承自 MessageToMessageEncoder<I>，解码器都继承自 MessageToMessageDecoder<I>。
+
+在之前的示例代码中，我们选择的都是 json 方式，如下面这样：
+
+```java
+/**
+ * 二次解码器：将 {@link ByteBuf} 解析为 {@link RequestMessage}
+ */
+public class OrderProtocolDecoder extends MessageToMessageDecoder<ByteBuf> {
+
+    @Override
+    protected void decode(ChannelHandlerContext ctx, ByteBuf msg, List<Object> out) {
+        RequestMessage requestMessage = new RequestMessage();
+        requestMessage.decode(msg);
+
+        out.add(requestMessage);
+    }
+}
+
+/**
+ * 二次编码器：将 {@link ResponseMessage} 解析为 {@link ByteBuf}
+ */
+public class OrderProtocolEncoder extends MessageToMessageEncoder<ResponseMessage> {
+
+    @Override
+    protected void encode(ChannelHandlerContext ctx, ResponseMessage msg, List<Object> out) {
+        ByteBuf byteBuf = ctx.alloc().buffer();
+        msg.encode(byteBuf);
+
+        out.add(byteBuf);
+    }
+}
+
+/**
+ * 消息对象基类
+ */
+@Data
+public abstract class BaseMessage<T extends BaseMessageBody> {
+    private MessageHeader header;
+    private T body;
+
+    /**
+     * 编码消息
+     *
+     * @param byteBuf 存储编码后的消息
+     */
+    public void encode(ByteBuf byteBuf) {
+        byteBuf.writeInt(header.getVersion());
+        byteBuf.writeLong(header.getStreamId());
+        byteBuf.writeInt(header.getOpcode());
+        byteBuf.writeBytes(JsonUtil.toJson(body).getBytes());
+    }
+
+    /**
+     * 根据 opcode 获得对应的 MessageBody
+     *
+     * @param opcode 操作码
+     * @return 消息体
+     */
+    public abstract Class<T> getMessageBodyDecodeClass(int opcode);
+
+    /**
+     * 解码
+     *
+     * @param msg 解码前的消息
+     */
+    public void decode(ByteBuf msg) {
+        int version = msg.readInt();
+        long streamId = msg.readLong();
+        int opcode = msg.readInt();
+
+        this.header = MessageHeader.builder()
+                .version(version)
+                .streamId(streamId)
+                .opcode(opcode)
+                .build();
+
+        this.body = JsonUtil.fromJson(msg.toString(StandardCharsets.UTF_8), getMessageBodyDecodeClass(opcode));
+    }
+}
+```
+
+在其它官方示例中，演示了如果使用其它方式的编解码，如在 “Word Clock”示例中，演示了如何使用 protobuf，大家可以自行查看相关代码。
+
+## 空闲监测
+在应用程序运行中，为了避免一些不怀好意或者无所事事的客户端一直和我们的应用程序保持连接，从而给我们造成资源浪费，因此一般我们都会进行空闲监测。
+在 Netty 中，实现空闲监测的核心类是 IdleStateHandler。在前面的订单示例中，我们已经用到了这个类，现在再来回顾下是如何使用它的。
+
+**服务端读监测：**
+```java
+/**
+ * Read Idle Handler
+ * 服务器 10s 接收不到 channel 的请求就断掉连接：保护自己、瘦身（及时清理空闲的连接）
+ */
+@Slf4j
+public class ServerIdleCheckHandler extends IdleStateHandler {
+
+    public ServerIdleCheckHandler() {
+        super(10, 0, 0, TimeUnit.SECONDS);
+    }
+
+    @Override
+    protected void channelIdle(ChannelHandlerContext ctx, IdleStateEvent evt) throws Exception {
+        // 如果是第一次 read idle，就断掉连接
+        if (evt == IdleStateEvent.FIRST_READER_IDLE_STATE_EVENT) {
+            log.info("Idle check happen, so close the connection");
+            ctx.close();
+
+            // 因此做了自定义处理，就不再触发该事件
+            return;
+        }
+
+        // 如果是其它事件，保持触发
+        super.channelIdle(ctx, evt);
+    }
+}
+```
+
+**客户端写监测：**
+```java
+/**
+ * Write Idle Handler
+ * 客户端 5s 不发送数据就触发一个写空闲事件
+ * 配合{@link KeepaliveHandler}使用，以避免连接被断，同时启用不频繁的 keepalive
+ */
+public class ClientIdleCheckHandler extends IdleStateHandler {
+
+    public ClientIdleCheckHandler() {
+        super(0, 5, 0, TimeUnit.SECONDS);
+    }
+}
+```
+
+**客户端写超时，发送 keepalive：**
+```java
+/**
+ * 捕捉写空闲事件：发一个 keepalive
+ * 配合{@link ClientIdleCheckHandler}使用，以避免连接被断，同时启用不频繁的 keepalive
+ *
+ * 因为不涉及内存共享，所以设置为可共享的{@link io.netty.channel.ChannelHandler.Sharable}
+ */
+@Slf4j
+@ChannelHandler.Sharable
+public class KeepaliveHandler extends ChannelDuplexHandler {
+
+    @Override
+    public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+        // 捕捉第一次写空闲事件，发送 keepalive
+        if (evt == IdleStateEvent.FIRST_WRITER_IDLE_STATE_EVENT) {
+            log.info("Write Idle happen, so need to send keepalive to keep connection not closed by server");
+            KeepaliveOperation operation = new KeepaliveOperation();
+            RequestMessage message = new RequestMessage(IdUtil.nextId(), operation);
+            ctx.writeAndFlush(message);
+        }
+        super.userEventTriggered(ctx, evt);
+    }
+}
+```
+
+
+
+
+
+
 

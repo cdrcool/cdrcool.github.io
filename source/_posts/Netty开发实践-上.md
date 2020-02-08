@@ -456,6 +456,36 @@ public class OrderServerProcessHandler extends SimpleChannelInboundHandler<Reque
 }
 ```
 
+#### 读监测
+```java
+/**
+ * Read Idle Handler
+ * 服务器 10s 接收不到 channel 的请求就断掉连接：保护自己、瘦身（及时清理空闲的连接）
+ */
+@Slf4j
+public class ServerIdleCheckHandler extends IdleStateHandler {
+
+    public ServerIdleCheckHandler() {
+        super(10, 0, 0, TimeUnit.SECONDS);
+    }
+
+    @Override
+    protected void channelIdle(ChannelHandlerContext ctx, IdleStateEvent evt) throws Exception {
+        // 如果是第一次 read idle，就断掉连接
+        if (evt == IdleStateEvent.FIRST_READER_IDLE_STATE_EVENT) {
+            log.info("Idle check happen, so close the connection");
+            ctx.close();
+
+            // 因此做了自定义处理，就不再触发该事件
+            return;
+        }
+
+        // 如果是其它事件，保持触发
+        super.channelIdle(ctx, evt);
+    }
+}
+```
+
 #### 服务器 Server
 ```java
 /**
@@ -481,6 +511,9 @@ public class Server {
                         @Override
                         protected void initChannel(NioSocketChannel ch) {
                             ChannelPipeline pipeline = ch.pipeline();
+
+                            // 启用读空闲监测：及时清理空闲的连接
+                            pipeline.addLast(new ServerIdleCheckHandler());
 
                             // 特别需要注意编解码顺序
                             // 先接收后发送 -> 先解码（一次解码 -> 二次解码）后编码（二次编码 -> 一次编码）
@@ -642,6 +675,44 @@ public class OperationResultFuture extends DefaultPromise<BaseOperationResult> {
 }
 ```
 
+#### 写监测
+```java
+/**
+ * Write Idle Handler
+ * 客户端 5s 不发送数据就触发一个写空闲事件
+ * 配合{@link KeepaliveHandler}使用，以避免连接被断，同时启用不频繁的 keepalive
+ */
+public class ClientIdleCheckHandler extends IdleStateHandler {
+
+    public ClientIdleCheckHandler() {
+        super(0, 5, 0, TimeUnit.SECONDS);
+    }
+}
+
+/**
+ * 捕捉写空闲事件：发一个 keepalive
+ * 配合{@link ClientIdleCheckHandler}使用，以避免连接被断，同时启用不频繁的 keepalive
+ *
+ * 因为不涉及内存共享，所以设置为可共享的{@link io.netty.channel.ChannelHandler.Sharable}
+ */
+@Slf4j
+@ChannelHandler.Sharable
+public class KeepaliveHandler extends ChannelDuplexHandler {
+
+    @Override
+    public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+        // 捕捉第一次写空闲事件，发送 keepalive
+        if (evt == IdleStateEvent.FIRST_WRITER_IDLE_STATE_EVENT) {
+            log.info("Write Idle happen, so need to send keepalive to keep connection not closed by server");
+            KeepaliveOperation operation = new KeepaliveOperation();
+            RequestMessage message = new RequestMessage(IdUtil.nextId(), operation);
+            ctx.writeAndFlush(message);
+        }
+        super.userEventTriggered(ctx, evt);
+    }
+}
+```
+
 #### 客户端 Client
 ```java
 /**
@@ -667,6 +738,9 @@ public class Client {
                         protected void initChannel(NioSocketChannel ch) {
                             ChannelPipeline pipeline = ch.pipeline();
 
+                            // 启用写空闲监测
+                            pipeline.addLast(new ClientIdleCheckHandler());
+
                             // 特别需要注意编解码顺序
                             // 先接收后发送 -> 先解码（一次解码 -> 二次解码）后编码（二次编码 -> 一次编码）
                             pipeline.addLast(new OrderFrameDecoder());
@@ -677,6 +751,9 @@ public class Client {
                             // 增加日志输出
                             // 不同位置输出的内容不同
                             pipeline.addLast(new LoggingHandler(LogLevel.INFO));
+
+                            // 将响应结果记录到 streamId 对应的 future 中
+                            pipeline.addLast(new ResponseDispatcherHandler(requestPendingCenter));
 
                             // 将响应结果记录到 streamId 对应的 future 中
                             pipeline.addLast(new ResponseDispatcherHandler(requestPendingCenter));
