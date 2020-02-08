@@ -504,8 +504,13 @@ public class Server {
                     .channel(NioServerSocketChannel.class)
                     // 设置主从 Reactor 模式
                     .group(bossGroup, workerGroup)
+                    // 最大等待数量：当服务器请求处理线程全满时，用于临时存放已完成三次握手的请求的队列的最大长度
+                    .option(NioChannelOption.SO_BACKLOG, 1024)
                     // 增加日志输出
                     .handler(new LoggingHandler(LogLevel.INFO))
+                    // 是否启用 Nagle 算法：通过将小的碎片数据连接成更大的报文来提高发送效率
+                    // 如果需要发送一些较小的报文，则需要禁用该算法，默认不开启
+                    .childOption(NioChannelOption.TCP_NODELAY, true)
                     // SocketChannel Handler
                     .childHandler(new ChannelInitializer<NioSocketChannel>() {
                         @Override
@@ -732,6 +737,9 @@ public class Client {
                     .channel(NioSocketChannel.class)
                     // 设置 EventLoopGroup
                     .group(group)
+                    // 是否启用 Nagle 算法：通过将小的碎片数据连接成更大的报文来提高发送效率
+                    // 如果需要发送一些较小的报文，则需要禁用该算法，默认不开启
+                    .option(NioChannelOption.TCP_NODELAY, true)
                     // SocketChannel Handler
                     .handler(new ChannelInitializer<NioSocketChannel>() {
                         @Override
