@@ -270,14 +270,14 @@ public class KeepaliveHandler extends ChannelDuplexHandler {
 Linux Option。进行 TCP 连接时，系统为每个 TCP 连接创建一个 socket 句柄，也就是一个文件句柄，但是 Linux 对每个进程打开的文件句柄数量做了限制，如果超出，报错“Too many open file”。
 注意：ulimit 命令修改的数值**只对当前登录用户**的目前使用环境有效，系统重启或者用户退出后就会失效，所以可以作为程序启动脚本的一部分，让它在程序启动前执行。
 
-* SO_REUSEADDR
-SocketChannel Option。地址重用，解决“Address already in use”。常用开启场景：多网卡（IP）绑定相同端口；让关闭连接释放的端口更早可使用。默认不开启。
-
 * TCP_NODELAY
 SocketChannel Option。设置是否启用 Nagle 算法：通过将小的碎片数据连接成更大的报文来提高发送效率。如果需要发送一些较小的报文，则需要禁用该算法。默认不开启。 
 
 * SO_BACKLOG
 ServerSocketChannel Option。最大的等待连接数量。当服务器请求处理线程全满时，用于临时存放已完成三次握手的请求的队列的最大长度。默认值 128。
+
+* SO_REUSEADDR
+SocketChannel/ServerSocketChannel Option。地址重用，解决“Address already in use”。常用开启场景：多网卡（IP）绑定相同端口；让关闭连接释放的端口更早可使用。默认不开启。
 
 ### Netty 参数
 
