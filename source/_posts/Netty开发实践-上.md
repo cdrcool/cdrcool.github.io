@@ -498,6 +498,9 @@ public class Server {
         EventLoopGroup bossGroup = new NioEventLoopGroup(1);
         EventLoopGroup workerGroup = new NioEventLoopGroup();
 
+        // 对于 IO 密集型应用，独立出“线程池”来处理业务
+        EventExecutorGroup eventExecutorGroup = new UnorderedThreadPoolEventExecutor(10, new DefaultThreadFactory("business"));
+
         try {
             ServerBootstrap serverBootstrap = new ServerBootstrap()
                     // 设置 ServerSocketChannel IO 模式
@@ -532,8 +535,7 @@ public class Server {
                             pipeline.addLast(new LoggingHandler(LogLevel.INFO));
 
                             // 业务处理 Handler 放到最后添加
-                            pipeline.addLast(new OrderServerProcessHandler());
-
+                            pipeline.addLast(eventExecutorGroup, new OrderServerProcessHandler());
                         }
                     });
             // 启动服务器，且保持阻塞
@@ -740,6 +742,8 @@ public class Client {
                     // 是否启用 Nagle 算法：通过将小的碎片数据连接成更大的报文来提高发送效率
                     // 如果需要发送一些较小的报文，则需要禁用该算法，默认不开启
                     .option(NioChannelOption.TCP_NODELAY, true)
+                    // 客户端连接服务器最大允许时间
+                    .option(NioChannelOption.CONNECT_TIMEOUT_MILLIS, 10 * 1000)
                     // SocketChannel Handler
                     .handler(new ChannelInitializer<NioSocketChannel>() {
                         @Override
@@ -778,7 +782,9 @@ public class Client {
             // 记录 streamId 与 future 的对应关系
             requestPendingCenter.add(streamId, future);
 
-            channelFuture.channel().writeAndFlush(requestMessage);
+            for (int i = 0; i < 20; i++) {
+                channelFuture.channel().writeAndFlush(requestMessage);
+            }
 
             // 阻塞，等待获取结果
             BaseOperationResult result = future.get();

@@ -271,18 +271,55 @@ Linux Option。进行 TCP 连接时，系统为每个 TCP 连接创建一个 soc
 注意：ulimit 命令修改的数值**只对当前登录用户**的目前使用环境有效，系统重启或者用户退出后就会失效，所以可以作为程序启动脚本的一部分，让它在程序启动前执行。
 
 * TCP_NODELAY
-SocketChannel Option。设置是否启用 Nagle 算法：通过将小的碎片数据连接成更大的报文来提高发送效率。如果需要发送一些较小的报文，则需要禁用该算法。默认不开启。 
+SocketChannel 参数。设置是否启用 Nagle 算法：通过将小的碎片数据连接成更大的报文来提高发送效率。如果需要发送一些较小的报文，则需要禁用该算法。默认不开启。 
 
 * SO_BACKLOG
-ServerSocketChannel Option。最大的等待连接数量。当服务器请求处理线程全满时，用于临时存放已完成三次握手的请求的队列的最大长度。默认值 128。
+ServerSocketChannel 参数。最大的等待连接数量。当服务器请求处理线程全满时，用于临时存放已完成三次握手的请求的队列的最大长度。默认值 128。
 
 * SO_REUSEADDR
-SocketChannel/ServerSocketChannel Option。地址重用，解决“Address already in use”。常用开启场景：多网卡（IP）绑定相同端口；让关闭连接释放的端口更早可使用。默认不开启。
+SocketChannel/ServerSocketChannel 参数。地址重用，解决“Address already in use”。常用开启场景：多网卡（IP）绑定相同端口；让关闭连接释放的端口更早可使用。默认不开启。
 
 ### Netty 参数
+* CONNECT_TIMEOUT_MILLIS
+SocketChannel 参数。客户端连接服务器最大允许时间。默认值 30s。
 
+* io.netty.eventLoopThreads
+System 参数。IO Thread 数量。默认值 availableProcessors * 2。
 
+* io.netty.availableProcessors
+System 参数。指定 availableProcessors。考虑 Docker/VM 等情况。
 
+* io.netty.leakDetection.level
+System 参数。内存泄漏检测级别：DISABLED/SIMPLE 等。默认值 SIMPLE。
+
+## 跟踪诊断
+**设置线程名：**
+```java
+EventLoopGroup bossGroup = new NioEventLoopGroup(1, new DefaultThreadFactory("boss"));
+EventLoopGroup workerGroup = new NioEventLoopGroup(0, new DefaultThreadFactory("worker"));
+```
+
+**设置 Handler 名：**
+```java
+pipeline.addLast("frameDecoder", new OrderFrameDecoder());
+```
+
+**使用日志：**
+```java
+// 不同位置输出的内容不同
+pipeline.addLast(new LoggingHandler(LogLevel.INFO));
+```
+
+## 优化使用
+**整改线程模型：**
+对于 IO 密集型应用，我们通常需要整改线程模型：独立出“线程池”来处理业务（处理业务的线程不再与 NioEventLoop 共享）。
+```java
+// 对于 IO 密集型应用，独立出“线程池”来处理业务（这里不能使用 NioEventLoopGroup，不然只会使用到 1 个线程）
+EventExecutorGroup eventExecutors = new UnorderedThreadPoolEventExecutor(1, new DefaultThreadFactory("business"));
+
+// 业务处理 Handler 放到最后添加
+pipeline.addLast(eventExecutors, new OrderServerProcessHandler());
+```
 
 
 
