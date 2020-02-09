@@ -389,3 +389,12 @@ GlobalTrafficShapingHandler globalTrafficShapingHandler = new GlobalTrafficShapi
 // 只会处理 ByteBuf，因此要注意放置的位置
 pipeline.addLast(globalTrafficShapingHandler);
 ```
+
+### 为不同平台开启 native
+Netty 针对不同平台都做了一定的优化，如果我们想切换到特定平台，也是非常方便的。
+
+* 修改代码
+    + NioServerSocketChannel -> [Prefix]ServerSocketChannel
+    + NioEventLopGroup -> [Prefix]EventLopGroup
+    + NioChannelOption -> [Prefix]ChannelOption
+* 准备好 native 库
