@@ -398,3 +398,69 @@ Netty 针对不同平台都做了一定的优化，如果我们想切换到特�
     + NioEventLopGroup -> [Prefix]EventLopGroup
     + NioChannelOption -> [Prefix]ChannelOption
 * 准备好 native 库
+
+## 黑白名单
+```java
+// 黑白名单过滤
+IpSubnetFilterRule ipSubnetFilterRule =new IpSubnetFilterRule("127.0.0.1", 8,
+        IpFilterRuleType.REJECT);
+RuleBasedIpFilter ruleBasedIpFilter = new RuleBasedIpFilter(ipSubnetFilterRule);ine();
+                                                                                
+// 黑白名单过滤
+pipeline.addLast(ruleBasedIpFilter);
+```
+
+## 自定义授权
+```java
+/**
+ * 认证处理 Handler
+ */
+@Slf4j
+@ChannelHandler.Sharable
+public class AuthHandler extends SimpleChannelInboundHandler<RequestMessage> {
+
+    @Override
+    protected void channelRead0(ChannelHandlerContext ctx, RequestMessage msg) {
+        try {
+            BaseOperation operation = msg.getBody();
+            if (operation instanceof AuthOperation) {
+                AuthOperation authOperation = (AuthOperation) operation;
+                AuthOperationResult authOperationResult = authOperation.execute();
+                if (authOperationResult.isPassAuth()) {
+                    log.info("Pass auth");
+                } else {
+                    log.error("Fail to auth");
+                    ctx.close();
+                }
+            } else {
+                log.error("Expect first msg is auth");
+                ctx.close();
+            }
+        } catch (Exception e) {
+            log.error("Exception happen");
+            ctx.close();
+        }
+        // 只处理一次，处理后移除
+        finally {
+            ctx.pipeline().remove(this);
+        }
+    }
+}
+```
+
+Server 端：
+```java
+// 认证处理
+AuthHandler authHandler = new AuthHandler();
+
+// 认证处理
+pipeline.addLast(authHandler);
+```
+
+Client 端：
+```java
+// 做了认证处理，要求第一个操作是认证操作
+channelFuture.channel().writeAndFlush(new RequestMessage(IdUtil.nextId(),
+        new AuthOperation("admin", "password")));
+channelFuture.channel().writeAndFlush(requestMessage);
+```

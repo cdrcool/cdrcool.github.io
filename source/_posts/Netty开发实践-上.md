@@ -492,6 +492,44 @@ public class ServerIdleCheckHandler extends IdleStateHandler {
 }
 ```
 
+#### 认证处理
+```java
+/**
+ * 认证处理 Handler
+ */
+@Slf4j
+@ChannelHandler.Sharable
+public class AuthHandler extends SimpleChannelInboundHandler<RequestMessage> {
+
+    @Override
+    protected void channelRead0(ChannelHandlerContext ctx, RequestMessage msg) {
+        try {
+            BaseOperation operation = msg.getBody();
+            if (operation instanceof AuthOperation) {
+                AuthOperation authOperation = (AuthOperation) operation;
+                AuthOperationResult authOperationResult = authOperation.execute();
+                if (authOperationResult.isPassAuth()) {
+                    log.info("Pass auth");
+                } else {
+                    log.error("Fail to auth");
+                    ctx.close();
+                }
+            } else {
+                log.error("Expect first msg is auth");
+                ctx.close();
+            }
+        } catch (Exception e) {
+            log.error("Exception happen");
+            ctx.close();
+        }
+        // 只处理一次，处理后移除
+        finally {
+            ctx.pipeline().remove(this);
+        }
+    }
+}
+```
+
 #### 服务器 Server
 ```java
 /**
@@ -504,13 +542,16 @@ public class Server {
         EventLoopGroup bossGroup = new NioEventLoopGroup(1);
         EventLoopGroup workerGroup = new NioEventLoopGroup();
 
-        // 对于 IO 密集型应用，独立出“线程池”来处理业务（这里不能使用 NioEventLoopGroup，不然只会使用到 1 个线程）
-        EventExecutorGroup eventExecutorGroup = new UnorderedThreadPoolEventExecutor(10,
-                new DefaultThreadFactory("business"));
-
         // 全局流量整形
         GlobalTrafficShapingHandler globalTrafficShapingHandler = new GlobalTrafficShapingHandler(
                 new NioEventLoopGroup(), 100 * 1024 * 1024, 100 * 1024 * 1024);
+
+        // 认证处理
+        AuthHandler authHandler = new AuthHandler();
+
+        // 对于 IO 密集型应用，独立出“线程池”来处理业务（这里不能使用 NioEventLoopGroup，不然只会使用到 1 个线程）
+        EventExecutorGroup eventExecutorGroup = new UnorderedThreadPoolEventExecutor(10,
+                new DefaultThreadFactory("business"));
 
         try {
             ServerBootstrap serverBootstrap = new ServerBootstrap()
@@ -544,6 +585,9 @@ public class Server {
                             pipeline.addLast(new OrderFrameEncoder());
                             pipeline.addLast(new OrderProtocolEncoder());
                             pipeline.addLast(new OrderProtocolDecoder());
+
+                            // 认证处理
+                            pipeline.addLast(authHandler);
 
                             // 增加日志输出
                             // 不同位置输出的内容不同
@@ -800,9 +844,10 @@ public class Client {
             // 记录 streamId 与 future 的对应关系
             requestPendingCenter.add(streamId, future);
 
-            for (int i = 0; i < 20; i++) {
-                channelFuture.channel().writeAndFlush(requestMessage);
-            }
+            // 做了认证处理，要求第一个操作是认证操作
+            channelFuture.channel().writeAndFlush(new RequestMessage(IdUtil.nextId(),
+                    new AuthOperation("admin", "password")));
+            channelFuture.channel().writeAndFlush(requestMessage);
 
             // 阻塞，等待获取结果
             BaseOperationResult result = future.get();
