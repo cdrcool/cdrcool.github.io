@@ -451,7 +451,13 @@ public class OrderServerProcessHandler extends SimpleChannelInboundHandler<Reque
         responseMessage.setHeader(msg.getHeader());
         responseMessage.setBody(operationResult);
 
-        ctx.writeAndFlush(responseMessage);
+        // 判断是否可写：避免 OOM
+        if (ctx.channel().isActive() && ctx.channel().isWritable()) {
+            ctx.writeAndFlush(responseMessage);
+        } else {
+            // 这里只是简单丢弃掉，也可以选择存起来
+            log.error("Message dropped");
+        }
     }
 }
 ```
