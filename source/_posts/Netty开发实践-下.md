@@ -293,25 +293,25 @@ System 参数。指定 availableProcessors。考虑 Docker/VM 等情况。
 System 参数。内存泄漏检测级别：DISABLED/SIMPLE 等。默认值 SIMPLE。
 
 ## 跟踪诊断
-**设置线程名：**
+### 设置线程名
 ```java
 EventLoopGroup bossGroup = new NioEventLoopGroup(1, new DefaultThreadFactory("boss"));
 EventLoopGroup workerGroup = new NioEventLoopGroup(0, new DefaultThreadFactory("worker"));
 ```
 
-**设置 Handler 名：**
+### 设置 Handler 名
 ```java
 pipeline.addLast("frameDecoder", new OrderFrameDecoder());
 ```
 
-**使用日志：**
+### 使用日志
 ```java
 // 不同位置输出的内容不同
 pipeline.addLast(new LoggingHandler(LogLevel.INFO));
 ```
 
 ## 优化使用
-**整改线程模型：**
+### 整改线程模型
 对于 IO 密集型应用，我们通常需要整改线程模型：独立出“线程池”来处理业务（处理业务的线程不再与 NioEventLoop 共享）。
 ```java
 // 对于 IO 密集型应用，独立出“线程池”来处理业务（这里不能使用 NioEventLoopGroup，不然只会使用到 1 个线程）
@@ -321,6 +321,71 @@ EventExecutorGroup eventExecutors = new UnorderedThreadPoolEventExecutor(1, new 
 pipeline.addLast(eventExecutors, new OrderServerProcessHandler());
 ```
 
+### 增强写，延迟与吞吐量的抉择
+在前面的点单示例中，我们调用的是`ctx.writeAndFlush(msg)`：写数据之后立刻发送出去，这样虽然延迟降低了，但是吞吐量又会受影响下降。如果我们是要吞吐量优先，那么有下面两种改进方式。
 
+* 利用 channelReadComplete
+就像我们在 echo 示例中演示的这样：
 
+```java
+/**
+ * Handler implementation for the echo server.
+ */
+@Sharable
+public class EchoServerHandler extends ChannelInboundHandlerAdapter {
 
+    /**
+     * 收到消息时触发
+     */
+    @Override
+    public void channelRead(ChannelHandlerContext ctx, Object msg) {
+        // 返回消息给客户端
+        ctx.write(msg);
+    }
+
+    /**
+     * 消息读取完毕后触发
+     */
+    @Override
+    public void channelReadComplete(ChannelHandlerContext ctx) {
+        ctx.flush();
+    }
+
+    /**
+     * 发生异常时触发
+     */
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+        // Close the connection when an exception is raised.
+        cause.printStackTrace();
+        ctx.close();
+    }
+}
+```
+
+不过使用 channelReadComplete 也有弊端：
+1. 不适合异步业务线程（不复用 Nio event loop）处理
+channelRead 中的业务处理结果的 write 很可能发生在 channelReadComplete 之后。
+
+2. 不适合更精细的控制
+例如连续读 16 次时，第 16 次是 flush，但是如果保持连续的次数不变，如何做到 3 次就 flush ？
+
+* 使用 flushConsolidationHandler
+```java
+// 读 5 次之后才 flush，并开启异步增强
+pipeline.addLast(new FlushConsolidationHandler(5, true));
+
+// 业务处理 Handler 放到最后添加
+pipeline.addLast(eventExecutorGroup, new OrderServerProcessHandler());
+```
+
+### 流量整形
+```java
+// 全局流量整形
+GlobalTrafficShapingHandler globalTrafficShapingHandler = new GlobalTrafficShapingHandler(
+        new NioEventLoopGroup(), 100 * 1024 * 1024, 100 * 1024 * 1024);
+
+// 启用流量整形
+// 只会处理 ByteBuf，因此要注意放置的位置
+pipeline.addLast(globalTrafficShapingHandler);
+```

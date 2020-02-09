@@ -534,6 +534,9 @@ public class Server {
                             // 不同位置输出的内容不同
                             pipeline.addLast(new LoggingHandler(LogLevel.INFO));
 
+                            // 读 5 次之后才 flush，并开启异步增强
+                            pipeline.addLast(new FlushConsolidationHandler(5, true));
+
                             // 业务处理 Handler 放到最后添加
                             pipeline.addLast(eventExecutorGroup, new OrderServerProcessHandler());
                         }
