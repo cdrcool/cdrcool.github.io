@@ -498,8 +498,13 @@ public class Server {
         EventLoopGroup bossGroup = new NioEventLoopGroup(1);
         EventLoopGroup workerGroup = new NioEventLoopGroup();
 
-        // 对于 IO 密集型应用，独立出“线程池”来处理业务
-        EventExecutorGroup eventExecutorGroup = new UnorderedThreadPoolEventExecutor(10, new DefaultThreadFactory("business"));
+        // 对于 IO 密集型应用，独立出“线程池”来处理业务（这里不能使用 NioEventLoopGroup，不然只会使用到 1 个线程）
+        EventExecutorGroup eventExecutorGroup = new UnorderedThreadPoolEventExecutor(10,
+                new DefaultThreadFactory("business"));
+
+        // 全局流量整形
+        GlobalTrafficShapingHandler globalTrafficShapingHandler = new GlobalTrafficShapingHandler(
+                new NioEventLoopGroup(), 100 * 1024 * 1024, 100 * 1024 * 1024);
 
         try {
             ServerBootstrap serverBootstrap = new ServerBootstrap()
@@ -519,6 +524,10 @@ public class Server {
                         @Override
                         protected void initChannel(NioSocketChannel ch) {
                             ChannelPipeline pipeline = ch.pipeline();
+
+                            // 启用流量整形
+                            // 只会处理 ByteBuf，因此要注意放置的位置
+                            pipeline.addLast(globalTrafficShapingHandler);
 
                             // 启用读空闲监测：及时清理空闲的连接
                             pipeline.addLast(new ServerIdleCheckHandler());
