@@ -115,7 +115,6 @@ networks:
     external:
       name: op_net
 ```
-```
 
 3. 启动 Elasticsearch 集群
 ```bash
