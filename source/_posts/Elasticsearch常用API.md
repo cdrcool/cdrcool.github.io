@@ -138,32 +138,32 @@ GET /movies/_search?q=2012&df=title&sort=tear:desc&from=0&size=10&timeout=1s
 }
 ```
 
-* 指定字段 vs 范查询
+#### 指定字段 vs 范查询
 ```
 q=title:2012 / q=2012
 ```
 
-* Term vs Phrase
+#### Term vs Phrase
 ```
 Beautiful Mind => Beautiful OR Mind
 "Beautiful Mind" => Beautiful AND Mind (Phrase Query)
 ```
 
-* 分组与引号
+#### 分组与引号
 ```
 title: (Beautiful Mind) (Term Query)
 
 title: "Beautiful Mind" (Phrase Query)
 ```
 
-* 布尔操作
+#### 布尔操作
 AND / OR /NOT （必须大写）或者 && / || / !
 
 ```
 title:(matrix NOT reloaded)
 ```
 
-* 分组
+#### 分组
 + => must
 - => must_not
 
@@ -171,7 +171,7 @@ title:(matrix NOT reloaded)
 title:(+matrix -reloaded)
 ```
 
-* 范围查询
+#### 范围查询
 [] => 闭区间
 {} => 开区间
 
@@ -180,7 +180,7 @@ year:{2019 TO 2018]
 year:[* TO 2018]
 ```
 
-* 算数符号
+#### 算数符号
 
 ```
 year:>2010
@@ -199,13 +199,13 @@ title:mi?d
 title:be*
 ```
 
-* 正则表达
+#### 正则表达
 
 ```
 title:[bt]oy
 ```
 
-* 模糊匹配与近似查询
+#### 模糊匹配与近似查询
 
 ```
 title:befutifl~1
@@ -225,7 +225,7 @@ GET kibana_sample_data_ecommerce/_search
 }
 ```
 
-* 分页
+#### 分页
 from 从 0 开始，默认返回 10 个结果。获取靠后的翻页成本较高。
 
 ```
@@ -239,7 +239,7 @@ GET kibana_sample_data_ecommerce/_search
 }
 ```
 
-* 排序
+#### 排序
 最好在“数字型”与“日期型”字段上排序，因为对于多值类型或分析过的字段排序，系统会选一个值，无法得知该值。
 
 ```
@@ -254,7 +254,7 @@ GET kibana_sample_data_ecommerce/_search
 }
 ```
 
-* _source filtering
+#### _source filtering
 如果 _source 没有存储，那就只返回匹配的文档的元数据。_source 支持使用通配符，如 _source["name*","desc*"]。
 
 ```
@@ -269,7 +269,7 @@ GET kibana_sample_data_ecommerce/_search
 }
 ```
 
-* match
+#### match
 
 默认 OR 查询：
 ```
@@ -296,7 +296,7 @@ GET /comments/_doc/_search
 }
 ```
 
-* match_phrase
+#### match_phrase
 
 ```
 GET /comments/_doc/_search
@@ -310,7 +310,7 @@ GET /comments/_doc/_search
 }
 ```
 
-* query_string
+#### query_string
 
 单字段：
 ```
@@ -338,7 +338,7 @@ GET /users/_search
 }
 ```
 
-* simple_query_string
+#### simple_query_string
 类似 query_string，但是会忽略错误的语法，同时只支持部分查询语法；不支持 AND OR NOT，会当作字符串处理；Term 之间默认的关系是 OR，可以指定 Operator；支持部分逻辑：+ 替代 AND，| 替代 OR，- 替代 NOT。
 
 ```
@@ -350,6 +350,29 @@ GET /users/_search
             "query": "Ruan -Yiming",
             "default_operator": "AND"
         }
+    }
+}
+```
+
+## Mapping
+* 查看 Mapping
+```
+GET users/_mapping
+```
+
+* 设置 Mapping
+```
+PUT users
+{
+    "mappings": {
+        "properties": {
+            "firstname": {
+                "type": "text"
+            },
+            "lastname": {
+                "type": "text"
+            },
+        }        
     }
 }
 ```
