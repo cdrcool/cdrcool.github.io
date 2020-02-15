@@ -354,6 +354,85 @@ GET /users/_search
 }
 ```
 
+## Aggregation
+### Bucket
+
+```
+GET kibana_sample_data_flights/_search
+{
+    "size": 0,
+    "aggs": {
+        "flight_dest": {
+            "terms": {
+                "field": "DestCountry"
+            }
+        }
+    }
+}
+```
+
+### Metric
+
+```
+GET kibana_sample_data_flights/_search
+{
+    "size": 0,
+    "aggs": {
+        "flight_dest": {
+            "terms": {
+                "field": "DestCountry"
+            },
+            "aggs": {
+                "average_price": {
+                    "avg": {
+                        "field": "AbgTicketPrice"
+                    }
+                },
+                "max_price": {
+                    "max": {
+                        "field": "AbgTicketPrice"
+                    }
+                },
+                "min_price": {
+                    "min": {
+                        "field": "AbgTicketPrice"
+                    }
+                }
+            }
+        }
+    }
+}
+```
+
+### Nested
+
+```
+GET kibana_sample_data_flights/_search
+{
+    "size": 0,
+    "aggs": {
+        "flight_dest": {
+            "terms": {
+                "field": "DestCountry"
+            },
+            "aggs": {
+                "average_price": {
+                    "avg": {
+                        "field": "AbgTicketPrice"
+                    }
+                },
+                "weather": {
+                    "terms": {
+                        "field": DestWeather
+                    }
+                }
+            }
+        }
+    }
+}
+```
+
+
 ## Mapping
 * 查看 Mapping
 ```
@@ -407,4 +486,79 @@ POST _analyze
     "text": "Mastering Elasticsearch"
 }
 ```
+
+## Template
+### Index Template
+Index Template 可以帮助我们设置 Mappings 和 Settings，并按照一定的规则，自动匹配到新创建的索引之上。
+* 模板仅在一个索引被创建时，才会产生作用。修改模板不会影响已创建的索引。
+* 可以设定多个索引模板，这些设置会被“merge”在一起。
+* 可以指定“order”的数值，控制“merging”的过程。（由低到高）
+* 应用创建索引时，用户所指定的 Settings 和 Mappings，会覆盖之前模板中的设定。
+
+**设置 Template**
+```
+PUT /_template/template_test
+{
+    "index_patterns": ["test*"],
+    "order": 1,
+    "settings": {
+        "number_of_shards": 1,
+        "number_of_replicas": 2
+    },
+    "mappings": {
+        "date_detection": false,
+        "numeric_detection": true
+    }
+}
+```
+
+** 查看 Template：**
+```
+GET /_template/template_default
+
+GET /_template/temp*
+```
+
+### Dynamic Template
+根据 Elasticsearch 识别的数据类型，结合字段名称，来动态设定字段类型。
+* Dynamic Template 是定义在某个索引的 Mapping 中
+* Template 有一个名称
+* 匹配规则是一个数组
+* 为匹配到字段设置 Mapping
+
+比如我们可以：
+* 所有的字符串类型都设定为 keyword，或者关闭 keyword
+* is 开头的字段都设置成 boolean
+* long_开头的都设置成 long 类型
+
+```
+PUT my_text_index
+{
+    "mappings": {
+        "dynamic_templates": [
+            {
+                "full_name": {
+                    "path_match": "name.*",
+                    "path_unmatch": "*.middle",
+                    "mapping": {
+                        "type": "text",
+                        "copy_to": "full_name"
+                    }
+                }
+            },
+            {
+                "string_as_boolean": {
+                    "match_mapping_type": "string",
+                    "match": "is*",
+                    "mapping": {
+                        "type": "boolean"
+                    }
+                }
+            }
+        ]
+    }
+}
+```
+
+
 
