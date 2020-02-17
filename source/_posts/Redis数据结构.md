@@ -218,6 +218,53 @@ zrangebyscore books -inf 8.91 withscores
 zrem books "java concurrency"
 ```
 
+## BitMap
+BitMap 就是通过一个 bit 位来表示某个元素对应的值或者状态, 其中的 key 就是对应元素本身，实际上底层也是通过对字符串的操作来实现。
+
+命令：
+```bash
+# 零存零取
+setbit w 1 1
+getbit w 1
+
+# 整存零取
+set w hello
+getbit w 1
+
+# 统计指定范围内 1 的个数
+bitcount w 0 -1
+
+# 查找第一个 1 位
+bitpos w 1
+
+# ...
+bitfield w ...
+```
+
+## HyperLogLog
+Redis HyperLogLog 是用来做基数统计的算法。HyperLogLog 的优点是，在输入元素的数量或者体积非常非常大时，计算基数所需的空间总是固定的、并且是很小的。
+在 Redis 里面，每个 HyperLogLog 键只需要花费 12 KB 内存，就可以计算接近 2^64 个不同元素的基数。这和计算基数时，元素越多耗费内存就越多的集合形成鲜明对比。
+但是，因为 HyperLogLog 只会根据输入元素来计算基数，而不会储存输入元素本身，所以 HyperLogLog 不能像集合那样，返回输入的各个元素。
+另外，HyperLogLog 提供去重计数方案是不精确的，虽然不精确但是也不是非常不精确，标准误差是 0.81%，这样的精确度已经可以满足上面的 UV 统计需求了。
+
+命令：
+```bash
+# 添加计数
+pfadd codehole user1
+
+# 获取计数
+pfcount codehole
+
+# 添加计数
+pfadd home user1
+
+# 合并计数（并集计算）
+pfmerge xx codehole home
+```
+
+## GEO
+用于存储用户给定的地理位置信息，并对这些信息进行操作。GEO 数据结构总共有 6 个命令：geoadd、geopos、geodist、georadius、georadiusbymember。
+
 ## 容器类型数据结构的通用规则
 list/set/hash/zset 这四种数据结构是容器型数据结构，它们共享下面两条通用规则：
 * create if not exists：如果容器不存在，那就创建一个，再进行操作
