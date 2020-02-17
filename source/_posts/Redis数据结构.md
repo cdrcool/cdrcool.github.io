@@ -196,7 +196,7 @@ spop books
 srem books python
 ```
 
-## zset（sorted set：有序集合）
+## zset（有序集合）
 类似于 Java 的 SortedSet 和 HashMap 的集合体，一方面它是一个 set，保证了内部 value 的唯一性，另一方面它可以给每个 value 赋予一个 score，代表这个 value 的排序权重。它的内部实现用的是一种叫做**跳跃链表**的数据结构。
 
 zset 中最后一个 value 被移除后，数据结构自动删除，内存被回收。
@@ -239,7 +239,7 @@ zrangebyscore books -inf 8.91 withscores
 zrem books "java concurrency"
 ```
 
-## BitMap
+## BitMap（位图）
 BitMap 就是通过一个 bit 位来表示某个元素对应的值或者状态, 其中的 key 就是对应元素本身，实际上底层也是通过对字符串的操作来实现。
 
 使用场景：
@@ -267,7 +267,7 @@ bitpos w 1
 bitfield w ...
 ```
 
-## HyperLogLog
+## HyperLogLog（基数统计）
 Redis HyperLogLog 是用来做基数统计的算法。HyperLogLog 的优点是，在输入元素的数量或者体积非常非常大时，计算基数所需的空间总是固定的、并且是很小的。
 在 Redis 里面，每个 HyperLogLog 键只需要花费 12 KB 内存，就可以计算接近 2^64 个不同元素的基数。这和计算基数时，元素越多耗费内存就越多的集合形成鲜明对比。
 但是，因为 HyperLogLog 只会根据输入元素来计算基数，而不会储存输入元素本身，所以 HyperLogLog 不能像集合那样，返回输入的各个元素。
@@ -292,7 +292,7 @@ pfadd home user1
 pfmerge xx codehole home
 ```
 
-## GEO
+## GEO（地理位置）
 用于存储用户给定的地理位置信息，并对这些信息进行操作。GEO 数据结构总共有 6 个命令：geoadd、geopos、geodist、georadius、georadiusbymember。
 
 ## 容器类型数据结构的通用规则
