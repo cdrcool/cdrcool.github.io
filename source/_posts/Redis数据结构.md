@@ -113,7 +113,7 @@ rpop books
 ```
 
 补充：
-**Redis List 底层存储的不是一个简单的 linkedList，而是称之为快速链表 quicklist 的一个结构。**
+**Redis List 底层存储的不是一个简单的 LinkedList，而是称之为快速链表 quicklist 的一个结构。**
 在列表元素较少的情况下会使用一块连续的内存存储，这个结构是 ziplist，也即是压缩列表。它将所有的元素紧挨着一起存储，分配的是一块连续的内存。
 当数据量比较多的时候就会改成 quicklist。
 因为普通的链表需要用到附加指针（prev 和 next），会比较浪费空间，而且会加重内存的碎片化。所以 Redis 将链表和 ziplist 结合起来组成了 quicklist。也就是将多个 ziplist 使用双向指针串起来使用。这样既满足了快速的插入删除性能，又不会出现太大的空间冗余。
