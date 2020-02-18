@@ -1,5 +1,5 @@
 ---
-title: Redis过期策略及内存淘汰策略
+title: Redis 过期策略及内存淘汰策略
 date: 2020-02-18 14:04:00
 categories: Redis
 ---
