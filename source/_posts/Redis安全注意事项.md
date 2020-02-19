@@ -6,7 +6,7 @@ categories: Redis
 ## 指令安全
 Redis 中有一些非常危险的指令，这些指令会对 Redis 的稳定以及数据安全造成非常严重的影响。比如 **keys** 指令会导致 Redis 卡顿，**flushdb** 和 **flushall** 会让 Redis 中的所有数据全部清空。
 
-Redis 在配置文件中提供了 **rename-command** 指令用于将某些危险的指令改成特别的而名称，用来避免人为误操作。比如在配置文件的 security 块增加以下内容：
+Redis 在配置文件中提供了 **rename-command** 指令用于将某些危险的指令改成特别的名称，用来避免人为误操作。比如在配置文件的 security 块增加以下内容：
 ```
 rename-command keys abckeyabc
 ```
