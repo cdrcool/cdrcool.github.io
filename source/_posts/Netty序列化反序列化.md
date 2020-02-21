@@ -9,7 +9,7 @@ categories: Netty
 * 一次解码器：ByteToMessageDecoder
 io.netty.buffer.ByteBuf（原始数据流） -> io.netty.buffer.ByteBuf（用户数据）
 
-* 二次解码器：MessageToMessageDecoder<I>
+* 二次解码器：`MessageToMessageDecoder<I>`
 io.netty.buffer.ByteBuf（用户数据） -> Java Object
 
 ## 常用二次编码码方式
@@ -30,4 +30,4 @@ io.netty.buffer.ByteBuf（用户数据） -> Java Object
 ## Netty 对常用编解码方式的支持
 1. 相关类都在包 io.netty.handler.codec
 2. 支持 base64、bytes、compression、json、marshaling、protobuf、serialization、string、xml等
-3. 编码器继承自 MessageToMessageEncoder<I>，解码器继承自 MessageToMessageDecoder<I>
+3. 编码器继承自 `MessageToMessageEncoder<I>`，解码器继承自 `MessageToMessageDecoder<I>`

@@ -106,7 +106,7 @@ public class OrderFrameEncoder extends LengthFieldPrepender {
 由于另外两种都不常用，这里就不演示怎么切换了。
 
 ## 序列化/反序列化
-Netty 对一些常用的序列化/反序列化方式都提供了支持，如 base64、bytes、compression、json、marshaling、protobuf、serialization、string、xml 等，编码器都继承自 MessageToMessageEncoder<I>，解码器都继承自 MessageToMessageDecoder<I>。
+Netty 对一些常用的序列化/反序列化方式都提供了支持，如 base64、bytes、compression、json、marshaling、protobuf、serialization、string、xml 等，编码器都继承自 `MessageToMessageEncoder<I>`，解码器都继承自 `MessageToMessageDecoder<I>`。
 
 在之前的示例代码中，我们选择的都是 json 方式，如下面这样：
 
