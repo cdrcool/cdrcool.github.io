@@ -1,5 +1,5 @@
 ---
-title: Elasticsearch Mapping
+title: Elasticsearch 映射
 date: 2020-02-12 20:33:00
 categories: Elasticsearch
 ---
@@ -88,8 +88,8 @@ PUT users
 控制倒排索引记录的内容，有四种不同级别的配置：
 * doc：记录 doc id
 * freqs：记录 doc id 和 term frequencies
-* positions：记录 doc id / term frequencies / term position
-* offsets：记录 doc id / term frequencies / term position / character offsets
+* positions：记录 doc id / term frequencies / term position，用于距离查询，默认设置
+* offsets：记录 doc id / term frequencies / term position / character offsets，用于高亮显示
 
 Text 类型默认记录级别为 positions，其它类型默认为 docs。记录内容越多，占用的存储空间越大。
 
