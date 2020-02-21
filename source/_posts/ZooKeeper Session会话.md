@@ -34,10 +34,10 @@ ExpirationTime = ((CurrentTime + SessionTimeOut) / ExpirationInterval + 1) * Exp
 ![session会话检测](/images/zookeeper/session会话检测.png)
 
 如上图所示，整个流程分为四步：
-1. 检查该会话是否已经被关闭。若已经被关闭，则直接返回即可。
-2. 计算该会话新的超时时间 ExpirationTime_New。使用上面提到的公式计算下一次超时时间点。
-3. 获取该会话上次超时时间 ExpirationTime_Old。计算该值是为了定位其所在的区块。
-4. 迁移会话。将该会话从老的区块中取出，放入 ExpirationTime_New 对应的新区块中。
+1. **检查该会话是否已经被关闭。** 若已经被关闭，则直接返回即可。
+2. **计算该会话新的超时时间 ExpirationTime_New。** 使用上面提到的公式计算下一次超时时间点。
+3. **获取该会话上次超时时间 ExpirationTime_Old。** 计算该值是为了定位其所在的区块。
+4. **迁移会话。** 将该会话从老的区块中取出，放入 ExpirationTime_New 对应的新区块中。
 
 ![session会话迁移](/images/zookeeper/session会话迁移.png)
 
