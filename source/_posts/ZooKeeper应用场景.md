@@ -83,7 +83,7 @@ ZooKeeper 具有以下两大特性：
 
 虽然 ZooKeeper 可以用来实现分布式队列，但是并不建议使用，原因有如下几点：
 1. ZooKeeper 对于传输数据有一个 1MB 的大小限制，这就意味着实际中 ZooKeeper 节点 ZNodes 必须设计的很小，但实际中队列通常都存放着数以千计的消息。
-2. 如果有很多大的 ZNodes 会严重拖慢的zk启动过程，包括 ZooKeeper 节点之间的同步过程，如果真要用 ZooKeeper 当队列，最好去调整 initLimit 与 syncLimit 参数。
+2. 如果有很多大的 ZNodes 会严重拖慢的 ZooKeeper 启动过程，包括 ZooKeeper 节点之间的同步过程，如果真要用 ZooKeeper 当队列，最好去调整 initLimit 与 syncLimit 参数。
 3. 如果一个 ZNode 过大，也会导致清理变得困难，也会导致 getChildren() 方法失败，Netflix 不得不设计一个特殊的机制来处理这个大体积的 ZNode。
 4. 如果 ZooKeeper 中某个 node 下有数千子节点，也会严重拖累 ZooKeeper 性能。
 5. ZooKeeper 中的数据都会放置在内存中。
