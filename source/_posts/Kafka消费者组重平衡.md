@@ -1,30 +1,24 @@
 ---
-title: Kafka 消费者组重平衡（Rebalance）
+title: Kafka 消费者组重平衡
 date: 2020-01-25 11:22:00
 categories: Kafka
 ---
 ## 概念
-Rebalance 本质上是一种协议，规定了一个 Consumer Group 下的所有 Consumer 如何达成一致，来分配订阅 Topic 的每个分区。在 Rebalance 过程中，所有 Consumer 实例共同参与，在协调者（Coordinator）组件的帮助下，完成订阅主题分区的分配。
+重平衡（Rebalance）本质上是一种协议，规定了一个 Consumer Group 下的所有 Consumer 如何达成一致，来分配订阅 Topic 的每个分区。在 Rebalance 过程中，所有 Consumer 实例共同参与，在协调者（Coordinator）组件的帮助下，完成订阅主题分区的分配。
 
 ## 触发条件
 Rebalance 的触发条件有以下3个：
-* 组成员数发生变更
-比如有新的 Consumer 实例加入组或者离开组，抑或是有 Consumer 实例崩溃被“踢出”组。
-* 订阅主题数发生变更
-Consumer Group 可以是用正则表达式的方式订阅主题，比如 consumer.subscribe(Pattern.compile(“t.*c”)) 就表明该 Group 订阅所有以字母t开头、字母 c 结尾的主题。在 Consumer Group 的运行过程中，一旦我们新创建了一个满足这样条件的主题，那么该 Group 就会发生 Rebalance。
-* 订阅主题的分区数发生变更
-Kafka 当前只允许增加一个主题的分区数。当分区数增加时，就会触发订阅该主题的所有 Group 开启 Rebalance。
+* **组成员数发生变更：** 比如有新的 Consumer 实例加入组或者离开组，抑或是有 Consumer 实例崩溃被“踢出”组。
+* **订阅主题数发生变更：** Consumer Group 可以是用正则表达式的方式订阅主题，比如 consumer.subscribe(Pattern.compile(“t.*c”)) 就表明该 Group 订阅所有以字母t开头、字母 c 结尾的主题。在 Consumer Group 的运行过程中，一旦我们新创建了一个满足这样条件的主题，那么该 Group 就会发生 Rebalance。
+* **订阅主题的分区数发生变更：** Kafka 当前只允许增加一个主题的分区数。当分区数增加时，就会触发订阅该主题的所有 Group 开启 Rebalance。
 
 ## 分区分配策略
 Rebalance 发生时，Group 下所有的 Consumer 实例都会协调在一起共同参与。那每个 Consumer 实例怎么知道应该消费订阅主题的哪些分区呢？这就需要[Kafka 分区分配策略](https://cdrcool.github.io/2020/01/24/Kafka分区分配策略/)的协助了。
 
 ## 弊端
-* Rebalance 影响 Consumer 端 TPS
-这是因为在 Rebalance 过程中，所有 Consumer 实例都会停止消费，直到 Rebalance 完成。
-* Rebalance 很慢
-尤其是当我们的 Group 下成员很多的时候。
-* Rebalance 效率不高
-当前 Kafka 的设计机制决定了每次 Rebalance 时，Group 下的所有成员都要参与进来，而且通常不会考虑局部性原理，但局部性原理对提升系统性能是特别重要的。
+* **Rebalance 影响 Consumer 端 TPS：** 这是因为在 Rebalance 过程中，所有 Consumer 实例都会停止消费，直到 Rebalance 完成。
+* **Rebalance 很慢：** 尤其是当我们的 Group 下成员很多的时候。
+* **Rebalance 效率不高：** 当前 Kafka 的设计机制决定了每次 Rebalance 时，Group 下的所有成员都要参与进来，而且通常不会考虑局部性原理，但局部性原理对提升系统性能是特别重要的。
 
 ## 避免 Rebalance
 在真实的业务场景中，很多 Rebalance 都是计划外的或者说是不必要的。
