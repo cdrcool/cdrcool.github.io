@@ -36,6 +36,5 @@ categories: ZooKeeper
 ## 事务及ZXID
 **事务是指能够改变 Zookeeper 服务器状态的操作，一般包括数据节点的创建与删除、数据节点内容更新和客户端会话创建与失效等操作。**对于每个事务请求，Zookeeper 都会为其分配一个全局唯一的事务 ID，即 ZXID，是一个 64 位的数字，高 32 位表示该事务发生的集群选举周期（集群每发生一次 Leader 选举，值加 1），低 32 位表示该事务在当前选择周期内的递增次序（Leader 每处理一个事务请求，值加 1，发生一次 Leader 选择，低 32 位要清 0）。
 
-
-参考资料：
+## 参考资料：
 [zookeeper的2PC事务提交](https://blog.csdn.net/fu123123fu/article/details/81175680)
