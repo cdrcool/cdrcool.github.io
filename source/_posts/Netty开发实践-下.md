@@ -70,6 +70,7 @@ ServerBootstrap serverBootstrap = new ServerBootstrap().group(eventLoopGroup)...
 
 ## 粘包/半包处理
 为了处理 TCP 的粘包/半包问题，Netty 提供了三种常用的封帧方式：
+
 方式\支持 | 解码 | 编码
 :-: | :-: | :-:
 固定长度 | FixedLengthFrameDecoder | 简单
