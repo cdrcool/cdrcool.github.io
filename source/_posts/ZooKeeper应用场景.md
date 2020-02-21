@@ -5,7 +5,7 @@ categories: ZooKeeper
 ---
 利用 ZooKeeper 可以非常方便构建一系列分布式应用中都会涉及到的核心功能。
 
-### 命名服务
+## 命名服务
 命名服务是指通过指定的名字来获取资源或者服务的地址，利用 ZooKeeper 创建一个全局的路径，即是唯一的路径，这个路径就可以作为一个名字，指向集群中的机器，提供的服务的地址，或者一个远程的对象等等。
 ZooKeeper 的命名服务有以下两个应用方面：
 * 提供类 JNDI 功能，可以把系统中各种服务的名称、地址以及目录信息存放在 ZooKeeper，需要的时候去 ZooKeeper 中读取。
@@ -88,5 +88,5 @@ ZooKeeper 具有以下两大特性：
 5. ZooKeeper 中的数据都会放置在内存中。
 
 
-参考资料：
-[ZooKeeper 的应用场景](https://zhuanlan.zhihu.com/p/59669985)
+## 参考资料
+1. [ZooKeeper 的应用场景](https://zhuanlan.zhihu.com/p/59669985)
