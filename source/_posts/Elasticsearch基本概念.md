@@ -50,6 +50,7 @@ Elasticsearch 是面向文档的，文档是所有可搜索数据的最小单位
 单个的 ElasticSearch 服务实例称为节点（node）。很多时候部署一个 ElasticSearch 节点就足以应付大多数简单的应用，但是考虑到容错性或在数据膨胀到单机无法应付这些状况时，我们会更倾向于使用多节点的 ElasticSearch 集群。
 
 **节点类型：**
+
 节点类型 | 说明 | 配置参数 | 默认值
 :-: | :-: | :-: | :-:
 master eligible | 可以参加选主流程，成为 Master 节点 | node.master | true

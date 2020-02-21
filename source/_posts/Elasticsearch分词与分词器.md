@@ -13,7 +13,7 @@ categories: Elasticsearch
 * Tokenizer：按照规则切分为单词
 * Token Filter：将切分的单词进行加工：小写、删除 stopwords、增加同义词..
 
-![分词器处理流程示例](images/elasticsearch/分词器处理流程示例.png)
+![分词器处理流程示例](/images/elasticsearch/分词器处理流程示例.png)
 
 ## Elasticsearch 内置分词器
 * Standard Analyzer：默认分词器，按词切分，小写处理

@@ -3,7 +3,7 @@ title: Elasticsearch 映射
 date: 2020-02-12 20:33:00
 categories: Elasticsearch
 ---
-Mapping 类似数据库中的 schema 的定义，作用如下：
+映射（Mapping）类似数据库中的 schema 的定义，作用如下：
 * 定义索引中的字段的名称
 * 定义字段的数据类型，如字符串、数字、布尔...
 * 字段倒排索引的相关设置，如 Analyzed or Not Analyzed
@@ -29,9 +29,10 @@ Mapping 类似数据库中的 schema 的定义，作用如下：
 Elasticsearch 中不提供专门的数组类型。但是任何字段，都可以包含多个相同类型的数值。
 
 ## Dynamic Mapping
-Dynamic Mapping，是指在写入文档前无需指定 Mapping，Elasticsearch 会自动根据文档信息推算出字段的类型。这种机制使得我们无需手动定义 Mappings。当然有时候会推算的不对，这时候就需要手动设置 Mapping 了。
+Dynamic Mapping，是指在写入文档前无需指定 Mapping，Elasticsearch 会自动根据文档信息推算出字段的类型。这种机制使得我们无需手动定义 Mapping。当然有时候会推算的不对，这时候就需要手动设置 Mapping 了。
 
 类型的自动识别：
+
 JSON 类型 | Elasticsearch 类型
 :-: | :-:
 字符串 | 日期格式 -> Date；数字 -> float || long（默认关闭）；string -> text & keyword
