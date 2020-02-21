@@ -54,10 +54,10 @@ Leader 选举是保证分布式数据一致性的关键所在。当 ZooKeeper �
 假定 ZooKeeper 由 5 台机器组成，SID 分别为 1、2、3、4、5，ZXID 分别为 9、9、9、8、8，并且此时 SID 为 2 的机器是 Leader 机器，某一时刻，1、2 所在机器出现故障，因此集群开始进行 Leader 选举。
 在第一次投票时，每台机器都会将自己作为投票对象，于是 SID 为 3、4、5 的机器投票情况分别为 (3,9)、(4,8)、(5,8)。
 2. **变更投票。** 每台机器发出投票后，也会收到其它机器的投票，每台机器会根据一定规则来处理收到的其它机器的投票，并以此来决定是否需要变更自己的投票，这个规则也是整个 Leader 选举算法的核心所在，其中的术语描述如下：
-    * vote_sid: 接收到的投票中锁推举的 Leader 服务器的 SID。
-    * vote_zxid：接收到的投票中所推举 Leader 服务器的 ZXID。
-    * self_sid：当前服务器自己的 SID。
-    * self_zxid：当前服务器自己的 ZXID。
+    * vote_sid 接收到的投票中锁推举的 Leader 服务器的 SID。
+    * vote_zxid 接收到的投票中所推举 Leader 服务器的 ZXID。
+    * self_sid 当前服务器自己的 SID。
+    * self_zxid 当前服务器自己的 ZXID。
 每次对收到的投票的处理，都是对 (vote_sid,vote_zxid) 和 (self_sid, self_zxid) 对比的过程。
     规则一：如果 vote_zxid 大于 self_zxid，就认可当前收到的投票，并再次将该投票发送出去。
     规则二：如果 vote_zxid 小于 self_zxid，那么坚持自己的投票，不做任何变更。
@@ -69,20 +69,20 @@ Leader 选举是保证分布式数据一致性的关键所在。当 ZooKeeper �
 
 ## Leader 选举实现细节
 1. 服务器状态
-服务器具有四种状态，分别是 LOOKING、FOLLOWING、LEADING、OBSERVING。
+服务器具有四种状态，分别是 **LOOKING、FOLLOWING、LEADING、OBSERVING**。
 
-* LOOKING：寻找 Leader状态。当服务器处于该状态时，它会认为当前集群中没有 Leader，因此需要进入 Leader 选举状态。
-* FOLLOWING：跟随者状态。表明当前服务器角色是 Follower。
-* LEADING：领导者状态。表明当前服务器角色是 Leader。
-* OBSERVING：观察者状态。表明当前服务器角色是 Observer。
+* LOOKING 寻找 Leader状态。当服务器处于该状态时，它会认为当前集群中没有 Leader，因此需要进入 Leader 选举状态。
+* FOLLOWING 跟随者状态。表明当前服务器角色是 Follower。
+* LEADING 领导者状态。表明当前服务器角色是 Leader。
+* OBSERVING 观察者状态。表明当前服务器角色是 Observer。
 
 2. 投票数据结构
 每个投票中包含了两个最基本的信息，所推举服务器的 SID 和 ZXID，投票（Vote）在 ZooKeeper 中包含字段如下：
-* id：被推举的 Leader 的 SID。
-* zxid：被推举的 Leader 的事务 ID。
-* electionEpoch：逻辑时钟，用来判断多个投票是否在同一轮选举周期中，该值在服务器端是一个自增序列，每次进入新一轮的投票中，都会对该值进行加 1 操作。
-* peerEpoch：被推举的 Leader 的 epoch。
-* state：当前服务器的状态。
+* id 被推举的 Leader 的 SID。
+* zxid 被推举的 Leader 的事务 ID。
+* electionEpoch 逻辑时钟，用来判断多个投票是否在同一轮选举周期中，该值在服务器端是一个自增序列，每次进入新一轮的投票中，都会对该值进行加 1 操作。
+* peerEpoch 被推举的 Leader 的 epoch。
+* state 当前服务器的状态。
 
 
 参考资料：
