@@ -18,7 +18,7 @@ Zookeeper中所有读操作（exists(),getData(),getChildren()）都可以设置
 在上述说道的所有读操作中，如果需要 Watcher，我们可以自定义 Watcher，如果是 Boolean 型变量，当为 true 时，则使用系统默认的 Watcher，系统默认的 Watcher 是在 Zookeeper 的构造函数中定义的 Watcher。参数中 Watcher 为空或者 false，表示不启用 Wather。
 
 ## Watch 机制特点
-* **一次性触发：** 事件发生触发监听，一个 Watcher event 就会被发送到设置监听的客户端，这种效果是**一次性的**，后续再次发生同样的事件，不会再次触发。如果还需要关注数据的变化，需要再次注册 Watcher。
+* **一次性触发：** 事件发生触发监听，一个 Watcher event 就会被发送到设置监听的客户端，这种效果是一次性的，后续再次发生同样的事件，不会再次触发。如果还需要关注数据的变化，需要再次注册 Watcher。
 * **事件封装：** ZooKeeper 使用 WatchedEvent 对象来封装服务端事件并传递。WatchedEvent 包含了每一个事件的三个基本属性：通知状态（keeperState），事件类型（EventType）和节点路径（path）。
 * **event 异步发送：** watcher 的通知事件从服务端发送到客户端是异步的。
 * **先注册再触发：** Zookeeper 中的 watch 机制，必须客户端先去服务端注册监听，这样事件发送才会触发监听，通知给客户端。
