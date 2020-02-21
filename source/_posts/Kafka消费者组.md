@@ -3,7 +3,7 @@ title: Kafka 消费者组
 date: 2020-01-24 10:43:00
 categories: Kafka
 ---
-##概念
+## 概念
 消费者组，即 Consumer Group，是 Kafka 提供的可扩展且具有容错性的消费者机制。
 要理解 Consumer Group，我们需要记住下面这三个特性：
 1. Group ID 是一个字符串，在一个 Kafka 集群中，它标识唯一的一个 Consumer Group。
