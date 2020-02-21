@@ -38,11 +38,10 @@ Rebalance 发生时，Group 下所有的 Consumer 实例都会协调在一起共
 当 Consumer Group 完成 Rebalance 之后，每个 Consumer 实例都会定期地向 Coordinator 发送心跳请求，表明它还存活着。如果某个 Consumer 实例不能及时地发送这些心跳请求，Coordinator 就会认为该 Consumer已经“死”了，从而将其从 Group 中移除，然后开启新一轮 Rebalance。
 Consumer 端有个参数，叫 **session.timeout.ms**，就是被用来表征此事的。该参数的默认值是10秒，即如果 Coordinator 在10秒之内没有收到 Group 下某 Consumer 实例的心跳，它就会认为这个 Consumer 实例已经挂了。可以这么说，session.timout.ms 决定了 Consumer 存活性的时间间隔。
 除了这个参数，Consumer 还提供了一个允许我们控制发送心跳请求频率的参数，就是 **heartbeat.interval.ms**。这个值设置得越小，Consumer 实例发送心跳请求的频率就越高。频繁地发送心跳请求会额外消耗带宽资源，但好处是能够更加快速地知晓当前是否开启 Rebalance。
-
 对于上面两个参数，在这里给出一些推荐数值，我们可以“无脑”地应用在你的生产环境中。
-* 设置 session.timeout.ms = 6s。
-* 设置 heartbeat.interval.ms = 2s。
-* 要保证Consumer实例在被判定为“dead”之前，能够发送至少3轮的心跳请求，即 session.timeout.ms >= 3 * heartbeat.interval.ms。
+    + 设置 session.timeout.ms = 6s。
+    + 设置 heartbeat.interval.ms = 2s。
+    + 要保证Consumer实例在被判定为“dead”之前，能够发送至少3轮的心跳请求，即 session.timeout.ms >= 3 * heartbeat.interval.ms。
 
 * Consumer 消费时间过长
 Consumer 端还有一个参数，用于控制 Consumer 实际消费能力对 Rebalance 的影响，即 **max.poll.interval.ms** 参数。它限定了 Consumer 端应用程序两次调用 poll 方法的最大时间间隔。它的默认值是 5 分钟，表示 Consumer 程序如果在 5 分钟之内无法消费完 poll 方法返回的消息，那么 Consumer 会主动发起“离开组”的请求，Coordinator 也会开启新一轮 Rebalance。
