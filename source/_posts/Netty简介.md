@@ -38,19 +38,12 @@ JDK 原生也有一套网络应用程序 API，但是存在一系列问题，主
 
 ## Netty 在开源框架中的应用
 * 数据库：Cassandra
-
 * 大数据处理：Spark、Hadoop
-
 * 消息队列：RocketMQ
-
 * 搜索引擎：Elasticsearch
-
 * 框架：gRPC、Apache Dubbo、Spring5(WebFlux)
-
 * 分布式协调器：ZooKeeper
-
 * 工具类：async-http-client
-
 * 其它参考：https://netty.io/wiki/adopters.html
 
 ## 参考资料
