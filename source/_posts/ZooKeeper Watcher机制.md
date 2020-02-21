@@ -55,6 +55,6 @@ AuthFailed（4） | None（-1） | 通常有两种情况，1：使用错误的sc
 
 虽然说 Zookeeper 需要先注册再触发，但是连接状态事件(type=None, path=null)不需要客户端注册，客户端只要有需要直接处理就行了。
 
-参考资料：
-[zookeeper的watcher机制](https://blog.csdn.net/xxydzyr/article/details/93390162)
-[zookeeper（四）：核心原理（Watcher、事件和状态）](https://www.cnblogs.com/shamo89/p/9787176.html)
+## 参考资料
+1. [zookeeper的watcher机制](https://blog.csdn.net/xxydzyr/article/details/93390162)
+2. [zookeeper（四）：核心原理（Watcher、事件和状态）](https://www.cnblogs.com/shamo89/p/9787176.html)

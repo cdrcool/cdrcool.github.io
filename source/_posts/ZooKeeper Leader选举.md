@@ -84,6 +84,5 @@ Leader 选举是保证分布式数据一致性的关键所在。当 ZooKeeper �
 * peerEpoch 被推举的 Leader 的 epoch。
 * state 当前服务器的状态。
 
-
-参考资料：
-[Zookeeper选举算法原理](https://www.cnblogs.com/sweet6/p/10574574.html)
+## 参考资料
+1. [Zookeeper选举算法原理](https://www.cnblogs.com/sweet6/p/10574574.html)

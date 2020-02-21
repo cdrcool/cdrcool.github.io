@@ -70,9 +70,8 @@ ExpirationTime = ((CurrentTime + SessionTimeOut) / ExpirationInterval + 1) * Exp
 2. **SESSION_EXPIRED** 客户端与服务端断开连接后，重连时间耗时太长，超过了会话超时时间限制后没有成功连上服务器，服务器会进行会话清理，此时，客户端不知道会话已经失效，状态还是 DISCONNECTED，如果客户端重新连上了服务器，此时状态为 SESSION_EXPIRED，用于需要重新实例化 Zookeeper 对象，并且看应用的复杂情况，重新恢复临时数据。
 3. **SESSION_MOVED** 客户端会话从一台服务器转移到另一台服务器，即客户端与服务端 S1 断开连接后，重连上了服务端 S2，此时会话就从 S1 转移到了 S2。当多个客户端使用相同的 sessionId/sessionPasswd 创建会话时，会收到 SessionMovedException 异常。因为一旦有第二个客户端连接上了服务端，就被认为是会话转移了。
 
-
-参考资料：
-[【分布式】Zookeeper会话](https://www.cnblogs.com/leesf456/p/6103870.html)
+## 参考资料
+1. [【分布式】Zookeeper会话](https://www.cnblogs.com/leesf456/p/6103870.html)
 
 
 
