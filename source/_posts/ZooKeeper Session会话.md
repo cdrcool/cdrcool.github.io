@@ -3,7 +3,7 @@ title: ZooKeeper Session 会话
 date: 2020-02-03 14:13:00
 categories: ZooKeeper
 ---
-客户端与服务端之间任何交互操作都与会话息息相关，如临时节点的生命周期、客户端请求的顺序执行、Watcher 通知机制等。Zookeeper 的连接与会话就是客户端通过实例化 Zookeeper 对象来实现客户端与服务端创建并保持 TCP 连接的过程。
+客户端与服务端之间任何交互操作都与会话息息相关，如临时节点的生命周期、客户端请求的顺序执行、Watcher 通知机制等。**Zookeeper 的连接与会话就是客户端通过实例化 Zookeeper 对象来实现客户端与服务端创建并保持 TCP 连接的过程。**
 
 ## 会话状态
 在 Zookeeper 客户端与服务端成功完成连接创建后，就创建了一个会话，Zookeeper 会话在整个运行期间的生命周期中，会在不同的会话状态中之间进行切换，这些状态可以分为 **CONNECTING**、**CONNECTED**、**RECONNECTING**、**RECONNECTED**、**CLOSE** 等。
@@ -14,14 +14,10 @@ categories: ZooKeeper
 
 ## 会话创建
 Session 是 Zookeeper 中的会话实体，代表了一个客户端会话，其包含了如下四个属性：
-* sessionID
-会话 ID，唯一标识一个会话，每次客户端创建新的会话时，Zookeeper 都会为其分配一个全局唯一的 sessionID。
-* TimeOut
-会话超时时间，客户端在构造 Zookeeper 实例时，会配置 sessionTimeout 参数用于指定会话的超时时间，Zookeeper 客户端向服务端发送这个超时时间后，服务端会根据自己的超时时间限制最终确定会话的超时时间。
-* TickTime
-下次会话超时时间点，为了便于 Zookeeper 对会话实行"分桶策略"管理，同时为了高效低耗地实现会话的超时检查与清理，Zookeeper 会为每个会话标记一个下次会话超时时间点，其值大致等于当前时间加上 TimeOut。
-* isClosing
-标记一个会话是否已经被关闭，当服务端检测到会话已经超时失效时，会将该会话的 isClosing 标记为"已关闭"，这样就能确保不再处理来自该会话的心情求了。
+* **sessionID** 会话 ID，唯一标识一个会话，每次客户端创建新的会话时，Zookeeper 都会为其分配一个全局唯一的 sessionID。
+* **TimeOut** 会话超时时间，客户端在构造 Zookeeper 实例时，会配置 sessionTimeout 参数用于指定会话的超时时间，Zookeeper 客户端向服务端发送这个超时时间后，服务端会根据自己的超时时间限制最终确定会话的超时时间。
+* **TickTime** 下次会话超时时间点，为了便于 Zookeeper 对会话实行“分桶策略”管理，同时为了高效低耗地实现会话的超时检查与清理，Zookeeper 会为每个会话标记一个下次会话超时时间点，其值大致等于当前时间加上 TimeOut。
+* **isClosing** 标记一个会话是否已经被关闭，当服务端检测到会话已经超时失效时，会将该会话的 isClosing 标记为"已关闭"，这样就能确保不再处理来自该会话的新情求了。
 
 ## 会话管理
 Zookeeper 的会话管理主要是通过 SessionTracker 来负责，其采用了分桶策略（将类似的会话放在同一区块中进行管理）进行管理，以便 Zookeeper 对会话进行不同区块的隔离处理以及同一区块的统一处理。
