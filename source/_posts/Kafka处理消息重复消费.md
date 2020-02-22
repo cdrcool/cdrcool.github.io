@@ -5,7 +5,7 @@ categories: Kafka
 ---
 ## Kafka 设置
 ### 设置 enable-auto-commit
-Kafka 默认会自动提交消费者位移，但是这样容易出现重复消费：
+Kafka 默认会自动提交消费者位移，但是这样容易出现重复消费。
 在默认情况下，Consumer 每 5 秒自动提交一次位移。
 现在，我们假设提交位移之后的 3 秒发生了 Rebalance 操作。在 Rebalance 之后，所有 Consumer 从上一次提交的位移处继续消费，但该位移已经是 3 秒前的位移数据了，故在 Rebalance 发生前 3 秒消费的所有数据都要重新再消费一次。
 虽然我们能够通过减少 auto.commit.interval.ms 的值来提高提交频率，但这么做只能缩小重复消费的时间窗口，不可能完全消除它。这是自动提交机制的一个缺陷。
