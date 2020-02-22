@@ -5,6 +5,8 @@ categories: Kafka
 ---
 当前 Kafka 默认提供了 3 种分区分配策略：RangeAssignor、 RoundRobinAssignor、StickyAssignor。
 
+Kafka 提供了消费者客户端参数 partition.assignment.strategy 用来设置消费者与订阅主题之间的分区分配策略。默认情况下，此参数的值为：org.apache.kafka.clients.consumer.RangeAssignor，即采用 RangeAssignor 分配策略。
+
 ## RangeAssignor
 RangeAssignor 策略的原理是按照消费者总数和分区总数进行整除运算来获得一个跨度，然后将分区按照跨度进行平均分配，以保证分区尽可能均匀地分配给所有的消费者。
 对于每一个 Topic，RangeAssignor 策略会将消费组内所有订阅这个 Topic 的消费者按照名称的字典序排序，然后为每个消费者划分固定的分区范围，如果不够平均分配，那么字典序靠前的消费者会被多分配一个分区。
@@ -23,9 +25,6 @@ RangeAssignor 策略的原理是按照消费者总数和分区总数进行整除
 ```
 
 可以明显的看到这样的分配并不均匀，如果将类似的情形扩大，有可能会出现部分消费者过载的情况。
-
-Kafka 提供了消费者客户端参数 partition.assignment.strategy 用来设置消费者与订阅主题之间的分区分配策略。
-默认情况下，此参数的值为：org.apache.kafka.clients.consumer.RangeAssignor，即采用 RangeAssignor 分配策略。
 
 ## RoundRobinAssignor
 RoundRobinAssignor 策略的原理是将消费组内所有消费者以及消费者所订阅的所有 Topic 的 Partition 按照字典序排序，然后通过轮询方式逐个将分区以此分配给每个消费者。
