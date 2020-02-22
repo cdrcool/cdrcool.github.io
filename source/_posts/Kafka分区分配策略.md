@@ -122,5 +122,5 @@ StickyAssignor 策略如同其名称中的“sticky”一样，让分配策略�
 这个负载均衡有一个很大的用处，就是实现局部业务的顺序消息，比如我们有 3 个业务的消息需要顺序推送，如果只设置单分区，靠单分区来满足顺序性的话，Kafka 的优势就被限制住了，在这里就可以针对这 3 个业务线设置产生 key 策略，不同业务的 key 放到不同的分区上，相同的 key 在一个分区内是绝对顺序的。这样的话既保证了消息的顺序性，也利用了 Kafka 的高吞吐量的特性。（注意:之前提到过 Kafka 保证 Topic 下的消息顺序,会保证分区的消息顺序，是用追加文件的日志方式记录的消息）
 
 
-参考资料：
+## 参考资料
 1. [Kafka分区分配策略-RangeAssignor、RoundRobinAssignor、StickyAssignor](https://www.cnblogs.com/felixzh/p/11935693.html)
