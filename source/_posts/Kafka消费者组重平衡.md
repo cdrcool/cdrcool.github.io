@@ -48,4 +48,4 @@ Consumer 端有个参数，叫 **session.timeout.ms**，就是被用来表征此
 Consumer 端还有一个参数，用于控制 Consumer 实际消费能力对 Rebalance 的影响，即 **max.poll.interval.ms** 参数。它限定了 Consumer 端应用程序两次调用 poll 方法的最大时间间隔。它的默认值是 5 分钟，表示 Consumer 程序如果在 5 分钟之内无法消费完 poll 方法返回的消息，那么 Consumer 会主动发起“离开组”的请求，Coordinator 也会开启新一轮 Rebalance。
 如果消费逻辑很重，此时，max.poll.interval.ms 参数值的设置显得尤为关键。如果要避免非预期的 Rebalance，我们最好将该参数值设置得大一点，比我们的下游最大处理时间稍长一点。这样，Consumer 就不会因为处理这些消息的时间太长而引发 Rebalance。
 
-如果上面提到的 3 个参数，我们已经设置了合理的数值，却发现还是出现了 Rebalance，那么需要关注一下 Consumer 端的 **GC** 表现，比如是否出现了频繁的 Full GC 导致的长时间停顿，实际应用中经常出现因为GC设置不合理导致程序频发 Full GC 而引发的非预期 Rebalance。
+如果上面提到的 3 个参数，我们已经设置了合理的数值，却发现还是出现了 Rebalance，那么需要关注一下 Consumer 端的 **GC** 表现，比如是否出现了频繁的 Full GC 导致的长时间停顿，实际应用中经常出现因为 GC 设置不合理导致程序频发 Full GC 而引发的非预期 Rebalance。
