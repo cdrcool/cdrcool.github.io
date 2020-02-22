@@ -54,6 +54,7 @@ RoundRobinAssignor 策略对应的 partition.assignment.strategy 参数值为：
 “Sticky”这个单词可以翻译为“粘性的”，Kafka从0.11.x版本开始引入这种分配策略，它主要有两个目的：
 * 分区的分配要尽可能的均匀。
 * 分区的分配尽可能的与上次分配的保持相同。
+
 当两者发生冲突时，第一个目标优先于第二个目标。鉴于这两个目标，StickyAssignor 策略的具体实现要比 RangeAssignor 和 RoundRobinAssignor 这两种分配策略要复杂很多。
 
 我们举例来看一下 StickyAssignor 策略的实际效果。
