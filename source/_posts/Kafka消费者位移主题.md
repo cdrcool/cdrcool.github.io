@@ -16,7 +16,7 @@ categories: Kafka
 虽说位移主题是一个普通的 Kafka 主题，但它的消息格式却是 Kafka 自己定义的，用户不能修改，也就是说我们不能随意地向这个主题写消息，因为一旦我们写入的消息不满足 Kafka 规定的格式，那么 Kafka 内部无法成功解析，就会造成 Broker 的崩溃。事实上，Kafka Consumer 有 API 帮我们提交位移，也就是向位移主题写消息。我们千万不要自己写个 Producer 随意向该主题发送消息。
 
 ## 消息格式
-对于 Consumer Group而言，它是一组 KV 对，key 包含3部分内容：<Group ID，主题名，分区号>，value 对应 Consumer 消费该分区的最新位移（其实也可以实用于保存 Consumer Group 信息的消息，或用于删除 Group 过期位移甚至是删除 Group 的消息）。
+对于 Consumer Group而言，它是一组 KV 对，key 包含3部分内容：<Group ID，主题名，分区号>，value 对应 Consumer 消费该分区的最新位移（其实也可以适用于保存 Consumer Group 信息的消息，或用于删除 Group 过期位移甚至是删除 Group 的消息）。
 
 ## 创建位移主题
 位移主题既可以由 Kafka 自动创建，也可以由我们手动创建。
