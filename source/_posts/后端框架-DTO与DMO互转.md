@@ -1,7 +1,7 @@
 ---
 title: 微服务开发-DTO 与 DMO 互转
 date: 2020-02-24 21:54:00
-categories: 微服务开发
+categories: 后端框架
 ---
 ## 概念
 * DTO 数据传输对象
