@@ -13,4 +13,4 @@ categories: Spring Cloud
 
 1. 客户端向 Spring Cloud Gateway 发出请求。
 2. 如果 Gateway Handler Mapping 确定请求与某个 Route 匹配，则将其发送给 Gateway Web Handler。
-3. 该 handler 通过特定于请求的 filter chain 运行请求。filters 被虚线分隔的原因是 filters 可以在发送代理请求之前和之后运行逻辑。执行所有 pre filters 逻辑。然后发出代理请求。发出代理请求后，将运行 post filters 逻辑。
+3. 该 Handler 通过特定于请求的 Filter Chain 运行请求。Filters 被虚线分隔的原因是 Filters 可以在发送代理请求之前和之后运行逻辑。执行所有 Pre Filters 逻辑。然后发出代理请求。发出代理请求后，将运行 Post Filters 逻辑。
