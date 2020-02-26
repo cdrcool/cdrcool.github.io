@@ -4,9 +4,9 @@ date: 2020-02-26 11:22:00
 categories: Spring Cloud
 ---
 ## 术语
-* Route 路由：网关的基本构件。它由 ID、目标 URI、predicates 和 filters 定义。如果聚合 predicate 为真，则匹配路由。
-* Predicate 谓词： Java 8 Function Predicate。输入类型是一个 Spring Framework ServerWebExchange。它允许开发人员匹配 HTTP 请求中的任何内容，比如头或参数。
-* Filter 过滤器：用特定工厂构造的 Spring Framework GatewayFilter 实例。在这里，可以在发送下游请求之前或之后修改请求和响应。
+* Route 路由，网关的基本构件。它由 ID、目标 URI、predicates 和 filters 定义。如果聚合 predicate 为真，则匹配路由。
+* Predicate 谓词，Java 8 Function Predicate。输入类型是一个 Spring Framework ServerWebExchange。它允许开发人员匹配 HTTP 请求中的任何内容，比如头或参数。
+* Filter 过滤器，用特定工厂构造的 Spring Framework GatewayFilter 实例。在这里，可以在发送下游请求之前或之后修改请求和响应。
 
 ## 工作流程
 ![Spring Cloud Gateway 工作流程](/images/springcloud/Spring%20Cloud%20Gateway工作流程.png)
