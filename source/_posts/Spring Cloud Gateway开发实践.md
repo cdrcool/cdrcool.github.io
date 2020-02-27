@@ -89,7 +89,7 @@ spring:
         - Path=/fallback
 ```
 
-在新的示例中，当我们访问 ingredients 服务并出现熔断后，请求首先会被转发到 fallback，然后再被重新路由到 http://localhost:9994。
+在新的示例中，当我们访问 ingredients 服务并出现熔断后，请求首先会被转发到 fallback，然后再被重新路由到 [http://localhost:9994]()。
 
 在前面的示例中，我们只是简单配置了 fallback，如果要对断路器做一些高级的配置，如熔断策略、异常处理等，参考 [Resilience4J 文档](https://cloud.spring.io/spring-cloud-circuitbreaker/reference/html/spring-cloud-circuitbreaker.html)
 
