@@ -67,7 +67,7 @@ spring:
 
 如上，我们访问网关地址 localhost:8080/api-seckill/ 时，如果此时 seckill 服务还未启动，那么网关会触发熔断，并将请求转发到 mapping 为 fallback 的 Controller，以实现服务降级。
 
-在上面的示例中，我们是将请求转发到网关内部的 Controller，其实我们也可以将请求重新路由到外部应用程序中的 Controller，如下所示：
+在上面的示例中，我们是将请求转发到网关内部的 Controller，我们也可以将请求重新路由到外部应用程序中的 Controller，如下所示：
 
 ```yaml
 spring:
@@ -112,6 +112,7 @@ spring:
         # 限流
         - name: RequestRateLimiter
           args:
+            # 限流匹配策略
             key-resolver: '#{@ipKeyResolver}'
             # 令牌桶的填充速率：用户每秒执行多少请求
             redis-rate-limiter.replenishRate: 10
