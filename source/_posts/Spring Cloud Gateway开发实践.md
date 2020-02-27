@@ -168,3 +168,29 @@ public class ThrottlingConfiguration {
 }
 ```
 
+## 请求耗时统计
+```java
+@Slf4j
+@Component
+public class ElapsedGlobalFilter implements GlobalFilter, Ordered {
+
+    @Override
+    public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+        // 请求执行之前的时间
+        Long startTime = System.currentTimeMillis();
+        return chain.filter(exchange).then().then(Mono.fromRunnable(() -> {
+            // 请求执行之后的时间
+            Long endTime = System.currentTimeMillis();
+            log.info("请求 {} 耗时 {}ms", exchange.getRequest().getURI().getRawPath(), endTime - startTime);
+        }));
+    }
+
+    @Override
+    public int getOrder() {
+        return Ordered.HIGHEST_PRECEDENCE;
+    }
+}
+```
+
+如上，我们自定义了全局过滤器 ElapsedGlobalFilter，并将其注册为 Bean。因为该过滤器优先级最高，所以将其 order 设置为 Ordered.HIGHEST_PRECEDENCE。
+

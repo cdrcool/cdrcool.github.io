@@ -102,7 +102,7 @@ spring:
 
 还支持 URI 模板变量(例如 {sub}.myhost.org)。
 
-如果请求的 Host header 的值为 “www.somehost.org” 或 “beta.somehost.org” 或 “www.anotherhost.org”，则该路由将进行匹配。
+如果请求的 Host header 的值为 www .somehost.org 或 beta.somehost.org 或 www .anotherhost.org，则该路由将进行匹配。
 
 此 Predicate 将 URI 模板变量(如前面示例中定义的 sub)提取为名称和值的映射，并将其放在 ServerWebExchange.getAttributes() 中，并在 ServerWebExchangeUtils.URI_TEMPLATE_VARIABLES_ATTRIBUTE 中定义一个键。然后这些值可供 GatewayFilter 工厂使用。
 
