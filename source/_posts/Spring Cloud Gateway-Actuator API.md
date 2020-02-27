@@ -1,6 +1,6 @@
 ---
 title: Spring Cloud Gateway-Actuator API
-date: 2020-02-26 18:16:00
+date: 2020-02-27 18:16:00
 categories: Spring Cloud
 ---
 我们可以通过 /gateway actuator 端点来监控 Spring Cloud Gateway 应用程序并与之交互。不过要进行远程访问，必须在应用程序配置属性中启用该端点并将其暴露在 HTTP 或 JMX 上。配置如下：

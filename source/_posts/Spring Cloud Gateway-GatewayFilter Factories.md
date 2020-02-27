@@ -1,6 +1,6 @@
 ---
 title: Spring Cloud Gateway-GatewayFilter Factories
-date: 2020-02-26 14:44:00
+date: 2020-02-27 11:33:00
 categories: Spring Cloud
 ---
 路由过滤器允许以某种方式修改传入的 HTTP 请求或返回的 HTTP 响应。路由过滤器的作用域是特定的路由。Spring Cloud Gateway 包含许多内置的 GatewayFilter Factories。

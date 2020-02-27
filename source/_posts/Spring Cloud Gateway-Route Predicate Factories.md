@@ -1,7 +1,7 @@
 
 ---
 title: Spring Cloud Gateway-Route Predicate Factories
-date: 2020-02-26 11:22:00
+date: 2020-02-27 11:22:00
 categories: Spring Cloud
 ---
 Spring Cloud Gateway 包含许多内置的路由 predicate factories。所有这些 predicates 都匹配 HTTP 请求的不同属性。我们可以将多个路由 predicate factories 与逻辑和语句组合在一起。
