@@ -133,8 +133,8 @@ spring:
 ```
 
 要配置断路器，请参阅所使用的断路器实现的配置。
-* [Resilience4J文档](https://cloud.spring.io/spring-cloud-circuitbreaker/reference/html/spring-cloud-circuitbreaker.html)
-* [Hystrix文档](https://cloud.spring.io/spring-cloud-netflix/reference/html/)
+* [Resilience4J 文档](https://cloud.spring.io/spring-cloud-circuitbreaker/reference/html/spring-cloud-circuitbreaker.html)
+* [Hystrix 文档](https://cloud.spring.io/spring-cloud-netflix/reference/html/)
 
 此过滤器也可以接受一个可选的 fallbackUri 参数。目前仅支持转发：支持 schemed URIs。如果调用了 fallback，请求将被转发给 URI 匹配的 controller。下面的示例配置了这样的 fallback：
 
