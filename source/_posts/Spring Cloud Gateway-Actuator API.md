@@ -19,7 +19,7 @@ management:
 ```
 
 ## 详细的 Actuator 格式
-Spring Cloud Gateway 增加了一种新的、更详细的格式。它为每个路由添加了更多的细节，允许你查看与每个路由关联的谓词和过滤器，以及任何可用的配置。
+Spring Cloud Gateway 增加了一种新的、更详细的格式。它为每个路由添加了更多的细节，允许我们查看与每个路由关联的谓词和过滤器，以及任何可用的配置。
 
 例如，当我们访问端点 **/actuator/gateway/routes** 时，会得到类似以下响应内容：
 ```json
