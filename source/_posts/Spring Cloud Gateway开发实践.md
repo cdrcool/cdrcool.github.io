@@ -34,7 +34,7 @@ spring:
         - StripPrefix=1
 ```
 
-如上，我们访问网关地址 [http://localhost:8080/api-account/](http://localhost:8080/api-account/) 时，经网关路由转发之后，地址就是 [http://localhost:8082/](http://localhost:8082/)。
+如上，我们访问网关地址 localhost:8080/api-account/ 时，经网关路由转发之后，地址就是 localhost:8082/。
 * 如果我们要使用负载均衡，uri 需配置为 lb://account，account 为属性 spring.application.name 指定的名称。
 * 示例中 StripPrefix=1 是必须的，表示 StripPrefix 过滤器将去掉 URL 路径中的第一个前缀，这里是 api-account。
 
@@ -65,7 +65,7 @@ spring:
             fallback-uri: forward:/fallback
 ```
 
-如上，我们访问网关地址 [http://localhost:8080/api-seckill/](http://localhost:8080/api-seckill/) 时，如果此时 seckill 服务还未启动，那么网关会触发熔断，并将请求转发到 mapping 为 fallback 的 Controller，以实现服务降级。
+如上，我们访问网关地址 localhost:8080/api-seckill/ 时，如果此时 seckill 服务还未启动，那么网关会触发熔断，并将请求转发到 mapping 为 fallback 的 Controller，以实现服务降级。
 
 在上面的示例中，我们是将请求转发到网关内部的 Controller，其实我们也可以将请求重新路由到外部应用程序中的 Controller，如下所示：
 
@@ -89,7 +89,7 @@ spring:
         - Path=/fallback
 ```
 
-在新的示例中，当我们访问 ingredients 服务并出现熔断后，请求首先会被转发到 fallback，然后再被重新路由到 [http://localhost:9994](http://localhost:9994)。
+在新的示例中，当我们访问 ingredients 服务并出现熔断后，请求首先会被转发到 fallback，然后再被重新路由到 localhost:9994。
 
 在前面的示例中，我们只是简单配置了 fallback，如果要对断路器做一些高级的配置，如熔断策略、异常处理等，参考 [Resilience4J 文档](https://cloud.spring.io/spring-cloud-circuitbreaker/reference/html/spring-cloud-circuitbreaker.html)
 
