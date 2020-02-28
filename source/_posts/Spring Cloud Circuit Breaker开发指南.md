@@ -121,3 +121,4 @@ public Customizer<SpringRetryCircuitBreakerFactory> slowCustomizer() {
 
 ## 参考资料
 1. [Spring Cloud Circuit Breaker](https://www.liangzl.com/get-article-detail-154284.html)
+2. [SpringCloud之Resilience4J用法精讲](https://blog.csdn.net/qwe86314/article/details/98873884)
