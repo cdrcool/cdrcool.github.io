@@ -5,7 +5,7 @@ categories: Spring Cloud
 ---
 Resilience4j 是一款轻量级，易于使用的容错库，其灵感来自于 Netflix Hystrix，专为 Java8 和函数式编程而设计。轻量级，因为库只使用了 Vavr，它没有任何其他外部依赖下。相比之下，Netflix Hystrix 对 Archaius 具有编译依赖性，Archaius 具有更多的外部库依赖性，例如 Guava 和 Apache Commons Configuration。
 
-### Maven 依赖
+## Maven 依赖
 ```xml
 <!-- 断路器 -->
 <dependency>
@@ -14,7 +14,7 @@ Resilience4j 是一款轻量级，易于使用的容错库，其灵感来自于 
 </dependency>
 ```
 
-### 自动装配
+## 自动装配
 可以通过设置 spring.cloud.circuitbreaker.resilience4j.enabled=false 来禁用 Resilience4J 自动装配。
 
 ## 断路器配置
