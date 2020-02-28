@@ -1,5 +1,5 @@
 ---
-title: Spring Cloud Gateway 工作流程
+title: Spring Cloud Gateway 工作原理
 date: 2020-02-26 11:11:00
 categories: Spring Cloud
 ---

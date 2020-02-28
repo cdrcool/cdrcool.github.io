@@ -1,5 +1,5 @@
 ---
-title: Spring Cloud Gateway-Configuration
+title: Spring Cloud Gateway 开发指南（四） Configuration
 date: 2020-02-27 20:35:00
 categories: Spring Cloud
 ---

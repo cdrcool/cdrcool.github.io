@@ -1,5 +1,5 @@
 ---
-title: Spring Cloud Gateway-Global Filters
+title: Spring Cloud Gateway 开发指南（三） Global Filters
 date: 2020-02-27 11:44:00
 categories: Spring Cloud
 ---

@@ -1,6 +1,6 @@
 
 ---
-title: Spring Cloud Gateway-Route Predicate Factories
+title: Spring Cloud Gateway 开发指南（一） Route Predicate Factories
 date: 2020-02-27 11:22:00
 categories: Spring Cloud
 ---

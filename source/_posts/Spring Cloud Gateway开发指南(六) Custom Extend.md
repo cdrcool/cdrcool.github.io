@@ -1,6 +1,6 @@
 ---
-title: Spring Cloud Gateway 自定义扩展
-date: 2020-02-26 21:26:00
+title: Spring Cloud Gateway 开发指南（六） Custom Extend
+date: 2020-02-27 21:26:00
 categories: Spring Cloud
 ---
 ### 自定义 Route Predicate Factories

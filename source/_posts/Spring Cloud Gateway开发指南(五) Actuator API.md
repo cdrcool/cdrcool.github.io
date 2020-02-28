@@ -1,5 +1,5 @@
 ---
-title: Spring Cloud Gateway-Actuator API
+title: Spring Cloud Gateway 开发指南（五） Actuator API
 date: 2020-02-27 18:16:00
 categories: Spring Cloud
 ---
