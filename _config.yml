@@ -97,7 +97,9 @@ theme: next
 
 # Deployment
 ## Docs: https://hexo.io/docs/deployment.html
+
 deploy:
   type: git
-  repo: https://github.com/cdrcool/cdrcool.github.io
+  repo: git@github.com:cdrcool/cdrcool.github.io.git
+  # repo: https://github.com/cdrcool/cdrcool.github.io
   branch: master

@@ -46,6 +46,7 @@ comments: false
 * tags
 ```
 type: tags
+type: tags
 date: 2020-01-15 11:24:00
 comments: false
 ```
@@ -57,7 +58,8 @@ comments: false
 ```yaml
 deploy:
   type: git
-  repo: https://github.com/cdrcool/cdrcool.github.io
+  repo: git@github.com:cdrcool/cdrcool.github.io.git
+  # repo: https://github.com/cdrcool/cdrcool.github.io
   branch: master
 ```
 4. 执行命令：`hexo d -g`
