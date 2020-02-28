@@ -48,7 +48,7 @@ spring:
 </dependency>
 ```
 
-### 启用/停用
+### 自动装配
 可以通过设置 spring.cloud.circuitbreaker.resilience4j.enabled=false 来禁用 Resilience4J 自动装配。
 
 ### 配置
@@ -166,6 +166,18 @@ public class ThrottlingConfiguration {
         return exchange -> Mono.just(Objects.requireNonNull(exchange.getRequest().getQueryParams().getFirst(USER_ID_NAME)));
     }
 }
+```
+
+### 断路器配置
+使用断路器，我们也能实现限流，示例：
+```java
+@Bean
+    public Customizer<ReactiveResilience4JCircuitBreakerFactory> defaultCustomizer() {
+        return factory -> factory.configureDefault(id -> new Resilience4JConfigBuilder(id)
+                .circuitBreakerConfig(CircuitBreakerConfig.ofDefaults())
+                // 限制远程调用所花费的时间
+                .timeLimiterConfig(TimeLimiterConfig.custom().timeoutDuration(Duration.ofSeconds(5)).build()).build());
+    }
 ```
 
 ## 请求耗时统计
