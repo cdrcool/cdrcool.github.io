@@ -118,3 +118,6 @@ public Customizer<SpringRetryCircuitBreakerFactory> slowCustomizer() {
     }));
 }
 ```
+
+## 参考资料
+1. [Spring Cloud Circuit Breaker](https://www.liangzl.com/get-article-detail-154284.html)
