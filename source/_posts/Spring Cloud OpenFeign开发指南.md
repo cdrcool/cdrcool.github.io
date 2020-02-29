@@ -2,6 +2,10 @@
 title: Spring Cloud OpenFeign 开发指南
 date: 2020-02-28 18:42:00
 categories: Spring Cloud
+tags:
+    - Spring Cloud OpenFeign
+    - Spring Cloud LoadBalancer
+    - Ribbon
 ---
 Feign 是一个声明式 web 服务客户端，使用它能让编写 web 服务客户端更加简单。Feign 的使用方法是定义一个接口，然后在上面添加注解。它支持可插入的注解支持，包括 Feign 注解和 JAX-RS 注解，同时也支持可插拔的编码器和解码器。Spring Cloud 增加了对 Spring MVC 注解的支持，并支持使用 Spring Web 中默认使用的 HttpMessageConverters。Spring Cloud 集成了 Ribbon 和 Eureka，以及 Spring Cloud LoadBalancer，从而可以使用 Feign 来实现 HTTP 客户端负载均衡。
 

@@ -2,6 +2,9 @@
 title: Spring Cloud Circuit Breaker 开发指南
 date: 2020-02-28 12:59:00
 categories: Spring Cloud
+tags:
+    - Spring Cloud Circuit Breaker
+    - Resilience4j
 ---
 Resilience4j 是一款轻量级，易于使用的容错库，其灵感来自于 Netflix Hystrix，专为 Java8 和函数式编程而设计。轻量级，因为库只使用了 Vavr，它没有任何其他外部依赖下。相比之下，Netflix Hystrix 对 Archaius 具有编译依赖性，Archaius 具有更多的外部库依赖性，例如 Guava 和 Apache Commons Configuration。
 

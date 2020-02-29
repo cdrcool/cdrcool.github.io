@@ -2,6 +2,8 @@
 title: Spring Cloud Gateway 开发实践
 date: 2020-02-26 14:32:00
 categories: Spring Cloud
+tags:
+    - Spring Spring Cloud Gateway
 ---
 ## Maven 依赖
 ```xml

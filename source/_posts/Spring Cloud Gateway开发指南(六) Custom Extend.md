@@ -2,6 +2,8 @@
 title: Spring Cloud Gateway 开发指南（六） Custom Extend
 date: 2020-02-27 21:26:00
 categories: Spring Cloud
+tags:
+    - Spring Spring Cloud Gateway
 ---
 ### 自定义 Route Predicate Factories
 ```java

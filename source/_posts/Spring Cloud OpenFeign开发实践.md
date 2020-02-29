@@ -2,8 +2,11 @@
 title: Spring Cloud OpenFeign 开发实践
 date: 2020-02-29 10:03:00
 categories: Spring Cloud
+tags:
+    - Spring Cloud OpenFeign
+    - Spring Cloud LoadBalancer
+    - Ribbon
 ---
-
 ## Maven 依赖
 ```xml
 <dependency>
