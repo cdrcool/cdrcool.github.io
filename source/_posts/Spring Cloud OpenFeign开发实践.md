@@ -34,6 +34,7 @@ public interface AccountApi {
 
 * name 客户端名称，必要属性。如果项目使用了服务发现，name 属性需指定为微服务的名称。
 * url 服务地址，一般用于调试。
+* contextId 具有多个相同名称的 Feign 客户端时，需要设置该属性以区分。
 * path 请求的 mapping 前缀。
 * fallback 定义容错的处理类，当调用远程接口失败或超时时，会调用对应接口的容错逻辑，fallback 指定的类必须实现 @FeignClient 标记的接口。
 * fallbackFactory 工厂类，用于生成 fallback 类实例，通过这个属性我们可以实现每个接口通用的容错逻辑，减少重复的代码。

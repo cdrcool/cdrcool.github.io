@@ -3,7 +3,7 @@ title: Spring Cloud Gateway 开发指南（四） Configuration
 date: 2020-02-27 20:35:00
 categories: Spring Cloud
 tags:
-    - Spring Spring Cloud Gateway
+    - Spring Cloud Gateway
 ---
 ## 配置
 Spring Cloud Gateway 的配置由 RouteDefinitionLocator 实例集合驱动。以下是 RouteDefinitionLocator 的接口定义：

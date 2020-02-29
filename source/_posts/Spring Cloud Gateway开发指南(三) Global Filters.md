@@ -3,7 +3,7 @@ title: Spring Cloud Gateway 开发指南（三） Global Filters
 date: 2020-02-27 11:44:00
 categories: Spring Cloud
 tags:
-    - Spring Spring Cloud Gateway
+    - Spring Cloud Gateway
 ---
 GlobalFilter 接口具有与 GatewayFilter 接相同的签名。这些特殊的过滤器可以有条件的应用于所有的路由。（这些接口和用法在以后的版本中可能会被修改）
 
