@@ -2,6 +2,8 @@
 title: Spring Cloud Gateway 工作原理
 date: 2020-02-26 11:11:00
 categories: Spring Cloud
+tags:
+    - Spring Spring Cloud Gateway
 ---
 ## 术语
 * Route(路由)：网关的基本构件。它由 ID、目标 URI、Predicates 和 Filters 定义。如果聚合 Predicate 为真，则匹配路由。
