@@ -80,7 +80,7 @@ spring:
         healthCheckInterval: 15s
 ```
 
-可以通过设置 management.health.consun.enabled=false 来禁用运行状况检查。
+可以通过设置 management.health.consul.enabled=false 来禁用运行状况检查。
 
 #### 元数据和 Consul 标签
 Consul 还不支持服务的元数据。Spring Cloud 的 ServiceInstance 有一个 Map<String，String> 元数据字段。在 Consul 正式支持元数据之前，Spring Cloud Consul 使用 Consul 标记来近似元数据。格式为 key=value 的标签将被拆分，并分别用作映射键和值。不带等号的标记将同时用作键和值。
@@ -135,7 +135,7 @@ spring:
 
 ### 查找服务
 #### 使用 Load-balancer
-Spring Cloud 支持 Feign(一个 REST 客户端构建器)和 Spring RestTemplate，用于使用逻辑服务 names/id 而不是物理 URLs 查找服务。Feign 和 discovery-aware RestTemplate 都利用 Ribbon 来实现客户端负载平衡。
+Spring Cloud 支持 Feign 和 Spring RestTemplate，用于使用逻辑服务 names/id 而不是物理 URLs 查找服务。Feign 和 discovery-aware RestTemplate 都利用 Ribbon 来实现客户端负载平衡。
 
 如果我们想使用 RestTemplate 访问服务 STORES，只需声明：
 
@@ -174,7 +174,8 @@ private DiscoveryClient discoveryClient;
 public String serviceUrl() {
     List<ServiceInstance> list = discoveryClient.getInstances("STORES");
     if (list != null && list.size() > 0 ) {
-        return list.get(0).getUri();
+        URI uri = list.get(0).getUri();
+        ...
     }
     return null;
 }
@@ -323,3 +324,6 @@ config/application.yml
 
 ## 配置属性
 要查看所有 Consul 相关配置属性的列表，请查看[附录页面](https://cloud.spring.io/spring-cloud-static/spring-cloud-consul/2.2.1.RELEASE/reference/html/appendix.html)。
+
+## 参考资料
+1. [Spring Cloud Consul](https://cloud.spring.io/spring-cloud-static/spring-cloud-consul/2.2.1.RELEASE/reference/html/)

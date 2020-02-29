@@ -376,4 +376,5 @@ public interface DemoTemplate {
 ```
 
 ## 参考资料
-1. [声明式REST客户端Feign](https://www.bookstack.cn/read/spring-cloud-docs/docs-user-guide-feign.md)
+1. [Spring Cloud OpenFeign](https://cloud.spring.io/spring-cloud-static/spring-cloud-openfeign/2.2.1.RELEASE/reference/html/)
+2. [声明式REST客户端Feign](https://www.bookstack.cn/read/spring-cloud-docs/docs-user-guide-feign.md)

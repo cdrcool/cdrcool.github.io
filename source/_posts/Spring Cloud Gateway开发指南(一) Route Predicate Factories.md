@@ -214,3 +214,6 @@ spring:
 ```
 
 该路由将 80% 的流量转发到 weighthigh.org，20%  的流量转发到 weightlow.org。
+
+## 参考资料
+1. [Spring Cloud Gateway](https://cloud.spring.io/spring-cloud-static/spring-cloud-gateway/2.2.1.RELEASE/reference/html/)

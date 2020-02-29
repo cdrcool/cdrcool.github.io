@@ -90,3 +90,6 @@ public class SeckillController {
     }
 }
 ```
+
+## 服务发现支持
+如果我们使用了服务发现，如 Consul 或 Eureka，那么在注解 @FeignClient 中就不需要再指定 url 属性，需要注意的是注解 @FeignClient 的 name 属性要与服务注册中心的服务名一致。

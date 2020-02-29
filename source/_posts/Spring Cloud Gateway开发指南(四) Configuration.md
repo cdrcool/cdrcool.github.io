@@ -261,3 +261,6 @@ spring:
           close-notify-flush-timeout-millis: 3000
           close-notify-read-timeout-millis: 0
 ```
+
+## 参考资料
+1. [Spring Cloud Gateway](https://cloud.spring.io/spring-cloud-static/spring-cloud-gateway/2.2.1.RELEASE/reference/html/)
