@@ -2,6 +2,8 @@
 title: Kafka 消费者组
 date: 2020-01-24 10:43:00
 categories: Kafka
+tags:
+    - Kafka
 ---
 ## 概念
 消费者组，即 Consumer Group，是 Kafka 提供的可扩展且具有容错性的消费者机制。

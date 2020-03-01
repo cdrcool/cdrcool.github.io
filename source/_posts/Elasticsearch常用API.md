@@ -2,6 +2,8 @@
 title: Elasticsearch 常用 API
 date: 2020-02-11 17:08:00
 categories: Elasticsearch
+tags:
+    - Elasticsearch
 ---
 ## Document
 ### index

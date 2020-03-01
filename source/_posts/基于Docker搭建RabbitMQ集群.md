@@ -3,6 +3,7 @@ title: 基于 Docker 搭建 RabbitMQ 集群
 date: 2020-01-27 18:30:00
 categories: RabbitMQ
 tags:
+    - RabbitMQ
     - Docker
 ---
 1. 创建 network

@@ -3,6 +3,7 @@ title: 基于 Docker 搭建 ZooKeeper 集群
 date: 2020-01-31 18:05:00
 categories: ZooKeeper
 tags:
+    - ZooKeeper
     - Docker
 ---
 1. 创建 network

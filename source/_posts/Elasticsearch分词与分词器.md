@@ -2,6 +2,8 @@
 title: Elasticsearch 分词与分词器
 date: 2020-02-11 17:08:00
 categories: Elasticsearch
+tags:
+    - Elasticsearch
 ---
 分词（Analysis）是把全文本转换成一系列单词（term/token）的过程。
 分词是通过分词器（Analyzer）来实现的。我们可以使用 ELasticsearch 内置的分词器，也可以按需定制化分词器。

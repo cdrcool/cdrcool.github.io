@@ -2,6 +2,8 @@
 title: Netty 架构设计
 date: 2020-02-04 21:46:00
 categories: Netty
+tags:
+    - Netty
 ---
 ## 逻辑架构
 Netty 采用了比较典型的三层网络架构进行设计，逻辑架构图如下所示：

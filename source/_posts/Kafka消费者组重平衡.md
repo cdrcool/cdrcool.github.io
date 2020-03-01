@@ -2,6 +2,8 @@
 title: Kafka 消费者组重平衡
 date: 2020-01-25 11:22:00
 categories: Kafka
+tags:
+    - Kafka
 ---
 ## 概念
 重平衡（Rebalance）本质上是一种协议，规定了一个 Consumer Group 下的所有 Consumer 如何达成一致，来分配订阅 Topic 的每个分区。在 Rebalance 过程中，所有 Consumer 实例共同参与，在协调者（Coordinator）组件的帮助下，完成订阅主题分区的分配。

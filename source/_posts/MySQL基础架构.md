@@ -2,6 +2,8 @@
 title: MySQL 基础架构
 date: 2019-10-09 10:04:19
 categories: MySQL
+tags:
+    - MySQL
 ---
 Mysql 基础架构示意图如下：
 ![MySQL基础架构示意图](/images/mysql/MySQL基础架构示意图.png)

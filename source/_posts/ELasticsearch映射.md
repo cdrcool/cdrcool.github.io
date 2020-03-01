@@ -2,6 +2,8 @@
 title: Elasticsearch 映射
 date: 2020-02-12 20:33:00
 categories: Elasticsearch
+tags:
+    - Elasticsearch
 ---
 映射（Mapping）类似数据库中的 schema 的定义，作用如下：
 * 定义索引中的字段的名称

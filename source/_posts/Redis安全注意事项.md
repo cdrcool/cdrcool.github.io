@@ -2,6 +2,8 @@
 title: Redis 安全注意事项
 date: 2020-02-19 21:16:00
 categories: Redis
+tags:
+    - Redis
 ---
 ## 指令安全
 Redis 中有一些非常危险的指令，这些指令会对 Redis 的稳定以及数据安全造成非常严重的影响。比如 **keys** 指令会导致 Redis 卡顿，**flushdb** 和 **flushall** 会让 Redis 中的所有数据全部清空。

@@ -2,6 +2,8 @@
 title: MySQL 事务隔离
 date: 2019-10-09 16:43:38
 categories: MySQL
+tags:
+    - MySQL
 ---
 ## 事务基本要素：ACID
 * 原子性（Atomicity）

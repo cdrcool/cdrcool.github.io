@@ -4,6 +4,7 @@ date: 2020-01-16 17:22:00
 categories: Kafka
 tags:
     - Spring Boot
+    - Kafka
 ---
 ## Maven 依赖
 ```xml

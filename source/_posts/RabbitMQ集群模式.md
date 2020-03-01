@@ -2,6 +2,8 @@
 title: RabbitMQ 集群模式
 date: 2020-01-28 19:43:00
 categories: RabbitMQ
+tags:
+    - RabbitMQ
 ---
 RabbitMQ有两种部署模式：普通模式、镜像模式。
 

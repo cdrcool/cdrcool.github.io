@@ -2,6 +2,8 @@
 title: ZooKeeper Leader 选举
 date: 2020-02-03 19:21:00
 categories: ZooKeeper
+tags:
+    - ZooKeeper
 ---
 Leader 选举是保证分布式数据一致性的关键所在。当 ZooKeeper 集群中的一台服务器出现以下两种情况之一时，需要进入 Leader 选举。
 1. 服务器初始化启动（集群的每个节点都没有数据 -> 以 SID 的大小为准）

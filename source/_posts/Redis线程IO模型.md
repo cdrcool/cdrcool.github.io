@@ -2,6 +2,8 @@
 title: Redis 线程 IO 模型
 date: 2020-02-19 12:02:00
 categories: Redis
+tags:
+    - Redis
 ---
 Redis 采用的是**基于内存的、单线程模型**的 KV 数据库。官方提供的数据是可以达到 10w+ 的 QPS。这个数据不比采用单进程多线程的同样基于内存的 KV 数据库 Memcached 差。
 

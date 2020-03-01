@@ -2,6 +2,8 @@
 title: RabbitMQ 处理消息重复消费
 date: 2020-01-28 18:52:00
 categories: RabbitMQ
+tags:
+    - RabbitMQ
 ---
 ## 业务逻辑处理
 一般解决重复消息的办法是，在消费端，让我们消费消息的操作具备幂等性。

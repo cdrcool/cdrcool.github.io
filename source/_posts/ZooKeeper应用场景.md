@@ -2,6 +2,8 @@
 title: ZooKeeper 应用场景
 date: 2020-01-31 10:54:00
 categories: ZooKeeper
+tags:
+    - ZooKeeper
 ---
 利用 ZooKeeper 可以非常方便构建一系列分布式应用中都会涉及到的核心功能。
 

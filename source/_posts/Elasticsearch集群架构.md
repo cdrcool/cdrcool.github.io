@@ -2,6 +2,8 @@
 title:Elasticsearch 集群架构
 date:2020-02-1116:20:00
 categories:Elasticsearch
+tags:
+    - Elasticsearch
 ---
 ## 主要特征
 从架构的角度出发，ElasticSearch 具有下面这些主要特征：

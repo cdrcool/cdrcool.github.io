@@ -2,6 +2,8 @@
 title: Kafka 处理消息重复消费
 date: 2020-01-26 16:43:00
 categories: Kafka
+tags:
+    - Kafka
 ---
 ## Kafka 设置
 ### 设置 enable-auto-commit

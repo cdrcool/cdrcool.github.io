@@ -2,6 +2,8 @@
 title: Netty 简介
 date: 2020-02-04 20:07:00
 categories: Netty
+tags:
+    - Netty
 ---
 Netty 是一个广受欢迎的**异步的、事件驱动的、基于NIO实现的** Java 开源网络应用程序框架，用于快速开发**可维护的高性能协议服务器和客户端**。
 

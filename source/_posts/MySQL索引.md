@@ -2,6 +2,8 @@
 title: MySQL 索引
 date: 2019-10-09 17:07:31
 categories: MySQL
+tags:
+    - MySQL
 ---
 ## 作用
 索引其实就是为了提高数据查询的效率，就像书的目录一样。

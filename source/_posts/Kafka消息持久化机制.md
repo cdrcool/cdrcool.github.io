@@ -2,6 +2,8 @@
 title: Kafka 消息持久化机制
 date: 2020-01-28 22:13:00
 categories: Kafka
+tags:
+    - Kafka
 ---
 ## 持久化原理
 **Kafka 依赖文件系统来存储和缓存消息。**

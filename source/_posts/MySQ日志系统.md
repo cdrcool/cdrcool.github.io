@@ -2,6 +2,8 @@
 title: MySQL 日志系统
 date: 2019-10-09 15:43:21
 categories: MySQL
+tags:
+    - MySQL
 ---
 ## redo log
 在 MySQL 中，如果每一次的更新操作都需要写进磁盘，然后磁盘也要找到对应的那条记录，然后再更新，整个过程 IO 成本、查找成本都很高。为了解决这个问题，MySQL 的设计者就采用了日志（redo log）来提升更新效率。

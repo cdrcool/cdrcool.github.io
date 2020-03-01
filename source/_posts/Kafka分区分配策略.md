@@ -2,6 +2,8 @@
 title: Kafka 分区分配策略
 date: 2020-01-24 12:40:00
 categories: Kafka
+tags:
+    - Kafka
 ---
 当前 Kafka 默认提供了 3 种分区分配策略：RangeAssignor、 RoundRobinAssignor、StickyAssignor。
 

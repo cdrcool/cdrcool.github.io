@@ -4,6 +4,7 @@ date: 2020-01-27 20:01:00
 categories: RabbitMQ
 tags:
     - Spring Boot
+    - RabbitMQ
 ---
 ## Maven 依赖
 ```xml

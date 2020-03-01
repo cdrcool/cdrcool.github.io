@@ -4,6 +4,7 @@ date: 2020-01-31 18:12:00
 categories: ZooKeeper
 tags:
     - Spring Boot
+    - ZooKeeper
 ---
 ## Maven 依赖
 ```xml

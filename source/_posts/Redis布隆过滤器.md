@@ -2,6 +2,8 @@
 title: Redis 布隆过滤器
 date: 2020-02-19 20:05:00
 categories: Redis
+tags:
+    - Redis
 ---
 ## 概念
 布隆过滤器（Bloom Filter）是一种空间效率极高的概率型算法和数据结构，主要用来判断一个元数是否在集合中存在。

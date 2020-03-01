@@ -2,6 +2,8 @@
 title: Elasticsearch 读性能优化
 date: 2020-02-21 12:29:00
 categories: Elasticsearch
+tags:
+    - Elasticsearch
 ---
 ## 数据建模
 * 尽可能 Denormalize 数据，从而获取最佳性能

@@ -2,6 +2,8 @@
 title: Kafka 消息模型
 date: 2020-01-21 11:14:00
 categories: Kafka
+tags:
+    - Kafka
 ---
 ## JMS 规范
 JMS 规范定义了两种消息模型：点对点（point to point, queue）和发布/订阅（publish/subscribe, topic）。

@@ -2,6 +2,8 @@
 title: RabbitMQ 确保消息不丢失
 date: 2020-01-28 14:49:00
 categories: RabbitMQ
+tags:
+    - RabbitMQ
 ---
 ## 消息持久化
 * Exchange 要持久化

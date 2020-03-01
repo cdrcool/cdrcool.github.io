@@ -2,6 +2,8 @@
 title: Kafka 消费者位移主题
 date: 2020-01-25 15:16:00
 categories: Kafka
+tags:
+    - Kafka
 ---
 ## 位移主题
 位移主题，即 __consumer_offsets，是 Kafka中 针对 Consumer Group，用于记录消费者的消费位置信息。

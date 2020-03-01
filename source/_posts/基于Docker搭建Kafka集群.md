@@ -3,6 +3,7 @@ title: 基于 Docker 搭建 Kafka 集群
 date: 2020-01-15 17:29:00
 categories: Kafka
 tags:
+    - Kafka
     - Docker
 ---
 1. 创建 network

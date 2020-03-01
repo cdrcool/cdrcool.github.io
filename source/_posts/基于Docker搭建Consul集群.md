@@ -3,6 +3,7 @@ title: 基于 Docker 搭建 Consul 集群
 date: 2020-02-29 15:15:00
 categories: Consul
 tags:
+    - Consul
     - Docker
 ---
 1. 创建 network

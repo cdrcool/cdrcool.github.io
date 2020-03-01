@@ -2,6 +2,8 @@
 title: Kafka 保证消息的顺序性
 date: 2020-01-26 16:19:00
 categories: Kafka
+tags:
+    - Kafka
 ---
 Kafka 只能保证分区级别的消息顺序性。
 

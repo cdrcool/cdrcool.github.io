@@ -2,6 +2,8 @@
 title: Kafka 核心概念
 date: 2020-01-20 19:19:00
 categories: Kafka
+tags:
+    - Kafka
 ---
 ## Kafka
 Apache Kafka 是一款开源的消息引擎系统，其主要功能是提供一套完备的消息发布与订阅解决方案。

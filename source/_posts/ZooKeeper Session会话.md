@@ -2,6 +2,8 @@
 title: ZooKeeper Session 会话
 date: 2020-02-03 14:13:00
 categories: ZooKeeper
+tags:
+    - ZooKeeper
 ---
 客户端与服务端之间任何交互操作都与会话息息相关，如临时节点的生命周期、客户端请求的顺序执行、Watcher 通知机制等。**Zookeeper 的连接与会话就是客户端通过实例化 Zookeeper 对象来实现客户端与服务端创建并保持 TCP 连接的过程。**
 

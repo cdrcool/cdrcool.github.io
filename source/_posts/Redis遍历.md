@@ -2,6 +2,8 @@
 title: Redis 遍历
 date: 2020-02-20 12:11:00
 categories: Redis
+tags:
+    - Redis
 ---
 在平时线上 Redis 维护工作中，有时候需要从 Redis 实例成千上万的 key 中找出特定前缀的 key 列表来手动处理数据，可能是修改它的值，也可能是删除 key。这里就有一个问题，如果从海量的 key 中找出满足特定前缀的 key 列表来？
 

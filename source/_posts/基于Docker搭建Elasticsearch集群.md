@@ -3,6 +3,7 @@ title: 基于 Docker 搭建 Elasticsearch 集群
 date: 2020-02-11 11:10:00
 categories: Elasticsearch
 tags:
+    - Elasticsearch
     - Docker
 ---
 1. 创建 network

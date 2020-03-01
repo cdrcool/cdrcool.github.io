@@ -2,6 +2,8 @@
 title: Elasticsearch 基本概念
 date: 2020-02-11 11:34:00
 categories: Elasticsearch
+tags:
+    - Elasticsearch
 ---
 Elasticsearch 是一 个基于 Lucene 构建的开源、分布式、RESTful 接口的全文搜索引擎。
 

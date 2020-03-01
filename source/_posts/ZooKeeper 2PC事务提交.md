@@ -2,6 +2,8 @@
 title: ZooKeeper 2PC事务提交
 date: 2020-02-04 10:54:00
 categories: ZooKeeper
+tags:
+    - ZooKeeper
 ---
 ## 关于 2PC 提交
 当一个事务需要跨多个分布式节点的时候，为了保持事务处理的 ACID 特性，就需要引入一个协调者（TM）来统一调度所有分布式节点的执行逻辑。

@@ -2,6 +2,8 @@
 title: Elasticsearch 写性能优化
 date: 2020-02-21 11:25:00
 categories: Elasticsearch
+tags:
+    - Elasticsearch
 ---
 ## 客户端
 * 多线程写入

@@ -2,6 +2,8 @@
 title: RabbitMQ 保证消息的顺序性
 date: 2020-01-28 16:55:00
 categories: RabbitMQ
+tags:
+    - RabbitMQ
 ---
 同一个 Queue，如果有多个 Consumer，那么是做不到消息的有序性的。
 
