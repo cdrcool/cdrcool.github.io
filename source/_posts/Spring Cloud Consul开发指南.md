@@ -51,7 +51,7 @@ public class Application {
 }
 ```
 
-（即完全正常的 Spring Boot 应用程序）。如果 Consul 客户端位于 localhost:8500 以外的其他位置，则需要配置来定位客户端。示例：
+（即完全正常的 Spring Boot 应用程序）。如果 Consul 客户端位于 localhost:8500 以外的其它位置，则需要配置来定位客户端。示例：
 
 ```yaml
 spring:
@@ -192,7 +192,7 @@ Consul Catalog Watch 利用 Consul 的能力来 [watch services](https://www.con
 该 watch 使用一个 Spring TaskScheduler 来调度与 Consul 的通话。默认情况下，它是一个 poolSize 为 1 的 ThreadPoolTaskScheduler。若要更改 TaskScheduler，需要创建一个类型为 TaskScheduler 的 bean，该 bean 的名称为 ConsulDiscoveryClientConfiguration.CATALOG_WATCH_TASK_SCHEDULER_NAME 常数。
 
 ## Consul 分布式配置
-Consul 提供用于存储配置和其他元数据的 [Key/Value Store](https://consul.io/docs/agent/http/kv.html)。Spring Cloud Consul Config 是 [Config Server and Client](https://github.com/spring-cloud/spring-cloud-config) 的替代品。Configuration 是在特殊的“bootstrap”阶段被加载到Spring Environment 中。Configuration 默认存储在 /config 文件夹中。根据应用程序的名称和激活的 profiles 创建多个 PropertySource 实例，这些激活的 profiles 模仿 Spring Cloud Config 中解析属性的顺序。例如，一个名为“testApp”并带有“dev” profile 的应用程序将创建以下属性源：
+Consul 提供用于存储配置和其它元数据的 [Key/Value Store](https://consul.io/docs/agent/http/kv.html)。Spring Cloud Consul Config 是 [Config Server and Client](https://github.com/spring-cloud/spring-cloud-config) 的替代品。Configuration 是在特殊的“bootstrap”阶段被加载到Spring Environment 中。Configuration 默认存储在 /config 文件夹中。根据应用程序的名称和激活的 profiles 创建多个 PropertySource 实例，这些激活的 profiles 模仿 Spring Cloud Config 中解析属性的顺序。例如，一个名为“testApp”并带有“dev” profile 的应用程序将创建以下属性源：
 
 ```
 config/testApp,dev/
@@ -305,8 +305,8 @@ config/application.yml
 ### 快速失败（Fail Fast）
 在某些情况下（如本地开发或某些测试场景），如果 Consul 无法进行配置，则不失败可能很方便。在 bootstrap.yml 中设置 spring.cloud.consul.config.failFast=false 可以让配置模块记录一个警告，而不是抛出一个异常。这将允许应用程序继续正常启动。
 
-### Consul 重试
-如果我们预计在应用程序启动时 Consul 代理偶尔不可用，可以要求它在失败后继续尝试。我们需要将 spring-retry 和 spring-boot-starter-aop 添加到类路径中。默认行为是重试 6 次，初始回退间隔为 1000ms，后续回退的指数乘数为 1.1。我们可以使用 spring.cloud.consul.retry.* 配置属性来配置这些属性(以及其他属性)。这可以在 Spring Cloud Consul Config 和 Discovery registration 中使用。
+## Consul 重试
+如果我们预计在应用程序启动时 Consul Agent 偶尔不可用，可以要求它在失败后继续尝试。我们需要将 spring-retry 和 spring-boot-starter-aop 添加到类路径中。默认行为是重试 6 次，初始回退间隔为 1000ms，后续回退的指数乘数为 1.1。我们可以使用 spring.cloud.consul.retry.* 配置属性来配置这些属性(以及其它属性)。这可以在 Spring Cloud Consul Config 和 Discovery registration 中使用。
 
 要完全控制重试，可以添加一个类型为 RetryOperationsInterceptor、id 为 consulRetryInterceptor 的 @Bean。Spring Retry 提供了一个 RetryInterceptorBuilder，可以很容易地创建一个。
 
