@@ -4,6 +4,7 @@ date: 2020-02-26 15:21:00
 categories: Spring Cloud
 tags:
     - Spring Cloud Consul
+    - Consul
 ---
 ## 安装 Consul
 有关如何安装 Consul 的说明，参阅安装文档 [ installation documentation](https://www.consul.io/intro/getting-started/install.html)。

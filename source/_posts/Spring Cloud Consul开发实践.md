@@ -4,6 +4,7 @@ date: 2020-02-29 11:13:00
 categories: Spring Cloud
 tags:
     - Spring Cloud Consul
+    - Consul
 ---
 ## Maven 依赖
 ```xml
