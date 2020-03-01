@@ -281,14 +281,14 @@ public class AccountController {
 spring:
   cloud:
     consul:
-        watch:
-          # 启动 watch
-          enabled: true
-          # watch 调用频率，单位：毫秒
-          delay: 1000
-          # watch 查询阻塞时间，单位：秒
-          # 默认值 55 秒，这意味着连续两次快速的修改配置属性，属性不会立即更新为最新的值，因为前面的 watch 查询阻塞了后面的查询
-          wait-time: 55
+      watch:
+        # 启动 watch
+        enabled: true
+        # watch 调用频率，单位：毫秒
+        delay: 1000
+        # watch 查询阻塞时间，单位：秒
+        # 默认值 55 秒，这意味着连续两次快速的修改配置属性，属性不会立即更新为最新的值，因为前面的 watch 查询阻塞了后面的查询
+        wait-time: 55
 ```
 
 ## Consul 重试

@@ -270,7 +270,7 @@ config/application/data
 我们可以使用 spring.cloud.consul.config.data-key 来更改 data key。
 
 ### git2consul 与配置
-git2consul 是一个 Consul 社区项目，它将文件从 git 存储库加载到 Consul 中的各个密钥中。默认情况下，keys 的名称是文件的名称。YAML和 Properties 文件分别支持 .yml 和 .properties 文件扩展名。设置 spring.cloud.consul.config.format=FILES。例如：
+git2consul 是一个 Consul 社区项目，它将文件从 git 存储库加载到 Consul 中的各个 key 中。默认情况下，key 的名称是文件的名称。YAML 和 Properties 文件分别支持 .yml 和 .properties 文件扩展名。设置 spring.cloud.consul.config.format=FILES。例如：
 
 ```yaml
 spring:
