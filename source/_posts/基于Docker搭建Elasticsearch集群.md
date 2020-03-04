@@ -18,6 +18,7 @@ version: '3.6'
 services:
   cerebro:
     image: lmenezes/cerebro
+    restart: always
     container_name: cerebro
     ports:
       - 9000:9000
@@ -28,6 +29,7 @@ services:
         ipv4_address: 172.22.0.24
   kibana:
     image: kibana
+    restart: always
     container_name: kibana
     environment:
       - I18N_LOCALE=zh-CN
@@ -41,6 +43,7 @@ services:
         ipv4_address: 172.22.0.25
   elasticsearch:
     image: elasticsearch
+    restart: always
     container_name: es_hot
     environment:
       - cluster.name=es_cluster
@@ -63,6 +66,7 @@ services:
         ipv4_address: 172.22.0.21
   elasticsearch2:
     image: elasticsearch
+    restart: always
     container_name: es_warm
     environment:
       - cluster.name=es_cluster
@@ -83,6 +87,7 @@ services:
         ipv4_address: 172.22.0.22
   elasticsearch3:
     image: elasticsearch
+    restart: always
     container_name: es_cold
     environment:
       - cluster.name=es_cluster

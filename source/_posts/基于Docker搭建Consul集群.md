@@ -18,6 +18,7 @@ version: '3.6'
 services:
   consul-1:
     image: consul
+    restart: always
     hostname: consul-1
     container_name: consul-1
     command: agent -server -bootstrap-expect=3 -node=consul-1 -bind=0.0.0.0 -client=0.0.0.0 -datacenter=dc1
@@ -27,6 +28,7 @@ services:
 
   consul-2:
     image: consul
+    restart: always
     hostname: consul-2
     container_name: consul-2
     command: agent -server -retry-join=consul-1 -node=consul-2 -bind=0.0.0.0 -client=0.0.0.0 -datacenter=dc1
@@ -38,6 +40,7 @@ services:
 
   consul-3:
     image: consul
+    restart: always
     hostname: consul-3
     container_name: consul-3
     command: agent -server -retry-join=consul-1 -node=consul-3 -bind=0.0.0.0 -client=0.0.0.0 -datacenter=dc1
@@ -49,6 +52,7 @@ services:
 
   consul-4:
     image: consul
+    restart: always
     hostname: consul-4
     container_name: consul-4
     ports:
