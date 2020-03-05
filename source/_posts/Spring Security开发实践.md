@@ -164,6 +164,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
 ### 会话固定攻击保护
 会话固定攻击是一种潜在的风险，恶意攻击者可能通过访问站点来创建会话，然后说服另一个用户使用相同的会话进行登录(例如，通过将包含会话标识符的链接作为参数发送给他们)。
+
 Spring Security 通过创建一个新会话或在用户登录时更改会话 ID 来自动防止这种情况。
 
 默认情况下，Spring Security 启用了此保护，我们可以通过设置 sessionManagement().sessionFixation().xx 来禁用此保护或调整相关行为。
@@ -270,6 +271,91 @@ create table persistent_logins
 持久化 token 示例：
 ![持久化 token 示例](/images/springsecurity/记住我-持久化token示例.png)
 
+## CSRF 保护
+CSRF 就是诱导已登录过的用户在不知情的情况下，使用自己的登录凭据来完成一些不可告人之事。比如利用 img 标签或者 script 标签的 src 属性自动访问一些敏感 api，或者是伪造一个 form 标签，action 写的是一些敏感 api，通过 js 自动提交表单等。
+
+CSRF 攻击之所以成为可能，是因为来自受害者网站的 HTTP 请求与来自攻击者网站的请求完全相同。这意味着无法拒绝来自邪恶网站的请求，也无法允许来自银行网站的请求。为了防止 CSRF 攻击，我们需要确保在请求中存在邪恶站点无法提供的内容，以便区分这两个请求。
+
+Spring 提供了两种机制来抵御 CSRF 攻击：
+* 同步器令牌模式（默认方式）
+* SameSite 属性
+
+**注意：为了使任何一种针对 CSRF 的保护起作用，应用程序必须确保“安全的” HTTP 方法是幂等的。这意味着使用 HTTP 方法 GET、HEAD、OPTIONS 和 TRACE 的请求不应该改变应用程序的状态。**
+
+默认情况下，Spring Security 启用了此保护，我们可以通过设置  http.csrf().xx 来禁用此保护或调整相关行为。
+
+![csrf示例](/images/springsecurity/csrf示例.png)
+
+```java
+@Configuration
+public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
+
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http.authorizeRequests()
+                .anyRequest().authenticated().and()
+                .formLogin().and()
+                // 默认已启用 CSRF 保护，并将 csrf token 存储在 session 中
+                http.csrf().csrfTokenRepository(new LazyCsrfTokenRepository(new HttpSessionCsrfTokenRepository()));
+    }
+}
+```
+
+## 匿名登录
+匿名登录，即用户尚未登录系统，系统会为所有未登录的用户分配一个匿名用户，这个用户也拥有自己的权限，不过他是不能访问任何被保护资源的。
+
+设置一个匿名用户的好处是，我们在进行权限判断时，可以保证 SecurityContext 中永远是存在着一个权限主体的，启用了匿名登录功能之后，我们所需要做的工作就是从 SecurityContext 中取出权限主体，然后对其拥有的权限进行校验，不需要每次去检验这个权限主体是否为空了。这样做的好处是我们永远认为请求的主体是拥有权限的，即便他没有登录，系统也会自动为他赋予未登录系统角色的权限，这样后面所有的安全组件都只需要在当前权限主体上进行处理，不用一次一次的判断当前权限主体是否存在。这就更容易保证系统中操作的一致性。
+
+默认情况下，匿名用户的用户名为 anonymousUser，拥有的权限是 ROLE_ANONYMOUS。
+
+```java
+@Configuration
+public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
+
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http.authorizeRequests()
+                .anyRequest().authenticated().and()
+                .formLogin().and()
+                // 配置匿名用户的用户名和权限
+                .anonymous().principal("游客").authorities("ROLE_VISITOR");
+    }
+}
+```
+
+## 表单登录
+Spring Security 默认就是表单登录，我们可以通过调用 http.formLogin().xx 方法来调整相关行为。
+
+* formLogin().loginPage(loginPage) 登录页面地址，默认会自动创建。
+* formLogin().loginProcessingUrl(loginProcessingUrl) 登录验证地址，默认为 /login。
+* formLogin().usernameParameter(usernameParameter) 用户名参数名，默认为 username。
+* formLogin().passwordParameter(passwordParameter) 密码参数名，默认为 password。
+* formLogin().successForwardUrl(forwardUrl) 登录验证成功后 forward 地址，默认为 /。注意：自定义跳转地址请求方法需为 POST。
+* formLogin().defaultSuccessUrl(defaultSuccessUrl,alwaysUse) 登录验证成功后 redirect 地址。如果在身份验证之前未访问受保护的页面，则跳转到登录页面，否则跳转到之前访问的受保护的页面。如果 alwaysUse 为 true（默认为 false），则始终跳转到登录页面。
+* formLogin().successHandler(successHandler) 登录验证成功后处理器，默认重定向到 /。（前两个方法调用的都是该方法，只是处理器不同而已。）
+* formLogin().failureForwardUrl(authenticationFailureUrl) 登录验证失败时 forward 地址，默认为 /login?error。
+* formLogin().failureUrl(authenticationFailureUrl) 登录验证失败时 redirect 地址，默认重定向到 /login?error。
+* formLogin().failureHandler(authenticationFailureHandler) 登录验证失败时处理器，默认重定向到 /login?error。（前两个方法调用的都是该方法，只是处理器不同而已。）
+
+## 处理注销
+当使用 WebSecurityConfigurerAdapter 时，会自动应用注销功能。默认情况下，访问 URL /logout 将通过以下方式将用户注销：
+* 使 HTTP 会话无效
+* 清除任何已配置的 RememberMe 身份验证
+* 清理 SecurityContextHolder
+* 重定向到 /login?logout
+
+与表单登录功能类似，我们也可以通过各种选项来进一步定制注销要求。
+
+* logout().logoutUrl(logoutUrl) 触发注销操作的 URL，默认为 /logout。（测试不生效 >_<）
+* logout().logoutSuccessUrl(logoutUrl) 注销成功后 redirect 地址，默认为 /login?logout。
+* logout().logoutSuccessHandler(logoutUrl) 注销成功后处理器，如果设置了该选项，logoutSuccessUrl 就会失效。
+* logout().defaultLogoutSuccessHandlerFor(handler,preferredMatcher) 配置 logout ur 与 LogoutSuccessHandler 的映射，
+* logout().addLogoutHandler(logoutUrl) 添加注销处理器，通常用于清理一些会话相关的。默认 SecurityContextLogoutHandler 会被添加为最后一个 logoutHandler。
+* logout().invalidateHttpSession(invalidateHttpSession) 注销时让 HttpSession 无效，默认为 true。
+* logout().deleteCookies(cookieNamesToClear) 注销成功后要移除的 cookies。
+
 ## 参考资料
 1. [Spring-Security的Password Encoding](https://blog.csdn.net/song_java/article/details/86309907)
 2. [spring security 4.0 教程 步步深入 6](https://blog.csdn.net/chemmuxin1993/article/details/53019919)
+3. [spring security 匿名登录](https://www.cnblogs.com/wenjieyatou/p/6118563.html)
+4. [浅谈CSRF攻击方式](https://www.cnblogs.com/hyddd/archive/2009/04/09/1432744.html)
