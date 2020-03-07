@@ -35,7 +35,7 @@ Spring Security为身份验证提供了全面的支持。本文讨论：
 ## SecurityContextHolder
 Spring Security 的身份验证模型的核心是 SecurityContextHolder。它包含 SecurityContext。
 
-![securitycontextholder](../images/springsecurity/securitycontextholder.png)
+![securitycontextholder](/images/springsecurity/securitycontextholder.png)
 
 SecurityContextHolder 是 Spring Security 存储身份验证者详细信息的地方。Spring Security 并不关心 SecurityContext 如何填充。如果它包含一个值，那么它将被用作当前经过身份验证的用户。
 
