@@ -157,7 +157,6 @@ try {
 **表单认证：**
 ![Spring Security过滤器链-表单认证](/images/springsecurity/Spring%20Security过滤器链-表单认证.png)
 
-* 
 **Http Basic 认证：**
 ![Spring Security过滤器链-Http Basic 认证](/images/springsecurity/Spring%20Security过滤器链-Http%20Basic认证.png)
 
