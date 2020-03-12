@@ -6,19 +6,19 @@ tags:
     - Spring Security
 ---
 # SecurityFilterChain
-![SecurityFilterChain UML](../images/springsecurity/Spring%20Security%20Filter%20UML.png)
+![SecurityFilterChain UML](/images/springsecurity/Spring%20Security%20Filter%20UML.png)
 
 * 表单认证
-![Spring Security过滤器（表单认证）](../images/springsecurity/Spring%20Security过滤器链-表单认证.png)
+![Spring Security过滤器（表单认证）](/images/springsecurity/Spring%20Security过滤器链-表单认证.png)
 
 * Http Basic认证
-![Spring Security过滤器（Http Basic认证）](../images/springsecurity/Spring%20Security过滤器链-Http%20Basic认证.png)
+![Spring Security过滤器（Http Basic认证）](/images/springsecurity/Spring%20Security过滤器链-Http%20Basic认证.png)
 
 # AuthenticationManager
-![AuthenticationManager UML](../images/springsecurity/AuthenticationManager UML.png)
+![AuthenticationManager UML](/images/springsecurity/AuthenticationManager UML.png)
 
 # Authentication
-![Authentication UML](../images/springsecurity/Authentication UML.png)
+![Authentication UML](/images/springsecurity/Authentication UML.png)
 
 * UsernamePasswordAuthenticationToken
     + JaasAuthenticationToken
@@ -40,7 +40,7 @@ tags:
     + OAuth2IntrospectionAuthenticationToken
 
 # AuthenticationProvider
-![AuthenticationProvider UML](../images/springsecurity/AuthenticationProvider UML.png)
+![AuthenticationProvider UML](/images/springsecurity/AuthenticationProvider UML.png)
 
 **UsernamePasswordAuthenticationToken:** 
 * AbstractUserDetailsAuthenticationProvider
@@ -75,18 +75,18 @@ tags:
 * TestingAuthenticationProvider
 
 # SecurityContext
-![SecurityContext UML](../images/springsecurity/SecurityContext UML.png)
+![SecurityContext UML](/images/springsecurity/SecurityContext UML.png)
 
 # UserDetails
-![UserDetails UML](../images/springsecurity/UserDetails UML.png)
+![UserDetails UML](/images/springsecurity/UserDetails UML.png)
 
 # UserDetailsService
-![UserDetailsService UML](../images/springsecurity/UserDetailsService UML.png)
+![UserDetailsService UML](/images/springsecurity/UserDetailsService UML.png)
 
 # AuthenticationEntryPoint
-![AuthenticationEntryPoint](../images/springsecurity/spring security/AuthenticationEntryPoint.png)
+![AuthenticationEntryPoint](/images/springsecurity/spring security/AuthenticationEntryPoint.png)
 
-![AuthenticationEntryPoint UML](../images/springsecurity/spring security/AuthenticationEntryPoint UML.png)
+![AuthenticationEntryPoint UML](/images/springsecurity/spring security/AuthenticationEntryPoint UML.png)
 
 form login -> LoginUrlAuthenticationEntryPoint
 basic login -> BasicAuthenticationEntryPoint

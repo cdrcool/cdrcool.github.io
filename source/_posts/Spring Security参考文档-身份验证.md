@@ -98,17 +98,17 @@ AuthenticationManager 是定义 Spring Security 过滤器如何执行身份验�
 ## ProviderManager
 ProviderManager 是 AuthenticationManager 最常用的实现。ProviderManager 委托给 AuthenticationProviders 列表。每个 AuthenticationProvider 都有机会指示身份验证应成功、失败，或指示它无法做出决定，并允许下游的 AuthenticationProvider 做出决定。如果配置的 AuthenticationProvider 都不能进行身份验证，则身份验证将失败，并抛出 ProviderNotFoundException，这是一个特殊的 AuthenticationException，表示 ProviderManager 不支持传递给它的 Authentication 类型。
 
-![providermanager](../images/springsecurity/providermanager.png)
+![providermanager](/images/springsecurity/providermanager.png)
 
 实际上，每个 AuthenticationProvider 都知道如何执行特定类型的身份验证。例如，一个 AuthenticationProvider 可能能够验证用户名/密码，而另一个可能能够验证 SAML 断言。这允许每个 AuthenticationProvider 执行非常特定的身份验证类型，同时支持多种类型的身份验证，并且只公开一个 AuthenticationManager bean。
 
 ProviderManager 还允许配置可选的父 AuthenticationManager，如果没有 AuthenticationProvider 可以执行身份验证，就会咨询它。父类可以是任何类型的 AuthenticationManager，但它通常是 ProviderManager 的实例。
 
-![providermanager-parent](../images/springsecurity/providermanager-parent.png)
+![providermanager-parent](/images/springsecurity/providermanager-parent.png)
 
 实际上，多个 ProviderManager 实例可能共享同一个父 AuthenticationManager。这在有多个 SecurityFilterChain 实例的场景中比较常见，这些实例有一些共同的身份验证（共享的父 AuthenticationManager），但也有不同的身份验证机制（不同的 ProviderManager实例）。
 
-![providermanagers-parent](../images/springsecurity/providermanagers-parent.png)
+![providermanagers-parent](/images/springsecurity/providermanagers-parent.png)
 
 默认情况下，ProviderManager 将尝试从成功的身份验证请求返回的 Authentication 对象中清除任何敏感的凭据信息。这可以防止密码等信息在 HttpSession 中保留的时间超过必要的时间。
 
@@ -129,7 +129,7 @@ AbstractAuthenticationProcessingFilter 用作验证用户凭证的基本过滤�
 
 接下来，AbstractAuthenticationProcessingFilter 可以对提交给它的任何身份验证请求进行身份验证。
 
-![abstractauthenticationprocessingfilter](../images/springsecurity/abstractauthenticationprocessingfilter.png)
+![abstractauthenticationprocessingfilter](/images/springsecurity/abstractauthenticationprocessingfilter.png)
 
 1. 当用户提交其凭据时，AbstractAuthenticationProcessingFilter 将从要进行身份验证的 HttpServletRequest 创建 Authentication。创建的 Authentication 的类型取决于 AbstractAuthenticationProcessingFilter 的子类。例如，UsernamePasswordAuthenticationFilter 根据在 HttpServletRequest 中提交的用户名和密码创建 UsernamePasswordAuthenticationToken。
 
@@ -168,7 +168,7 @@ Spring Security 支持通过 html 表单提供用户名和密码。本节详细�
 
 让我们看看在 Spring Security 中基于表单的登录是如何工作的。首先，我们将看到如何将用户重定向到登录表单。
 
-![loginurlauthenticationentrypoint](../images/springsecurity/loginurlauthenticationentrypoint.png)
+![loginurlauthenticationentrypoint](/images/springsecurity/loginurlauthenticationentrypoint.png)
 
 1. 首先，用户向未经授权的 resource /private 发出未经身份验证的请求。
 
@@ -182,7 +182,7 @@ Spring Security 支持通过 html 表单提供用户名和密码。本节详细�
 
 提交用户名和密码时，UsernamePasswordAuthenticationFilter 将验证用户名和密码。UsernamePasswordAuthenticationFilter 扩展了 AbstractAuthenticationProcessingFilter，所以这个关系图应该看起来非常类似。
 
-![usernamepasswordauthenticationfilter](../images/springsecurity/usernamepasswordauthenticationfilter.png)
+![usernamepasswordauthenticationfilter](/images/springsecurity/usernamepasswordauthenticationfilter.png)
 
 1. 当用户提交用户名和密码时，UsernamePasswordAuthenticationFilter 将从 HttpServletRequest 中提取用户名和密码，从而创建一个 UsernamePasswordAuthenticationToken，它是一种 Authentication 类型。
 
@@ -277,7 +277,7 @@ class LoginController {
 
 让我们看看 HTTP Basic 身份验证在 Spring Security 中是如何工作的。首先，我们看到 WWW-Authenticate header 被发送回未经身份验证的客户端。
 
-![basicauthenticationentrypoint](../images/springsecurity/basicauthenticationentrypoint.png)
+![basicauthenticationentrypoint](/images/springsecurity/basicauthenticationentrypoint.png)
 
 1. 首先，用户向未授权的 resource /private 发出未经身份验证的请求。
 
@@ -287,7 +287,7 @@ class LoginController {
 
 当客户端收到 WWW-Authenticate header 时，它知道应该使用用户名和密码重试。下面是正在处理的用户名和密码流程。
 
-![basicauthenticationentrypoint](../images/springsecurity/basicauthenticationentrypoint.png)
+![basicauthenticationentrypoint](/images/springsecurity/basicauthenticationentrypoint.png)
 
 1. 当用户提交用户名和密码时，UsernamePasswordAuthenticationFilter 将从 HttpServletRequest 中提取用户名和密码，从而创建一个 UsernamePasswordAuthenticationToken，它是一种 Authentication 类型。
 
@@ -475,7 +475,7 @@ DaoAuthenticationProvider 是一个 AuthenticationProvider 实现，它利用 Us
 
 让我们来看看 DaoAuthenticationProvider 在 Spring Security 中是如何工作的。该图详细解释了 AuthenticationManager 在读取用户名和密码时的工作方式。
 
-![daoauthenticationprovider](../images/springsecurity/daoauthenticationprovider.png)
+![daoauthenticationprovider](/images/springsecurity/daoauthenticationprovider.png)
 
 1. 读取用户名和密码的身份验证过滤器将 UsernamePasswordAuthenticationToken 传递给 AuthenticationManager，后者由 ProviderManager 实现。
 

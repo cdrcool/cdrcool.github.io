@@ -47,7 +47,7 @@ AbstractSecurityInterceptor 在启动时调用 supports(ConfigAttribute) 方法�
 #### 基于投票的 AccessDecisionManager 实现
 虽然用户可以实现自己的 AccessDecisionManager 来控制授权的所有方面，但 Spring Security 包含几个基于投票的 AccessDecisionManager 实现。投票决策管理器演示了相关的类。
 
-![access-decision-voting](../images/springsecurity/access-decision-voting.png)
+![access-decision-voting](/images/springsecurity/access-decision-voting.png)
 
 使用此方法，将对一系列 AccessDecisionVoter 实现进行授权决策的轮询。然后 AccessDecisionManager 根据它对投票的评估来决定是否抛出 AccessDeniedException。
 
@@ -85,7 +85,7 @@ Spring Security 提供的最常用的 AccessDecisionVoter 是简单的 RoleVoter
 
 After Invocation 实现演示了 Spring Security 的 AfterInvocationManager 及其具体实现。
 
-![after-invocation](../images/springsecurity/after-invocation.png)
+![after-invocation](/images/springsecurity/after-invocation.png)
 
 像 Spring Security 的许多其他部分一样， AfterInvocationManager 有一个具体实现 AfterInvocationProviderManager，它轮询 AfterInvocationProvider 的列表。允许每个 AfterInvocationProvider 修改返回对象或抛出 AccessDeniedException。实际上，多个提供程序可以修改对象，因为上一个提供程序的结果将传递给列表中的下一个提供程序。
 
@@ -120,7 +120,7 @@ After Invocation 实现演示了 Spring Security 的 AfterInvocationManager 及�
 
 FilterSecurityInterceptor 为 HttpServletRequests 提供授权。它作为安全过滤器之一插入到 FilterChainProxy 中。
 
-![filtersecurityinterceptor](../images/springsecurity/filtersecurityinterceptor.png)
+![filtersecurityinterceptor](/images/springsecurity/filtersecurityinterceptor.png)
 
 1. 首先，FilterSecurityInterceptor 从 SecurityContextHolder 获得 Authentication 。
 
