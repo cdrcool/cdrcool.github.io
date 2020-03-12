@@ -78,15 +78,15 @@ tags:
 ![SecurityContext UML](/images/springsecurity/SecurityContext%20UML.png)
 
 # UserDetails
-![UserDetails UML](/images/springsecurity/UserDetails%20UML.png)
+![UserDetails](/images/springsecurity/UserDetails.png)
 
 # UserDetailsService
 ![UserDetailsService UML](/images/springsecurity/UserDetailsService%20UML.png)
 
 # AuthenticationEntryPoint
-![AuthenticationEntryPoint](/images/springsecurity/spring security/AuthenticationEntryPoint.png)
+![AuthenticationEntryPoint](/images/springsecurity/AuthenticationEntryPoint.png)
 
-![AuthenticationEntryPoint UML](/images/springsecurity/spring security/AuthenticationEntryPoint%20UML.png)
+![AuthenticationEntryPoint UML](/images/springsecurity/AuthenticationEntryPoint%20UML.png)
 
 form login -> LoginUrlAuthenticationEntryPoint
 basic login -> BasicAuthenticationEntryPoint
