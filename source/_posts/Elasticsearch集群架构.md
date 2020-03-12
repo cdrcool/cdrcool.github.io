@@ -1,7 +1,7 @@
 ---
-title:Elasticsearch 集群架构
-date:2020-02-1116:20:00
-categories:Elasticsearch
+title: Elasticsearch 集群架构
+date: 2020-02-11 16:20:00
+categories: Elasticsearch
 tags:
     - Elasticsearch
 ---
