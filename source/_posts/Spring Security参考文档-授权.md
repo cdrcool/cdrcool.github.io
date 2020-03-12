@@ -97,18 +97,20 @@ After Invocation 实现演示了 Spring Security 的 AfterInvocationManager 及�
 使用角色层次结构允许配置哪些角色（或权限）应该包含其他角色。Spring Security 的 RoleVoter 的扩展版本 RoleHierarchyVoter 配置了一个 RoleHierarchy，从这个 RoleHierarchy 中可以获得分配给用户的所有“可访问权限”。典型的配置可能如下所示：
 
 ```xml
-<bean id="roleVoter" class="org.springframework.security.access.vote.RoleHierarchyVoter">
-    <constructor-arg ref="roleHierarchy" />
-</bean>
-<bean id="roleHierarchy" class="org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl">
-    <property name="hierarchy">
-        <value>
-            ROLE_ADMIN > ROLE_STAFF
-            ROLE_STAFF > ROLE_USER
-            ROLE_USER > ROLE_GUEST
-        </value>
-    </property>
-</bean>
+<project>
+    <bean id="roleVoter" class="org.springframework.security.access.vote.RoleHierarchyVoter">
+        <constructor-arg ref="roleHierarchy" />
+    </bean>
+    <bean id="roleHierarchy" class="org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl">
+        <property name="hierarchy">
+            <value>
+                ROLE_ADMIN > ROLE_STAFF
+                ROLE_STAFF > ROLE_USER
+                ROLE_USER > ROLE_GUEST
+            </value>
+        </property>
+    </bean>
+</project>
 ```
 
 在这里，我们有四个角色在层次结构中，角色是 ROLE_ADMIN、ROLE_STAFF、ROLE_USER、ROLE_GUEST。当根据配置有上述 RoleHierarchyVoter 的 AccessDecisionManager 评估安全约束时，使用 ROLE_ADMIN 进行身份验证的用户将表现为拥有所有四个角色。> 符号可以被认为是“包含”的意思。
@@ -174,7 +176,7 @@ protected void configure(HttpSecurity http) throws Exception {
 ## 基于表达式的访问控制
 Spring Security 3.0 引入了使用 Spring EL 表达式作为授权机制的能力，此外还简单使用了前面提到的配置属性和访问决策投票者。基于表达式的访问控制建立在同一体系结构上，但允许将复杂的布尔逻辑封装在单个表达式中。
 
-### 概览
+### 概述
 Spring Security 使用 Spring EL 来支持表达式。表达式使用“根对象”作为计算上下文的一部分进行计算。Spring Security 使用 web 的特定类和方法安全性作为根对象，以便提供内置表达式和对当前主体等值的访问。
 
 #### 常见的内置的表达式
@@ -209,7 +211,7 @@ hasPermission(Object targetId, String targetType, Object permission) | 如果用
 
 在这里，我们定义了应用程序的“admin”区域(由 URL 模式定义)应该只对具有授予的权限“admin”且其 IP 地址与本地子网匹配的用户可用。我们已经在前一节中看到了内置的 hasRole 表达式。表达式 hasIpAddress 是一个特定于 web 安全的附加内置表达式。它是由 WebSecurityExpressionRoot 类定义的，在计算 web 访问表达式时，该类的实例用作表达式根对象。该对象还直接在名称 request 下公开了 HttpServletRequest 对象，因此可以在表达式中直接调用请求。如果正在使用表达式，则将向命名空间使用的 AccessDecisionManager 中添加 WebExpressionVoter。因此，如果不使用命名空间并希望使用表达式，则必须将其中一个添加到配置中。
 
-##### 在 Web 安全表达式中引用 Beans
+#### 在 Web 安全表达式中引用 Beans
 如果希望扩展可用的表达式，那么可以很容易地引用公开的任何 Spring Bean。例如，假设有一个名为 webSecurity 的 Bean，它包含以下方法签名：
 
 ```java
