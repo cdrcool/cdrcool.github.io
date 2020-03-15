@@ -269,7 +269,7 @@ MessageReceiver.java
 public class MessageReceiver {
 
     /**
-     * 接收消息（与 transformMessage 接收的是同一个队列中的消息，而消息只会被一个方法接收到，因此测试时需要注释掉一个）
+     * 接收消息（与 transformMessage 接收的是同一个队列中的消息，一条消息只会被一个方法接收到
      *
      * @param message 消息
      */
@@ -281,7 +281,7 @@ public class MessageReceiver {
     }
 
     /**
-     * 接收后转换消息（与 handleMessage 接收的是同一个队列中的消息，而消息只会被一个方法接收到，因此测试时需要注释掉一个）
+     * 接收后转换消息（与 handleMessage 接收的是同一个队列中的消息，一条消息只会被一个方法接收到
      *
      * @param message 消息
      */
