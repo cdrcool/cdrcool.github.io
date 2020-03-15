@@ -14,7 +14,8 @@ tags:
 </dependency>
 ```
 
-## 消费消息
+## 基于 Spring Cloud Function 的支持
+### 基本示例
 StreamApplication.java
 ```java
 @Slf4j
@@ -48,7 +49,7 @@ public class StreamApplication {
 Receive message: StreamApplication.Person(name=Sam Spade)
 ```
 
-## 转换消息
+### 消息转发
 StreamApplication.java
 ```java
 @Slf4j
@@ -116,155 +117,288 @@ Transformed data received: BAR
 ```
 
 ## 基于注解的支持（遗留）
-### 消费消息
-StreamApplication.java
+### 基本示例
+#### 消费者
+ConsumerApplication.java
 ```java
 @Slf4j
-@EnableBinding(value = {Processor.class})
 @SpringBootApplication
-public class StreamApplication implements CommandLineRunner {
-    @Autowired
-    private Processor processor;
+public class ConsumerApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(StreamApplication.class, args);
+        SpringApplication.run(Consumer2Application.class, args);
     }
+}
+```
 
+MessageReceiver.java
+```java
+@Slf4j
+@EnableBinding({Sink.class})
+@Component
+public class MessageReceiver {
+
+    /**
+     * 接收消息
+     *
+     * @param message 消息
+     */
     @StreamListener(Processor.INPUT)
-    public void processMessage(String message) {
-        log.info("Data received: " + message);
-    }
-
-    @Override
-    public void run(String... args) {
-        processor.output().send(MessageBuilder.withPayload("Hello World!").build());
+    public void handleMessage(String message) {
+        log.info("Message received: " + message);
     }
 }
 ```
 
 application.yml
 ```yaml
+server:
+  port: 8081
+
 spring:
   cloud:
     stream:
       bindings:
         input:
-          destination: default.messages
-        output:
-          destination: default.messages
+          # 对应 RabbitMQ 中的 Exchange（要与 output.destination 保持一致）
+          destination: default-topic
+          # 对应 RabbitMQ 中的 Queue
+          group: default-topic-group
 ```
 
-应用程序启动之后，在控制台会看到以下输出：
-
-```text
-Data received: Hello World!
-```
-
-转到 RabbitMQ 管理控制台（localhost:15672/），并向 default.messages.anonymous.JdFLl8jMRxumpIUp6z_nXA 发送消息,在控制台也会看到对应的输出。
-
-### 转换消息
-StreamApplication.java
+#### 生产者
+ProducerApplication.java
 ```java
 @Slf4j
 @SpringBootApplication
-public class StreamApplication {
+public class ProducerApplication implements CommandLineRunner {
+    @Autowired
+    private MessageSender messageSender;
 
     public static void main(String[] args) {
-        SpringApplication.run(StreamApplication.class, args);
+        SpringApplication.run(ProducerApplication.class, args);
+    }
+
+    @Override
+    public void run(String... args) {
+        for (int i = 0; i < 10; i++) {
+            messageSender.sendMessage(MessageBuilder.withPayload(String.format("Hello World, {201%s}!", i)).build());
+        }
     }
 }
 ```
 
-TimerSource.java
+MessageSender.java
 ```java
 @EnableBinding(Source.class)
-public class TimerSource {
+@Component
+public class MessageSender {
+    @Autowired
+    private Source source;
 
-    @Bean
-    @InboundChannelAdapter(value = Source.OUTPUT, poller = @Poller(fixedDelay = "10", maxMessagesPerPoll = "1"))
-    public MessageSource<String> timerMessageSource() {
-        return () -> new GenericMessage<>("Hello World!");
+    public void sendMessage(Message<String> message) {
+        source.output().send(message);
     }
+}
+```
+
+application.yml
+```yaml
+server:
+  port: 8080
+
+spring:
+  cloud:
+    stream:
+      bindings:
+        output:
+          # 对应 RabbitMQ 中的 Exchange（要与 input.destination 保持一致）
+          destination: default-topic
+```
+
+### 消息转发
+消费者接收到消息之后，可以将处理后的消息转发给其他消费者。
+
+#### 消费者
+TransformSource.java
+```java
+public interface TransformSource {
+
+    /**
+     * Name of the output channel.
+     */
+    String OUTPUT = "transform-output";
+
+    /**
+     * @return output channel
+     */
+    @Output(TransformSource.OUTPUT)
+    MessageChannel output();
+}
+```
+
+TransformSink.java
+```java
+public interface TransformSink {
+
+    /**
+     * Input channel name.
+     */
+    String INPUT = "transform-input";
+
+    /**
+     * @return input channel.
+     */
+    @Input(TransformSink.INPUT)
+    SubscribableChannel input();
 }
 ```
 
 TransformProcessor.java
 ```java
+public interface TransformProcessor extends TransformSource, TransformSink {
+
+}
+```
+
+MessageReceiver.java
+```java
 @Slf4j
-@EnableBinding(Processor.class)
-public class TransformProcessor {
-    
-    @Transformer(inputChannel = Processor.INPUT, outputChannel = Processor.OUTPUT)
-    public Object transform(String message) {
-        log.info("Data received: " + message);
+@EnableBinding({Processor.class, TransformProcessor.class})
+@Component
+public class MessageReceiver {
+
+    /**
+     * 接收消息（与 transformMessage 接收的是同一个队列中的消息，而消息只会被一个方法接收到，因此测试时需要注释掉一个）
+     *
+     * @param message 消息
+     */
+    @StreamListener(Processor.INPUT)
+    @SendTo(TransformProcessor.OUTPUT)
+    public String handleMessage(String message) {
+        log.info("Message received: " + message);
+        return message.toLowerCase();
+    }
+
+    /**
+     * 接收后转换消息（与 handleMessage 接收的是同一个队列中的消息，而消息只会被一个方法接收到，因此测试时需要注释掉一个）
+     *
+     * @param message 消息
+     */
+    @Transformer(inputChannel = Processor.INPUT, outputChannel = TransformProcessor.OUTPUT)
+    public String transformMessage(String message) {
+        log.info("Message received and transform: " + message);
         return message.toUpperCase();
+    }
+
+    /**
+     * 接收转换后消息
+     *
+     * @param message 消息
+     */
+    @StreamListener(TransformProcessor.INPUT)
+    public void handleTransformedMessage(String message) {
+        log.info("Transformed Message received: " + message);
     }
 }
 ```
 
 application.yml
 ```yaml
+server:
+  port: 8081
+
 spring:
   cloud:
     stream:
       bindings:
         input:
-          destination: default.messages
-        output:
-          destination: default.messages
+          # 对应 RabbitMQ 中的 Exchange（要与 output.destination 保持一致）
+          destination: default-topic
+          # 对应 RabbitMQ 中的 Queue
+          group: default-topic-group
+        transform-output:
+          destination: transform-topic
+          group: transform-topic-group
+        transform-input:
+          destination: transform-topic
+          group: transform-topic-group
 ```
 
-应用程序启动之后，在控制台会看到以下输出：
-
-```text
-Data received: Hello World!
-Data received: Hello World!
-Data received: Hello World!
-Data received: HELLO WORLD!
-Data received: Hello World!
-...
-```
-
-### 转发消息
+### 基于内容路由
+#### 消费者
+MessageReceiver.java
 ```java
 @Slf4j
-@EnableBinding(value = {Processor.class})
+@EnableBinding({Sink.class})
+@Component
+public class MessageReceiver {
+
+    /**
+     * 接收消息
+     *
+     * @param message 消息
+     */
+    @StreamListener(target = Processor.INPUT, condition = "headers['version']=='1.5'")
+    public void handleMessageWithHeader(String message) {
+        log.info("Message received with header: " + message);
+    }
+
+    /**
+     * 接收消息（不生效，原因还不清楚）
+     *
+     * @param message 消息
+     */
+    @StreamListener(target = Processor.INPUT, condition = "payload == 'Hello World, {2016}!'")
+    public void handleMessageWithPayload(String message) {
+        log.info("Message received with payload: " + message);
+    }
+}
+```
+
+#### 生产者
+ProducerApplication.java
+```java
+@Slf4j
 @SpringBootApplication
-public class StreamApplication implements CommandLineRunner {
+public class ProducerApplication implements CommandLineRunner {
     @Autowired
-    private Processor processor;
+    private MessageSender messageSender;
 
     public static void main(String[] args) {
-        SpringApplication.run(StreamApplication.class, args);
+        SpringApplication.run(ProducerApplication.class, args);
     }
 
     @Override
     public void run(String... args) {
-        processor.output().send(MessageBuilder.withPayload("Hello World!").build());
+        for (int i = 0; i < 10; i++) {
+            messageSender.sendMessage(MessageBuilder
+                    .withPayload(String.format("Hello World, {201%s}!", i))
+                    .setHeader("version", String.format("1.%s", i))
+                    .build());
+        }
     }
 }
 ```
 
+### 定时发送消息
+#### 生产者
+MessageSender.java
 ```java
-@Slf4j
-@EnableBinding(Processor.class)
-public class TransformProcessor {
+@EnableBinding(Source.class)
+@Component
+public class MessageSender {
 
-    @StreamListener(Processor.INPUT)
-    @SendTo(Processor.OUTPUT)
-    public String handle(String message) {
-        log.info("Data received: " + message);
-        return message.toUpperCase();
+    /**
+     * 定时发送消息：每隔 1s 发送一次，每次发送 1 条
+     *
+     * @return 消息
+     */
+    @Bean
+    @InboundChannelAdapter(value = Source.OUTPUT, poller = @Poller(fixedDelay = "1000", maxMessagesPerPoll = "1"))
+    public MessageSource<String> timerMessageSource() {
+        return () -> new GenericMessage<>("Hello Spring Cloud Stream!");
     }
 }
 ```
 
-应用程序启动之后，在控制台会看到以下输出：
-
-```text
-Data received: Hello World!
-Data received: HELLO WORLD!
-Data received: Hello World!
-Data received: HELLO WORLD!
-...
-```
