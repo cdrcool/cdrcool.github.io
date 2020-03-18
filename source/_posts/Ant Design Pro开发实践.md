@@ -105,13 +105,13 @@ Ant Design Pro 默认提供了 dark(默认) 和 light 这两种主题，可以�
 Ant Design Pro 同时支持侧边栏和顶部栏显示导航，可以通过修改 /config/defaultSetting.js 中的 layout 属性来更换导航模式。
 
 ### 移除头部不必要的小组件
-在实际开发过程中，我们的项目可能不需要 "全局搜索"、"使用文档" 、"国际化切换"这些组件，可以到 src/components/GlobalHeader/RightContent.js 中注释掉 HeaderSearch、Tooltipown、SelectLang 这几个组件的使用。
+在实际开发过程中，我们的项目可能不需要 "全局搜索"、"使用文档" 、"国际化切换"这些组件，可以到 /src/components/GlobalHeader/RightContent.js 中注释掉 HeaderSearch、Tooltipown、SelectLang 这几个组件的使用。
 
 ### 显示个人中心/设置菜单
-到 src/components/GlobalHeader/AvatarDropdown.tsx 中，在 connect 方法中传递 menu: true。
+在 /src/components/GlobalHeader/RightContent.tsx 中引用 AvatarDropdown 组件的地方添加 menu 属性。
 
 ### 显示通知/消息/代办
-在 src/components/GlobalHeader/RightContent.js 中引入并使用 NoticeIconView 组件。
+在 /src/components/GlobalHeader/RightContent.js 中引入并使用 NoticeIconView 组件。
 
 ### 调整用户登录页
 对于用户登录页的 logo、标题、描述、登录方式、页脚和国际化支持，也可以到 /src/layouts/UserLayout.tsx 中做相应调整。
