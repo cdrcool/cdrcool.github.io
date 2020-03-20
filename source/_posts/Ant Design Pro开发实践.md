@@ -119,6 +119,10 @@ Ant Design Pro 同时支持侧边栏和顶部栏显示导航，可以通过修�
 ### 不显示页面 title
 每个页面都由 PageHeaderWrapper 封装，PageHeaderWrapper 默认会显示页面 title，但是 title 已经在面包屑中显示了，因此可以隐藏掉 PageHeaderWrapper 中的 title，具体做法是给其传递 title = false。
 
+### 未登录跳转到登录页
+默认情况下，用户未登录也会跳转到欢迎页，如果要实现未登录时跳转到登录页，只需在 /config/config.js 中的 routes 列表里的 ../layouts/SecurityLayout 那一项中添加 Routes: \['src/pages/Authorized']。
+还有一点需要注意，默认在用户退出登录后，Ant Design Pro 并没有清理掉用户权限信息，我们需要在 /src/models/login.ts 的 logout 方法中添加 localStorage.removeItem('antd-pro-authority') 。
+
 ### 不启动 Umi UI
 ```bash
 yarn start:no-ui
