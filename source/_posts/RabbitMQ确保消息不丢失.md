@@ -69,7 +69,11 @@ public class RabbitTemplateConfig implements RabbitTemplate.ConfirmCallback {
         rabbitTemplate.setConfirmCallback(this);
     }
 
-    @Override
+    /**
+     * 确认消息是否到达 Exchange
+     * 到达 Exchange -> callback, ack: true
+     * 未到达 Exchange -> callback, ack: false
+     */
     public void confirm(CorrelationData correlationData, boolean ack, String cause) {
         log.info("correlationData: {}, ack: {}, cause: {}", correlationData, ack, cause);
     }
@@ -101,14 +105,17 @@ public class RabbitTemplateConfig implements RabbitTemplate.ReturnCallback {
         rabbitTemplate.setReturnCallback(this);
     }
 
+    /**
+     * 确认消息是否到达 Queue
+     * 到达 Queue -> no callback
+     * 未到达 Queue -> callback, eg: 根据发送消息时指定的 routingKey 找不到队列
+     */
     @Override
     public void returnedMessage(Message message, int replyCode, String replyText, String exchange, String routingKey) {
         log.info("message: {}, replyCode: {}, replyText: {}, exchange: {}, routingKey: {}", message, replyCode, replyText, exchange, routingKey);
     }
 }
 ```
-
-注意，只有在消息从交换器发送到对应队列失败时才触发（比如根据发送消息时指定的 routingKey 找不到队列时会触发）。
 
 ### 消息接收确认
 消费者确认分两种:自动确认和手动确认。默认为自动确认。
