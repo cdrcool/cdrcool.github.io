@@ -75,7 +75,8 @@ public class RabbitTemplateConfig implements RabbitTemplate.ConfirmCallback {
      * 未到达 Exchange -> callback, ack: false
      */
     public void confirm(CorrelationData correlationData, boolean ack, String cause) {
-        log.info("correlationData: {}, ack: {}, cause: {}", correlationData, ack, cause);
+        log.info("Message send to exchange successful, correlationData: {}, ack: {}, cause: {}",
+                correlationData, ack, cause);
     }
 }
 ```
@@ -112,7 +113,8 @@ public class RabbitTemplateConfig implements RabbitTemplate.ReturnCallback {
      */
     @Override
     public void returnedMessage(Message message, int replyCode, String replyText, String exchange, String routingKey) {
-        log.info("message: {}, replyCode: {}, replyText: {}, exchange: {}, routingKey: {}", message, replyCode, replyText, exchange, routingKey);
+        log.info("Message send to queue failed, message: {}, replyCode: {}, replyText: {}, exchange: {}, routingKey: {}",
+                message, replyCode, replyText, exchange, routingKey);
     }
 }
 ```
