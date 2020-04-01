@@ -32,7 +32,7 @@ Message messageObj = new Message(message.getBytes(), properties);
 rabbitTemplate.send(EXCHANGE, null, messageObj);
 ```
 
-Exchange、Queue和Message在默认情况下都是开启了持久化的。
+Exchange、Queue 和 Message 在默认情况下都是开启了持久化的。
 
 ## 消息确认
 RabbitMQ 的消息确认有两种：
@@ -57,7 +57,7 @@ spring:
 ```java
 @Slf4j
 @Component
-public class RabbitTemplateConfig implements RabbitTemplate.ConfirmCallback, RabbitTemplate.ReturnCallback {
+public class RabbitTemplateConfig implements RabbitTemplate.ConfirmCallback {
     private final RabbitTemplate rabbitTemplate;
 
     public RabbitTemplateConfig(RabbitTemplate rabbitTemplate) {
