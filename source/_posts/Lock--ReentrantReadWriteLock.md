@@ -1,5 +1,5 @@
 ---
-title: Lock--ReentrantLock
+title: Lock--ReentrantReadWriteLock
 date: 2019-09-22 18:17:43
 categories: Java并发
 ---
