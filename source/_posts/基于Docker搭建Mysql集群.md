@@ -1,9 +1,9 @@
 ---
 title: 基于 Docker 搭建 Mysql 集群
 date: 2020-02-07 03:04:00
-categories: Mysql
+categories: MySQL
 tags:
-    - Mysql
+    - MySQL
     - Docker
 ---
 ```bash
