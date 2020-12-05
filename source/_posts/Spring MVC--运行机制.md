@@ -5,7 +5,7 @@ categories: Spring MVC
 ---
 ## 整体流程
 官方请求流程示意图：
-![Spring MVC请求处理流程示意图](/images/spring-framework/Spring MVC请求处理流程示意图.png)
+![Spring MVC请求处理流程示意图](/images/springframework/SpringMVC请求处理流程示意图.png)
 
 上图描述比较简单，详细描述如下：
 
@@ -19,7 +19,7 @@ categories: Spring MVC
 8. 最后将返回的视图进行渲染并把数据装入到request域，返回给用户
 
 流程图可表示为：
-![Spring MVC请求处理流程](/images/spring-framework/Spring MVC请求处理流程.png)
+![Spring MVC请求处理流程](/images/springframework/SpringMVC请求处理流程.png)
 
 源码如下：
 ```java
@@ -133,7 +133,7 @@ protected void doDispatch(HttpServletRequest request, HttpServletResponse respon
 
 ## DispatcherServlet
 UML类图如下：
-![DispatcherServlet UML](/images/spring-framework/DispatcherServlet UML.png)
+![DispatcherServlet UML](/images/springframework/DispatcherServlet%20UML.png)
 
 由类图可知，`DispatcherServlet`继承自类`FrameworkServlet`，而`FrameworkServlet`又实现了接口`ApplicationContextAware`，这样`FrameworkServlet`就能拿到`ApplicationContext`来完成一些初始化工作。
 
@@ -326,7 +326,7 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 ```
 
 ## HandlerMapping
-![HandlerMapping](/images/spring-framework/HandlerMapping.png)
+![HandlerMapping](/images/springframework/HandlerMapping.png)
 
 该接口只有一个方法`getHandler`，作用是根据当前请求的找到对应的Handler，并将Handler（执行程序）与一堆HandlerInterceptor（拦截器）封装到HandlerExecutionChain对象中。
 这里的**Handler**可能是HandlerMethod（封装了Controller中的方法），可能是Controller，也可能是HttpRequestHandler或Servlet 对象，而这个Handler具体是什么对象，跟HandlerMapping的实现类有关。
@@ -334,16 +334,16 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 
 ## HandlerExecutionChain
 HandlerExecutionChain用于将前面的Handler与拦截器（HandlerInterceptor）列表包装起来，并提供获取handler、添加拦截器、调用拦截器前后处理方法等操作。
-![HandlerExecutionChain](/images/spring-framework/HandlerExecutionChain.png)
+![HandlerExecutionChain](/images/springframework/HandlerExecutionChain.png)
 
 ## HandlerAdapter
 由于Handler的类型有多种，因此调用方式就是不确定的，为此Spring创建了一个适配器接口（HandlerAdapter），使得每一种handler有一种对应的适配器实现类，让适配器代替handler执行相应的方法，这样在后面需要扩展Handler的类型时，只需要增加一个适配器类即可。
 
 接口定义如下：
-![HandlerAdapter](/images/spring-framework/HandlerAdapter.png)
+![HandlerAdapter](/images/springframework/HandlerAdapter.png)
 
 类继承结构如下：
-![HandlerAdapter UML](/images/spring-framework/HandlerAdapter UML.png)
+![HandlerAdapter UML](/images/springframework/HandlerAdapter%20UML.png)
 
 通过观察源码可知：
 * `RequestMappingHandlerAdapter`用于适配`HandlerMethod`类型的handler
@@ -357,7 +357,7 @@ HandlerExecutionChain用于将前面的Handler与拦截器（HandlerInterceptor�
 HandlerInterceptor基本上类似于Servlet过滤器，但与Servlet过滤器不同的是，它只允许自定义预处理（可选则禁止执行处理器本身）和自定义后处理。过滤器更强大，例如，它们允许交换传递给链的请求和响应对象。
 
 接口定义如下：
-![HandlerInterceptor](/images/spring-framework/HandlerInterceptor.png)
+![HandlerInterceptor](/images/springframework/HandlerInterceptor.png)
 * preHandle
 在业务处理器处理请求之前被调用。预处理，可以进行编码、安全控制、权限校验等处理。可以选择是否终止后续处理而直接返回。
 * postHandle
@@ -367,7 +367,7 @@ HandlerInterceptor基本上类似于Servlet过滤器，但与Servlet过滤器不
 在DispatcherServlet完全处理完请求后被调用，可用于清理资源等。返回处理（已经渲染了页面）。
 
 类继承结构如下：
-![HandlerInterceptor UML](/images/spring-framework/HandlerInterceptor UML.png)
+![HandlerInterceptor UML](/images/springframework/HandlerInterceptor%20UML.png)
 
 这里也有个适配类`HandlerInterceptorAdapter`，其作用是实现`HandlerInterceptor`并提供接口的默认实现，这样子类可以选择性覆盖相关方法。
 

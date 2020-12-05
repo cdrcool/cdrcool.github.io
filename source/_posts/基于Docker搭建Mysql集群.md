@@ -12,7 +12,8 @@ docker run -d `
   --hostname mysql `
   --name mysql `
   --restart=always `
-  -e MYSQL_ROOT_PASSWORD=admin123 `
+  -e MYSQL_ROOT_PASSWORD=root `
   -p 3306:3306 `
-  mysql
+  mysql `
+  --lower_case_table_names=1
 ```
