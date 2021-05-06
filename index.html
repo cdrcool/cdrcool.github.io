@@ -202,7 +202,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-05-06 21:43:01" itemprop="dateModified" datetime="2021-05-06T21:43:01+08:00">2021-05-06</time>
+                <time title="修改时间：2021-05-06 21:44:13" itemprop="dateModified" datetime="2021-05-06T21:44:13+08:00">2021-05-06</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -271,7 +271,50 @@
 <td align="left">苏宁账号名</td>
 </tr>
 </tbody></table>
-<p>##第三方账号表<br>| 字段名 | 字段描述 |<br>| :— | :— |<br>| id | 主键 |<br>| account_type | 账号类型（jd-京东；sn-苏宁） |<br>| account | 账号名 |<br>| password | 账号密码 |<br>| access_token | 访问令牌 |<br>| refresh_token | 刷新令牌 |<br>| access_token_expires_at | 访问令牌过期时间 |<br>| refresh_token_expires_at | 刷新令牌过期时间 |<br>| sn_account | 苏宁账号名 |</p>
+<h2 id="第三方账号表"><a href="#第三方账号表" class="headerlink" title="第三方账号表"></a>第三方账号表</h2><table>
+<thead>
+<tr>
+<th align="left">字段名</th>
+<th align="left">字段描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">id</td>
+<td align="left">主键</td>
+</tr>
+<tr>
+<td align="left">account_type</td>
+<td align="left">账号类型（jd-京东；sn-苏宁）</td>
+</tr>
+<tr>
+<td align="left">account</td>
+<td align="left">账号名</td>
+</tr>
+<tr>
+<td align="left">password</td>
+<td align="left">账号密码</td>
+</tr>
+<tr>
+<td align="left">access_token</td>
+<td align="left">访问令牌</td>
+</tr>
+<tr>
+<td align="left">refresh_token</td>
+<td align="left">刷新令牌</td>
+</tr>
+<tr>
+<td align="left">access_token_expires_at</td>
+<td align="left">访问令牌过期时间</td>
+</tr>
+<tr>
+<td align="left">refresh_token_expires_at</td>
+<td align="left">刷新令牌过期时间</td>
+</tr>
+<tr>
+<td align="left">sn_account</td>
+<td align="left">苏宁账号名</td>
+</tr>
+</tbody></table>
 <h1 id="接口设计"><a href="#接口设计" class="headerlink" title="接口设计"></a>接口设计</h1><h2 id="请求第三方token"><a href="#请求第三方token" class="headerlink" title="请求第三方token"></a>请求第三方token</h2><p>请求地址：POST /{accountType}-account/request-access-token</p>
 <p>请求参数：</p>
 <table>
