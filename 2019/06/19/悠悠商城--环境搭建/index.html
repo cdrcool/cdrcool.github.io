@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('http://yoursite.com').hostname,
+    root: '/',
+    scheme: 'Muse',
+    version: '7.7.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="network1docker network create op_net  mysqllinux: 1234567sudo docker run -d \  --network op_net \  --hostname op_mysql \  --name mysql \  -e MYSQL_ROOT_PASSWORD&#x3D;admin123 \  -p 3306:3306 \  mysql:">
+<meta property="og:type" content="article">
+<meta property="og:title" content="悠悠商城--环境搭建">
+<meta property="og:url" content="http://yoursite.com/2019/06/19/%E6%82%A0%E6%82%A0%E5%95%86%E5%9F%8E--%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/index.html">
+<meta property="og:site_name" content="OnePiece">
+<meta property="og:description" content="network1docker network create op_net  mysqllinux: 1234567sudo docker run -d \  --network op_net \  --hostname op_mysql \  --name mysql \  -e MYSQL_ROOT_PASSWORD&#x3D;admin123 \  -p 3306:3306 \  mysql:">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2019-06-19T09:34:47.000Z">
+<meta property="article:modified_time" content="2021-05-06T07:11:29.221Z">
+<meta property="article:author" content="晴天">
+<meta property="article:tag" content="Docker">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://yoursite.com/2019/06/19/%E6%82%A0%E6%82%A0%E5%95%86%E5%9F%8E--%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>悠悠商城--环境搭建 | OnePiece</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">OnePiece</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">人的知识就好比一个圆圈，圆圈里面是已知的，圆圈外面是未知的。你知道得越多，圆圈也就越大，你不知道的也就越多。</p>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+  </ul>
+
+</nav>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/06/19/%E6%82%A0%E6%82%A0%E5%95%86%E5%9F%8E--%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="晴天">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="OnePiece">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          悠悠商城--环境搭建
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-06-19 17:34:47" itemprop="dateCreated datePublished" datetime="2019-06-19T17:34:47+08:00">2019-06-19</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-05-06 15:11:29" itemprop="dateModified" datetime="2021-05-06T15:11:29+08:00">2021-05-06</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%82%A0%E6%82%A0%E5%95%86%E5%9F%8E/" itemprop="url" rel="index">
+                    <span itemprop="name">悠悠商城</span>
+                  </a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="network"><a href="#network" class="headerlink" title="network"></a>network</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker network create op_net</span><br></pre></td></tr></table></figure>
+
+<h2 id="mysql"><a href="#mysql" class="headerlink" title="mysql"></a>mysql</h2><p>linux:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">sudo docker run -d \</span><br><span class="line">  --network op_net \</span><br><span class="line">  --hostname op_mysql \</span><br><span class="line">  --name mysql \</span><br><span class="line">  -e MYSQL_ROOT_PASSWORD&#x3D;admin123 \</span><br><span class="line">  -p 3306:3306 \</span><br><span class="line">  mysql:8.0.18</span><br></pre></td></tr></table></figure>
+
+<p>windows:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">docker run -d &#96;</span><br><span class="line">  --network op_net &#96;</span><br><span class="line">  --hostname mysql &#96;</span><br><span class="line">  --name mysql &#96;</span><br><span class="line">  -e MYSQL_ROOT_PASSWORD&#x3D;admin123 &#96;</span><br><span class="line">  -p 3306:3306 &#96;</span><br><span class="line">  mysql</span><br></pre></td></tr></table></figure>
+
+<h2 id="rabbitmq"><a href="#rabbitmq" class="headerlink" title="rabbitmq"></a>rabbitmq</h2><p>linux:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">sudo docker run -d \</span><br><span class="line">  --network op_net \</span><br><span class="line">  --hostname op_rabbitmq \</span><br><span class="line">  --name rabbitmq \</span><br><span class="line">  --restart&#x3D;always \</span><br><span class="line">  -p 5672:5672 -p 15672:15672 \</span><br><span class="line">  rabbitmq:3-management</span><br></pre></td></tr></table></figure>
+
+<p>windows:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">docker run -d &#96;</span><br><span class="line">  --network op_net &#96;</span><br><span class="line">  --hostname op_rabbitmq &#96;</span><br><span class="line">  --name rabbitmq &#96;</span><br><span class="line">  --restart&#x3D;always &#96;</span><br><span class="line">  -p 5672:5672 -p 15672:15672 &#96;</span><br><span class="line">  rabbitmq:3-management</span><br></pre></td></tr></table></figure>
+
+<h2 id="redis"><a href="#redis" class="headerlink" title="redis"></a>redis</h2><p>linux:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">sudo docker run -d \</span><br><span class="line">  --network op_net \</span><br><span class="line">  --hostname op_redis \</span><br><span class="line">  --name redis \</span><br><span class="line">  --restart&#x3D;always \</span><br><span class="line">  --privileged&#x3D;true \</span><br><span class="line">  -v &#x2F;srv&#x2F;redis&#x2F;conf:&#x2F;usr&#x2F;local&#x2F;etc&#x2F;redis&#x2F;redis.conf \</span><br><span class="line">  -p 6379:6379 \</span><br><span class="line">  redis redis-server &#x2F;usr&#x2F;local&#x2F;etc&#x2F;redis&#x2F;redis.conf</span><br></pre></td></tr></table></figure>
+
+<p>windows:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">docker run -d &#96;</span><br><span class="line">  --network op_net &#96;</span><br><span class="line">  --hostname op_redis &#96;</span><br><span class="line">  --name redis &#96;</span><br><span class="line">  --restart&#x3D;always &#96;</span><br><span class="line">  --privileged&#x3D;true &#96;</span><br><span class="line">  -v &#x2F;d&#x2F;Development&#x2F;Workspace&#x2F;Hyper-V&#x2F;volumes&#x2F;redis&#x2F;conf:&#x2F;usr&#x2F;local&#x2F;etc&#x2F;redis&#x2F;redis.conf &#96;</span><br><span class="line">  -p 6379:6379 &#96;</span><br><span class="line">  redis redis-server &#x2F;usr&#x2F;local&#x2F;etc&#x2F;redis&#x2F;redis.conf</span><br></pre></td></tr></table></figure>
+
+<h3 id="访问redis"><a href="#访问redis" class="headerlink" title="访问redis"></a>访问redis</h3><p>linux:<br><code>sudo docker run -it --network op_net --rm redis redis-cli -h redis</code><br>windows:<br><code>docker run -it --network op_net --rm redis redis-cli -h redis</code></p>
+<h2 id="opnezipkin"><a href="#opnezipkin" class="headerlink" title="opnezipkin"></a>opnezipkin</h2><p>linux:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">sudo docker run -d \</span><br><span class="line">  --network op_net \</span><br><span class="line">  --hostname op_zipkin \</span><br><span class="line">  --name zipkin \</span><br><span class="line">  --restart&#x3D;always \</span><br><span class="line">  -e RABBIT_ADDRESSES&#x3D;rabbitmq:5672 \</span><br><span class="line">  -p 9411:9411 \</span><br><span class="line">  openzipkin&#x2F;zipkin</span><br></pre></td></tr></table></figure>
+
+<p>windows:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">docker run -d &#96;</span><br><span class="line">  --network op_net &#96;</span><br><span class="line">  --hostname op_zipkin &#96;</span><br><span class="line">  --name zipkin &#96;</span><br><span class="line">  --restart&#x3D;always &#96;</span><br><span class="line">  -e RABBIT_ADDRESSES&#x3D;rabbitmq:5672 &#96;</span><br><span class="line">  -p 9411:9411 &#96;</span><br><span class="line">  openzipkin&#x2F;zipkin</span><br></pre></td></tr></table></figure>
+
+<h2 id="zookeeper"><a href="#zookeeper" class="headerlink" title="zookeeper"></a>zookeeper</h2><p>linux:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">sudo docker run -d \</span><br><span class="line">  --network op_net \</span><br><span class="line">  --hostname op_zookeeper \</span><br><span class="line">  --name zookeeper \</span><br><span class="line">  --restart&#x3D;always \</span><br><span class="line">  -p 2181:2181 \</span><br><span class="line">  -v &#x2F;srv&#x2F;zookeeper&#x2F;conf:&#x2F;conf \</span><br><span class="line">  -e ZOO_LOG4J_PROP&#x3D;&quot;INFO,ROLLINGFILE&quot; \</span><br><span class="line">  zookeeper</span><br></pre></td></tr></table></figure>
+
+<p>windows:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">docker run -d &#96;</span><br><span class="line">  --network op_net &#96;</span><br><span class="line">  --hostname op_zookeeper &#96;</span><br><span class="line">  --name zookeeper &#96;</span><br><span class="line">  --restart&#x3D;always &#96;</span><br><span class="line">  -p 2181:2181 &#96;</span><br><span class="line">  -v &#x2F;d&#x2F;Development&#x2F;Workspace&#x2F;Hyper-V&#x2F;volumes&#x2F;zookeeper&#x2F;conf:&#x2F;conf &#96;</span><br><span class="line">  -e ZOO_LOG4J_PROP&#x3D;&quot;INFO,ROLLINGFILE&quot; &#96;</span><br><span class="line">  zookeeper</span><br></pre></td></tr></table></figure>
+
+<h3 id="访问zookeeper"><a href="#访问zookeeper" class="headerlink" title="访问zookeeper"></a>访问zookeeper</h3><p>linux:<br><code>sudo docker run -it --network op_net --rm zookeeper zkCli.sh -server zookeeper</code><br>windows:<br><code>docker run -it --network op_net --rm zookeeper zkCli.sh -server zookeeper</code></p>
+<h2 id="kafka"><a href="#kafka" class="headerlink" title="kafka"></a>kafka</h2><p>linux:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">sudo docker run -d \</span><br><span class="line">  --network op_net \</span><br><span class="line">  --hostname op_kafka \</span><br><span class="line">  --name kafka \</span><br><span class="line">  --restart&#x3D;always \</span><br><span class="line">  -e KAFKA_BROKER_ID&#x3D;0 \</span><br><span class="line">  -e KAFKA_ZOOKEEPER_CONNECT&#x3D;zookeeper:2181 \</span><br><span class="line">  -e KAFKA_ADVERTISED_LISTENERS&#x3D;PLAINTEXT:&#x2F;&#x2F;192.168.0.107:9092 \</span><br><span class="line">  -e KAFKA_LISTENERS&#x3D;PLAINTEXT:&#x2F;&#x2F;0.0.0.0:9092 \</span><br><span class="line">  -p 9092:9092 \</span><br><span class="line">  wurstmeister&#x2F;kafka</span><br></pre></td></tr></table></figure>
+
+<p>windows:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">docker run -d &#96;</span><br><span class="line">  --network op_net &#96;</span><br><span class="line">  --hostname op_kafka &#96;</span><br><span class="line">  --name kafka &#96;</span><br><span class="line">  --restart&#x3D;always &#96;</span><br><span class="line">  -e KAFKA_BROKER_ID&#x3D;0 &#96;</span><br><span class="line">  -e KAFKA_ZOOKEEPER_CONNECT&#x3D;zookeeper:2181 &#96;</span><br><span class="line">  -e KAFKA_ADVERTISED_LISTENERS&#x3D;PLAINTEXT:&#x2F;&#x2F;192.168.0.107:9092 &#96;</span><br><span class="line">  -e KAFKA_LISTENERS&#x3D;PLAINTEXT:&#x2F;&#x2F;0.0.0.0:9092 &#96;</span><br><span class="line">  -p 9092:9092 &#96;</span><br><span class="line">  wurstmeister&#x2F;kafka</span><br></pre></td></tr></table></figure>
+
+<h3 id="创建主题"><a href="#创建主题" class="headerlink" title="创建主题"></a>创建主题</h3><ol>
+<li>进入容器：<code>sudo docker exec -it kafka /bin/bash</code></li>
+<li>创建主题：<code>/opt/kafka/bin/kafka-topics.sh --create --replication-factor 1 --partitions 1 --zookeeper zookeeper:2181 --topic yoyo-mall-log</code></li>
+<li>查询主题：<code>/opt/kafka/bin/kafka-topics.sh --list --zookeeper zookeeper:2181</code></li>
+</ol>
+<h3 id="配置logstash"><a href="#配置logstash" class="headerlink" title="配置logstash"></a>配置logstash</h3><ol>
+<li>执行<code>sudo docker exec -it elk /bin/bash</code>进入容器</li>
+<li>打开文件：<code>vi /etc/logstash/conf.d/02-beats-input.conf</code></li>
+<li>修改后配置：<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">input &#123;</span><br><span class="line">  tcp &#123;</span><br><span class="line">    port &#x3D;&gt; 5044</span><br><span class="line">    codec &#x3D;&gt; json_lines</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  kafka &#123;</span><br><span class="line">    bootstrap_servers &#x3D;&gt; &quot;192.168.0.107:9092&quot;</span><br><span class="line">    topics &#x3D;&gt; [&quot;yoyo-mall-log&quot;]</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">output&#123;</span><br><span class="line">  elasticsearch &#123;</span><br><span class="line">    hosts &#x3D;&gt; [&quot;localhost:9200&quot;]</span><br><span class="line">    index &#x3D;&gt; &quot;yoyo-mall-log&quot; </span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+</li>
+</ol>
+<h2 id="kafka-manager"><a href="#kafka-manager" class="headerlink" title="kafka-manager"></a>kafka-manager</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">sudo docker run -d \</span><br><span class="line">  -e ZK_HOSTS&#x3D;&quot;192.168.0.107:2181&quot; \</span><br><span class="line">  -p 9000:9000  \</span><br><span class="line">  hlebalbau&#x2F;kafka-manager:stable \</span><br><span class="line">  -Dpidfile.path&#x3D;&#x2F;dev&#x2F;null</span><br></pre></td></tr></table></figure>
+
+<h2 id="elk"><a href="#elk" class="headerlink" title="elk"></a>elk</h2><p>linux:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">sudo docker run -d \</span><br><span class="line">  --network op_net \</span><br><span class="line">  --hostname op_elk \</span><br><span class="line">  --name elk \</span><br><span class="line">  --restart&#x3D;always \</span><br><span class="line">  -p 5601:5601 -p 9200:9200 -p 5044:5044 \</span><br><span class="line">  sebp&#x2F;elk:670</span><br></pre></td></tr></table></figure>
+
+<p>windows:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">docker run -d &#96;</span><br><span class="line">  --network op_net &#96;</span><br><span class="line">  --hostname op_elk &#96;</span><br><span class="line">  --name elk &#96;</span><br><span class="line">  --restart&#x3D;always &#96;</span><br><span class="line">  -p 5601:5601 -p 9200:9200 -p 5044:5044 &#96;</span><br><span class="line">  sebp&#x2F;elk:670</span><br></pre></td></tr></table></figure>
+
+<h3 id="修改配置"><a href="#修改配置" class="headerlink" title="修改配置"></a>修改配置</h3><p>linux下运行elk镜像，要求vm.max_map_count至少为262144，否则启动会报错：![step42](/images/VMWare install/step42.png)。<br>在“/etc/sysctl.conf”文件末行添加：<code>vm.max_map_count=262144</code>，然后执行<code>sudo /sbin/sysctl -p</code>使配置立即生效。</p>
+<h3 id="配置logstash-1"><a href="#配置logstash-1" class="headerlink" title="配置logstash"></a>配置logstash</h3><ol>
+<li>执行<code>sudo docker exec -it elk /bin/bash</code>进入容器</li>
+<li>打开文件：<code>vi /etc/logstash/conf.d/02-beats-input.conf</code></li>
+<li>修改配置：<br>原配置：<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">input &#123;</span><br><span class="line">  beats &#123;</span><br><span class="line">    port &#x3D;&gt; 5044</span><br><span class="line">    ssl &#x3D;&gt; true</span><br><span class="line">    ssl_certificate &#x3D;&gt; &quot;&#x2F;etc&#x2F;pki&#x2F;tls&#x2F;certs&#x2F;logstash-beats.crt&quot;</span><br><span class="line">    ssl_key &#x3D;&gt; &quot;&#x2F;etc&#x2F;pki&#x2F;tls&#x2F;private&#x2F;logstash-beats.key&quot;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+修改后配置：<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">input &#123;</span><br><span class="line">  tcp &#123;</span><br><span class="line">    port &#x3D;&gt; 5044</span><br><span class="line">    codec &#x3D;&gt; json_lines</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">output&#123;</span><br><span class="line">  elasticsearch &#123;</span><br><span class="line">    hosts &#x3D;&gt; [&quot;localhost:9200&quot;]</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li>重启容器：`sudo docker restart elk</li>
+</ol>
+<h2 id="nexus"><a href="#nexus" class="headerlink" title="nexus"></a>nexus</h2><p>linux:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">sudo docker run -d \</span><br><span class="line">  --hostname op_nexus \</span><br><span class="line">  --name nexus \</span><br><span class="line">  --restart&#x3D;always \</span><br><span class="line">  --privileged&#x3D;true \</span><br><span class="line">  -v &#x2F;srv&#x2F;nexus-data:&#x2F;nexus-data \</span><br><span class="line">  -p 18081:8081 \</span><br><span class="line">  sonatype&#x2F;nexus3</span><br></pre></td></tr></table></figure>
+
+<p>windows:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">docker run -d &#96;</span><br><span class="line">  --hostname op_nexus &#96;</span><br><span class="line">  --name nexus &#96;</span><br><span class="line">  --restart&#x3D;always &#96;</span><br><span class="line">  --privileged&#x3D;true &#96;</span><br><span class="line">  -v &#x2F;d&#x2F;Development\Workspace\Hyper-V\volumes\nexus-data:&#x2F;nexus-data &#96;</span><br><span class="line">  -p 18081:8081 &#96;</span><br><span class="line">  sonatype&#x2F;nexus3</span><br></pre></td></tr></table></figure>
+
+<h3 id="更改权限"><a href="#更改权限" class="headerlink" title="更改权限"></a>更改权限</h3><p>如果启动时报错：<br>![step30](/images/VMWare install/step30.png)<br>执行命令：<code>sudo chmod 777 /srv/nexus-data</code></p>
+<h2 id="gitlab"><a href="#gitlab" class="headerlink" title="gitlab"></a>gitlab</h2><p>参考：<a href="https://docs.gitlab.com/omnibus/docker/" target="_blank" rel="noopener">https://docs.gitlab.com/omnibus/docker/</a></p>
+<p>linux:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">sudo docker run --detach \</span><br><span class="line">  --hostname op_gitlab \</span><br><span class="line">  --name gitlab \</span><br><span class="line">  --restart always \</span><br><span class="line">  --privileged&#x3D;true \</span><br><span class="line">  --volume &#x2F;srv&#x2F;gitlab&#x2F;config:&#x2F;etc&#x2F;gitlab \</span><br><span class="line">  --volume &#x2F;srv&#x2F;gitlab&#x2F;logs:&#x2F;var&#x2F;log&#x2F;gitlab \</span><br><span class="line">  --volume &#x2F;srv&#x2F;gitlab&#x2F;data:&#x2F;var&#x2F;opt&#x2F;gitlab \</span><br><span class="line">  --publish 10443:443 --publish 10080:10080 --publish 10022:22 \</span><br><span class="line">  gitlab&#x2F;gitlab-ce:latest</span><br></pre></td></tr></table></figure>
+
+<p>windows:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">docker run --detach &#96;</span><br><span class="line">  --hostname op_gitlab &#96;</span><br><span class="line">  --name gitlab &#96;</span><br><span class="line">  --restart always &#96;</span><br><span class="line">  --privileged&#x3D;true &#96;</span><br><span class="line">  --volume &#x2F;d&#x2F;Development\Workspace\Hyper-V\volumes\gitlab\config:&#x2F;etc&#x2F;gitlab &#96;</span><br><span class="line">  --volume &#x2F;d&#x2F;Development\Workspace\Hyper-V\volumes\gitlab\logs:&#x2F;var&#x2F;log&#x2F;gitlab &#96;</span><br><span class="line">  --volume &#x2F;d&#x2F;Development\Workspace\Hyper-V\volumes\gitlab\data:&#x2F;var&#x2F;opt&#x2F;gitlab &#96;</span><br><span class="line">  --publish 10443:443 --publish 10080:10080 --publish 10022:22 &#96;</span><br><span class="line">  gitlab&#x2F;gitlab-ce:latest</span><br></pre></td></tr></table></figure>
+
+<h3 id="配置ip-amp-端口"><a href="#配置ip-amp-端口" class="headerlink" title="配置ip&amp;端口"></a>配置ip&amp;端口</h3><p><code>sudo vi /srv/gitlab/config/gitlab.rb</code><br>修改以下三行配置：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">external_url &#39;http:&#x2F;&#x2F;172.16.78.80:10080&#39;</span><br><span class="line">gitlab_rails[&#39;gitlab_ssh_host&#39;] &#x3D; &#39;http:&#x2F;&#x2F;172.16.78.80&#39;</span><br><span class="line">gitlab_rails[&#39;gitlab_shell_ssh_port&#39;] &#x3D; 10022</span><br></pre></td></tr></table></figure>
+<p>其中，<strong>172.16.78.80</strong>为宿主机的ip地址，可以通过<code>ip addr</code>查看；<strong>10080</strong>、<strong>10022</strong>则分别为<strong>80</strong>和<strong>22</strong>映射到宿主机的端口。<br>之后重启：<code>sudo docker restart gitlab</code></p>
+<h3 id="创建ssh-key"><a href="#创建ssh-key" class="headerlink" title="创建ssh key"></a>创建ssh key</h3><p>参考：<a href="https://docs.gitlab.com/ee/ssh/README.html#adding-an-ssh-key-to-your-gitlab-account" target="_blank" rel="noopener">https://docs.gitlab.com/ee/ssh/README.html#adding-an-ssh-key-to-your-gitlab-account</a><br>gitlab启动之后，会提示“You won’t be able to pull or push project code via SSH until you add an SSH key to your profile”。<br>需要配置ssh key：</p>
+<ol>
+<li>检查是否已有key：<code>cat ~/.ssh/id_rsa.pub</code>；</li>
+<li>如果没有，则创建：<code>ssh-keygen -o -t rsa -b 4096 -C &quot;email@example.com&quot;</code>，不断回车；</li>
+<li>复制创建的ssh key，然后添加到gitlab中；<br>![step29](/images/VMWare install/step29.png)</li>
+<li>检查：<code>ssh -T git@172.16.78.80</code>（需要前完成步骤4，且之后还提示需要密码，解决办法待研究：<a href="https://www.jianshu.com/p/e946acf9f26e" target="_blank" rel="noopener">https://www.jianshu.com/p/e946acf9f26e</a>）。</li>
+</ol>
+<h3 id="安装ssh-server"><a href="#安装ssh-server" class="headerlink" title="安装ssh server"></a>安装ssh server</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get install openssh-server</span><br><span class="line">ssh localhost</span><br></pre></td></tr></table></figure>
+
+<h2 id="配置jenkins"><a href="#配置jenkins" class="headerlink" title="配置jenkins"></a>配置jenkins</h2><p>linux:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">sudo docker run -d \</span><br><span class="line">  --hostname op_jenkins \</span><br><span class="line">  --name jenkins \</span><br><span class="line">  --privileged&#x3D;true \</span><br><span class="line">  -v &#x2F;srv&#x2F;jenkins_home:&#x2F;var&#x2F;jenkins_home \</span><br><span class="line">  -p 18080:8080 -p 50000:50000 \</span><br><span class="line">  -p 8761:8761 -p 8180:8180 -p 8181:8181 -p 8182:8182 -p 8183:8183 -p 8184:8184 -p 8185:8185 -p 8186:8186 \</span><br><span class="line">  -p 8101:8101 -p 8102:8102 -p 8103:8103 -p 8104:8104 -p 8105:8105 -p 8106:8106 \</span><br><span class="line">  jenkins&#x2F;jenkins</span><br></pre></td></tr></table></figure>
+
+<p>windows:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">docker run -d &#96;</span><br><span class="line">  --hostname op_jenkins &#96;</span><br><span class="line">  --name jenkins &#96;</span><br><span class="line">  --privileged&#x3D;true &#96;</span><br><span class="line">  -v &#x2F;d&#x2F;Development\Workspace\Hyper-V\volumes\jenkins_home:&#x2F;var&#x2F;jenkins_home &#96;</span><br><span class="line">  -p 18080:8080 -p 50000:50000 &#96;</span><br><span class="line">  -p 8761:8761 -p 8180:8180 -p 8181:8181 -p 8182:8182 -p 8183:8183 -p 8184:8184 -p 8185:8185 -p 8186:8186 &#96;</span><br><span class="line">  -p 8101:8101 -p 8102:8102 -p 8103:8103 -p 8104:8104 -p 8105:8105 -p 8106:8106 &#96;</span><br><span class="line">  jenkins&#x2F;jenkins</span><br></pre></td></tr></table></figure>
+
+<p>上面8761及之后的端口都是jenkins中部署的项目所用到的端口。</p>
+<h3 id="解锁"><a href="#解锁" class="headerlink" title="解锁"></a>解锁</h3><p>第一次进入jenkins，会提示：<br>![step32](/images/VMWare install/step32.png)<br>执行命令：<code>sudo docker exec -it jenkins /bin/bash</code>进入docker容器，再执行命令<code>cat /var/jenkins_home/secrets/initialAdminPassword</code>查看密码，然后将密码拷贝到界面继续。</p>
+<h3 id="安装插件"><a href="#安装插件" class="headerlink" title="安装插件"></a>安装插件</h3><p>选择“安装推荐的插件”</p>
+<h3 id="配置jdk-git-maven"><a href="#配置jdk-git-maven" class="headerlink" title="配置jdk/git/maven"></a>配置jdk/git/maven</h3><p>进入管理界面：<br>![step33](/images/VMWare install/step33.png)<br>![step34](/images/VMWare install/step34.png)<br>ps: <strong>JAVA_HOME</strong>地址可以通过命令<code>echo $JAVA_HOME</code>查询<br>![step35](/images/VMWare install/step35.png)<br>![step36](/images/VMWare install/step36.png)</p>
+<ol start="6">
+<li><p>安装maven插件<br>![step37](/images/VMWare install/step37.png)<br>![step38](/images/VMWare install/step38.png)</p>
+</li>
+<li><p>新建任务<br>![step39](/images/VMWare install/step39.png)<br>![step40](/images/VMWare install/step40.png)<br>![step41](/images/VMWare install/step41.png)</p>
+</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">#!&#x2F;bin&#x2F;bash</span><br><span class="line">SERVER_NAME&#x3D;yoyo-mall-basic-registry-server</span><br><span class="line">JAR_NAME&#x3D;yoyo-mall-basic-registry-server-1.0-SNAPSHOT</span><br><span class="line">JAR_PATH&#x3D;&#x2F;var&#x2F;jenkins_home&#x2F;workspace&#x2F;yoyo-mall-basic-registry-server&#x2F;target&#x2F;</span><br><span class="line">JAR_WORK_PATH&#x3D;&#x2F;var&#x2F;jenkins_home&#x2F;workspace&#x2F;yoyo-mall-basic-registry-server&#x2F;target&#x2F;</span><br><span class="line"></span><br><span class="line">PID&#x3D;&#96;ps -ef | grep &quot;$SERVER_NAME&quot; | awk &#39;&#123;print $2&#125;&#39;&#96;</span><br><span class="line">for id in $PID</span><br><span class="line">do</span><br><span class="line">	kill -9 $id  </span><br><span class="line">	echo &quot;killed $id&quot;  </span><br><span class="line">done</span><br><span class="line"></span><br><span class="line">cp $JAR_PATH&#x2F;$JAR_NAME.jar $JAR_WORK_PATH</span><br><span class="line">cd $JAR_WORK_PATH</span><br><span class="line">chmod 755 $JAR_NAME.jar</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">BUILD_ID&#x3D;dontKillMe nohup java -jar  $JAR_NAME.jar  &amp;</span><br></pre></td></tr></table></figure>
+
+<h2 id="安装VMWare"><a href="#安装VMWare" class="headerlink" title="安装VMWare"></a>安装VMWare</h2><ol>
+<li>下载<br><a href="https://my.vmware.com/cn/web/vmware/info/slug/desktop_end_user_computing/vmware_workstation_pro/15_0" target="_blank" rel="noopener">https://my.vmware.com/cn/web/vmware/info/slug/desktop_end_user_computing/vmware_workstation_pro/15_0</a><br>需要登录，没有账号需要注册</li>
+<li>输入许可证</li>
+</ol>
+<ul>
+<li>YG5H2-ANZ0H-M8ERY-TXZZZ-YKRV8</li>
+<li>UG5J2-0ME12-M89WY-NPWXX-WQH88</li>
+<li>UA5DR-2ZD4H-089FY-6YQ5T-YPRX6</li>
+<li>GA590-86Y05-4806Y-X4PEE-ZV8E0</li>
+<li>ZF582-0NW5N-H8D2P-0XZEE-Z22VA</li>
+<li>YA18K-0WY8P-H85DY-L4NZG-X7RAD</li>
+</ul>
+<ol start="3">
+<li>安装</li>
+</ol>
+<h2 id="创建虚拟机"><a href="#创建虚拟机" class="headerlink" title="创建虚拟机"></a>创建虚拟机</h2><ol>
+<li>下载<br><a href="https://ubuntu.com/download/desktop" target="_blank" rel="noopener">https://ubuntu.com/download/desktop</a><br>按需选择桌面版或服务器版</li>
+<li>创建虚拟机（Ubuntu Desktop）<br>![step01](/images/VMWare install/step01.png)<br>![step02](/images/VMWare install/step02.png)<br>![step03](/images/VMWare install/step03.png)<br>![step04](/images/VMWare install/step04.png)<br>![step05](/images/VMWare install/step05.png)<br>![step06](/images/VMWare install/step06.png)<br>![step07](/images/VMWare install/step07.png)<br>![step08](/images/VMWare install/step08.png)<br>nat模式：无需额外配置，虚拟机即可联网<br>![step09](/images/VMWare install/step09.png)<br>![step10](/images/VMWare install/step10.png)<br>![step11](/images/VMWare install/step11.png)<br>![step12](/images/VMWare install/step12.png)<br>![step13](/images/VMWare install/step13.png)<br>![step14](/images/VMWare install/step14.png)<br>![step15](/images/VMWare install/step15.png)<br>![step16](/images/VMWare install/step16.png)</li>
+</ol>
+<h3 id="桥接模式"><a href="#桥接模式" class="headerlink" title="桥接模式"></a>桥接模式</h3><p>![step25](/images/VMWare install/step25.png)<br>![step26](/images/VMWare install/step26.png)<br>![step27](/images/VMWare install/step27.png)<br>桥接到的地址选择能联网的网卡：<br>![step27(2)](/images/VMWare install/step27(2).png)<br>![step28](/images/VMWare install/step28.png)</p>
+<h2 id="启动虚拟机"><a href="#启动虚拟机" class="headerlink" title="启动虚拟机"></a>启动虚拟机</h2><p>如果提示：<br>![step01](/images/VMWare install/step01.png)<br>去控制面板中停掉<strong>Hyper-V</strong>：<br>![step02](/images/VMWare install/step02.png)</p>
+<p>![step17](/images/VMWare install/step17.png)<br>![step18](/images/VMWare install/step18.png)<br>![step19](/images/VMWare install/step19.png)<br>![step20](/images/VMWare install/step20.png)<br>![step21](/images/VMWare install/step21.png)<br>![step22](/images/VMWare install/step22.png)<br>![step23](/images/VMWare install/step23.png)<br>![step24](/images/VMWare install/step24.png)</p>
+<h3 id="更新-amp-升级"><a href="#更新-amp-升级" class="headerlink" title="更新&amp;升级"></a>更新&amp;升级</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get update</span><br><span class="line">sudo apt-get upgrade</span><br></pre></td></tr></table></figure>
+
+<h2 id="安装Tools"><a href="#安装Tools" class="headerlink" title="安装Tools"></a>安装Tools</h2><p><code>sudo apt-get install open-vm-tools-desktop</code><br>安装之后需重启生效</p>
+<h2 id="安装Docker"><a href="#安装Docker" class="headerlink" title="安装Docker"></a>安装Docker</h2><p>参考：<a href="https://docs.docker.com/install/linux/docker-ce/ubuntu/" target="_blank" rel="noopener">https://docs.docker.com/install/linux/docker-ce/ubuntu/</a></p>
+<ol>
+<li><code>sudo apt-get install apt-transport-https ca-certificates curl gnupg-agent software-properties-common</code></li>
+<li><code>curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -</code></li>
+<li><code>sudo apt-key fingerprint 0EBFCD88</code></li>
+<li><code>sudo add-apt-repository &quot;deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable&quot;</code></li>
+<li><code>sudo apt-get update</code></li>
+<li><code>sudo apt-get install docker-ce docker-ce-cli containerd.io</code></li>
+<li><code>sudo docker run hello-world</code></li>
+</ol>
+
+    </div>
+
+    
+    
+    
+        <div class="reward-container">
+  <div>小礼物走一走，来 Github 关注我</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/wechatpay.png" alt="晴天 微信支付">
+        <p>微信支付</p>
+      </div>
+      
+      <div style="display: inline-block;">
+        <img src="/images/alipay.png" alt="晴天 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Docker/" rel="tag"># Docker</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/06/04/Spring%20Security%E6%A1%86%E6%9E%B6%E5%8E%9F%E7%90%86--OAuth2%E6%A0%B8%E5%BF%83%E7%B1%BB/" rel="prev" title="Spring Security框架原理--OAuth2核心类">
+      <i class="fa fa-chevron-left"></i> Spring Security框架原理--OAuth2核心类
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/07/19/%E6%82%A0%E6%82%A0%E5%95%86%E5%9F%8E--web%E5%AE%89%E5%85%A8/" rel="next" title="悠悠商城--web安全">
+      悠悠商城--web安全 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#network"><span class="nav-number">1.</span> <span class="nav-text">network</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#mysql"><span class="nav-number">2.</span> <span class="nav-text">mysql</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#rabbitmq"><span class="nav-number">3.</span> <span class="nav-text">rabbitmq</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#redis"><span class="nav-number">4.</span> <span class="nav-text">redis</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#访问redis"><span class="nav-number">4.1.</span> <span class="nav-text">访问redis</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#opnezipkin"><span class="nav-number">5.</span> <span class="nav-text">opnezipkin</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#zookeeper"><span class="nav-number">6.</span> <span class="nav-text">zookeeper</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#访问zookeeper"><span class="nav-number">6.1.</span> <span class="nav-text">访问zookeeper</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#kafka"><span class="nav-number">7.</span> <span class="nav-text">kafka</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#创建主题"><span class="nav-number">7.1.</span> <span class="nav-text">创建主题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#配置logstash"><span class="nav-number">7.2.</span> <span class="nav-text">配置logstash</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#kafka-manager"><span class="nav-number">8.</span> <span class="nav-text">kafka-manager</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#elk"><span class="nav-number">9.</span> <span class="nav-text">elk</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#修改配置"><span class="nav-number">9.1.</span> <span class="nav-text">修改配置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#配置logstash-1"><span class="nav-number">9.2.</span> <span class="nav-text">配置logstash</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#nexus"><span class="nav-number">10.</span> <span class="nav-text">nexus</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#更改权限"><span class="nav-number">10.1.</span> <span class="nav-text">更改权限</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#gitlab"><span class="nav-number">11.</span> <span class="nav-text">gitlab</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#配置ip-amp-端口"><span class="nav-number">11.1.</span> <span class="nav-text">配置ip&amp;端口</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#创建ssh-key"><span class="nav-number">11.2.</span> <span class="nav-text">创建ssh key</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#安装ssh-server"><span class="nav-number">11.3.</span> <span class="nav-text">安装ssh server</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#配置jenkins"><span class="nav-number">12.</span> <span class="nav-text">配置jenkins</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#解锁"><span class="nav-number">12.1.</span> <span class="nav-text">解锁</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#安装插件"><span class="nav-number">12.2.</span> <span class="nav-text">安装插件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#配置jdk-git-maven"><span class="nav-number">12.3.</span> <span class="nav-text">配置jdk&#x2F;git&#x2F;maven</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#安装VMWare"><span class="nav-number">13.</span> <span class="nav-text">安装VMWare</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#创建虚拟机"><span class="nav-number">14.</span> <span class="nav-text">创建虚拟机</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#桥接模式"><span class="nav-number">14.1.</span> <span class="nav-text">桥接模式</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#启动虚拟机"><span class="nav-number">15.</span> <span class="nav-text">启动虚拟机</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#更新-amp-升级"><span class="nav-number">15.1.</span> <span class="nav-text">更新&amp;升级</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#安装Tools"><span class="nav-number">16.</span> <span class="nav-text">安装Tools</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#安装Docker"><span class="nav-number">17.</span> <span class="nav-text">安装Docker</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">晴天</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">198</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">58</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">晴天</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v4.2.1
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> v7.7.0
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: '5f0b1c1d42822204f803',
+      clientSecret: '56818d47fc75f1f4999acd7a3356879bbade310f',
+      repo: 'cdrcool.github.io',
+      owner: 'cdrcool',
+      admin: ['cdrcool'],
+      id: 'bb40094dccb4fc83907a96db37853ec8',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

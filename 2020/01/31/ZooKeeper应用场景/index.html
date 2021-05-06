@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('http://yoursite.com').hostname,
+    root: '/',
+    scheme: 'Muse',
+    version: '7.7.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="利用 ZooKeeper 可以非常方便构建一系列分布式应用中都会涉及到的核心功能。 命名服务命名服务是指通过指定的名字来获取资源或者服务的地址，利用 ZooKeeper 创建一个全局的路径，即是唯一的路径，这个路径就可以作为一个名字，指向集群中的机器，提供的服务的地址，或者一个远程的对象等等。ZooKeeper 的命名服务有以下两个应用方面：  提供类 JNDI 功能，可以把系统中各种服务的名称、">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ZooKeeper 应用场景">
+<meta property="og:url" content="http://yoursite.com/2020/01/31/ZooKeeper%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF/index.html">
+<meta property="og:site_name" content="OnePiece">
+<meta property="og:description" content="利用 ZooKeeper 可以非常方便构建一系列分布式应用中都会涉及到的核心功能。 命名服务命名服务是指通过指定的名字来获取资源或者服务的地址，利用 ZooKeeper 创建一个全局的路径，即是唯一的路径，这个路径就可以作为一个名字，指向集群中的机器，提供的服务的地址，或者一个远程的对象等等。ZooKeeper 的命名服务有以下两个应用方面：  提供类 JNDI 功能，可以把系统中各种服务的名称、">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-01-31T02:54:00.000Z">
+<meta property="article:modified_time" content="2021-05-06T07:11:29.205Z">
+<meta property="article:author" content="晴天">
+<meta property="article:tag" content="ZooKeeper">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://yoursite.com/2020/01/31/ZooKeeper%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>ZooKeeper 应用场景 | OnePiece</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">OnePiece</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">人的知识就好比一个圆圈，圆圈里面是已知的，圆圈外面是未知的。你知道得越多，圆圈也就越大，你不知道的也就越多。</p>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+  </ul>
+
+</nav>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/01/31/ZooKeeper%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="晴天">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="OnePiece">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          ZooKeeper 应用场景
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-01-31 10:54:00" itemprop="dateCreated datePublished" datetime="2020-01-31T10:54:00+08:00">2020-01-31</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-05-06 15:11:29" itemprop="dateModified" datetime="2021-05-06T15:11:29+08:00">2021-05-06</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/ZooKeeper/" itemprop="url" rel="index">
+                    <span itemprop="name">ZooKeeper</span>
+                  </a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>利用 ZooKeeper 可以非常方便构建一系列分布式应用中都会涉及到的核心功能。</p>
+<h2 id="命名服务"><a href="#命名服务" class="headerlink" title="命名服务"></a>命名服务</h2><p>命名服务是指通过指定的名字来获取资源或者服务的地址，利用 ZooKeeper 创建一个全局的路径，即是唯一的路径，这个路径就可以作为一个名字，指向集群中的机器，提供的服务的地址，或者一个远程的对象等等。<br>ZooKeeper 的命名服务有以下两个应用方面：</p>
+<ul>
+<li>提供类 JNDI 功能，可以把系统中各种服务的名称、地址以及目录信息存放在 ZooKeeper，需要的时候去 ZooKeeper 中读取。</li>
+<li>制作分布式的序列号生成器。</li>
+</ul>
+<h2 id="数据发布-订阅"><a href="#数据发布-订阅" class="headerlink" title="数据发布/订阅"></a>数据发布/订阅</h2><p>数据发布/订阅的一个常见的场景是配置中心：发布者把数据发布到 ZooKeeper 的一个或一系列的节点上，供订阅者进行数据订阅，达到动态获取数据的目的。</p>
+<p>配置信息一般有几个特点:</p>
+<ul>
+<li>数据量小的 KV</li>
+<li>数据内容在运行时会发生动态变化</li>
+<li>集群机器共享，配置一致</li>
+</ul>
+<p><strong>思路：</strong><br>ZooKeeper 采用的是推拉结合的方式：</p>
+<ul>
+<li>推: 服务端会推给注册了监控节点的客户端 Watcher 事件通知</li>
+<li>拉: 客户端获得通知后，然后主动到服务端拉取最新的数据</li>
+</ul>
+<p>数据发布/订阅的另一个常见的场景是服务注册中心，不过由于 ZooKeeper 是基于 CP 原则构建的，因此不适合做服务注册与发现。</p>
+<h2 id="分布式锁"><a href="#分布式锁" class="headerlink" title="分布式锁"></a>分布式锁</h2><p>分布式锁是控制分布式系统间同步访问共享资源的一种方式。如果不同的系统或同一个系统的不同主机之间共享了同一个资源，那么访问这些资源的时候，需要使用互斥的手段来防止彼此之间的干扰，以保证一致性，这种情况就需要使用分布式锁。</p>
+<p><strong>思路：</strong><br>使用临时顺序 znode 来表示获取锁的请求，创建最小后缀数字 znode 的用户成功拿到锁。</p>
+<h2 id="Master-选举"><a href="#Master-选举" class="headerlink" title="Master 选举"></a>Master 选举</h2><p>Master 选举，就是在众多机器或服务中，选举出一个最终“决定权”的领导者，来独立完成一项任务。比如有一项服务是需要对外提供服务，但是要保证高可用，我们就机会进行服务的多项部署，也就是做了一些备份，提高系统的可用性。一旦我们的主服务挂了，我们可以让其它的备份服务进行重新选举，这样我们就能使整个系统不会因服务的挂掉而造成服务不可用。</p>
+<p><strong>思路：</strong><br>在 ZooKeeper中，有两种方式可以实现 Master 选举：</p>
+<ol>
+<li>谁先创建 master 临时节点，谁就是 master，当一个 master 挂掉了，master 节点就消失了，别的节点就会监听到，就会继续去创建 master 临时节点，以此类推，利用 Zookeeper 的两个特点（一个节点只能成功创建一次、利用监听的机制）</li>
+<li>在 master 下面创建临时有序节点，那个节点最小，那个就是 master，节点挂掉，下面那个临时节点就会监听到上面的临时节点挂掉了，从而取代成为 master，以此类推，（利用 Zookeeper 创建节点临时有序的特性）</li>
+</ol>
+<h2 id="分布式协调-通知"><a href="#分布式协调-通知" class="headerlink" title="分布式协调/通知"></a>分布式协调/通知</h2><p>分布式协调/通知是将不同的分布式组件有机结合起来的关键所在。对于一个在多台机器上部署运行的应用而言，通常需要一个协调者(Coordinator)来控制整个系统的运行流程，例如分布式事务的处理、机器间的相互协调等。同时，引入这样一个协调者，便于将分布式协调的职责从应用中分离出来，从而大大减少系统之间的耦合性，而且能够显著提高系统的可扩展性。</p>
+<p>协调/通知机制通常有两种方式：<br>系统调度模式：操作人员发送通知实际是通过控制台改变某个节点的状态，然后 Zookeeper 将这些变化发送给注册了这个节点的 Watcher 的所有客户端。<br>工作汇报模式：这个情况是每个工作进程都在某个目录下创建一个临时节点，并携带工作的进度数据。这样汇总的进程可以监控目录子节点的变化获得工作进度的实时的全局情况。</p>
+<p><strong>思路：</strong><br>用 Zookeeper 的 watcher 注册和异步通知功能，通知的发送者创建一个节点，并将通知的数据写入的该节点；通知的接受者则对该节点注册 watch，当节点变化时，就算作通知的到来。</p>
+<h2 id="集群管理"><a href="#集群管理" class="headerlink" title="集群管理"></a>集群管理</h2><p>所谓集群管理，包括集群监控与集群控制两大块，前者侧重对集群运行时状态的收集，后者则是对集群进行操作与控制。在日常开发和运维过程中，我们经常会有类似于如下的需求：</p>
+<ul>
+<li>希望知道当前集群中究竟有多少机器在工作</li>
+<li>对集群中每台机器的运行时状态进行数据收集</li>
+<li>对集群中机器进行上下线操作</li>
+</ul>
+<p><strong>思路：</strong><br>ZooKeeper 具有以下两大特性：</p>
+<ul>
+<li>客户端如果对 ZooKeeper 的一个数据节点注册 Watcher 监听，那么当该数据节点的内容或是其子节点列表发生变更时，ZooKeeper 服务器就会向订阅的客户端发送变更通知。</li>
+<li>对在 ZooKeeper 上创建的临时节点，一旦客户端与服务器之间的会话失效，那么该临时节点也就被自动清除。</li>
+</ul>
+<p>利用 ZooKeeper 的这两大特性，我们可以很方便地实现集群机器存活性监控的系统。</p>
+<h2 id="负载均衡"><a href="#负载均衡" class="headerlink" title="负载均衡"></a>负载均衡</h2><p>负载均衡是一种手段，用来把对某种资源的访问分摊给不同的设备，从而减轻单点的压力。<br>我们可以自定义一个负载均衡算法，在每个请求过来时从 ZooKeeper 服务器中获取当前集群服务器列表，根据算法选出其中一个服务器来处理请求。</p>
+<h2 id="分布式队列"><a href="#分布式队列" class="headerlink" title="分布式队列"></a>分布式队列</h2><p>使用 ZooKeeper 来实现分布式队列，分为两大类：</p>
+<ul>
+<li><p>FIFO 先进先出队列<br>队列按照 FIFO 方式进行入队和出队操作，例如实现生产者和消费者模型。</p>
+</li>
+<li><p>Barrier 分布式屏障<br>当一个队列的成员都聚齐时，这个队列才可用，否则一直等待所有成员到达，这种是同步队列。</p>
+</li>
+</ul>
+<p><strong>思路：</strong></p>
+<ol>
+<li>首先利用 Zookeeper 中临时顺序节点的特点</li>
+<li>当生产者创建节点生产时，需要判断父节点下临时顺序子节点的个数，如果达到了上限，则阻塞等待；如果没有达到，就创建节点。</li>
+<li>当消费者获取节点时，如果父节点中不存在临时顺序子节点，则阻塞等待；如果有子节点，则获取执行自己的业务，执行完毕后删除该节点即可。</li>
+<li>获取时获取最小值，保证 FIFO 特性。</li>
+</ol>
+<p>虽然 ZooKeeper 可以用来实现分布式队列，但是并不建议使用，原因有如下几点：</p>
+<ol>
+<li>ZooKeeper 对于传输数据有一个 1MB 的大小限制，这就意味着实际中 ZooKeeper 节点 ZNodes 必须设计的很小，但实际中队列通常都存放着数以千计的消息。</li>
+<li>如果有很多大的 ZNodes 会严重拖慢的 ZooKeeper 启动过程，包括 ZooKeeper 节点之间的同步过程，如果真要用 ZooKeeper 当队列，最好去调整 initLimit 与 syncLimit 参数。</li>
+<li>如果一个 ZNode 过大，也会导致清理变得困难，也会导致 getChildren() 方法失败，Netflix 不得不设计一个特殊的机制来处理这个大体积的 ZNode。</li>
+<li>如果 ZooKeeper 中某个 node 下有数千子节点，也会严重拖累 ZooKeeper 性能。</li>
+<li>ZooKeeper 中的数据都会放置在内存中。</li>
+</ol>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ol>
+<li><a href="https://zhuanlan.zhihu.com/p/59669985" target="_blank" rel="noopener">ZooKeeper 的应用场景</a></li>
+</ol>
+
+    </div>
+
+    
+    
+    
+        <div class="reward-container">
+  <div>小礼物走一走，来 Github 关注我</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/wechatpay.png" alt="晴天 微信支付">
+        <p>微信支付</p>
+      </div>
+      
+      <div style="display: inline-block;">
+        <img src="/images/alipay.png" alt="晴天 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/ZooKeeper/" rel="tag"># ZooKeeper</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/01/31/ZooKeeper%E9%9B%86%E7%BE%A4%E6%9E%B6%E6%9E%84/" rel="prev" title="ZooKeeper 集群架构">
+      <i class="fa fa-chevron-left"></i> ZooKeeper 集群架构
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/01/31/%E5%9F%BA%E4%BA%8EDocker%E6%90%AD%E5%BB%BAZooKeeper%E9%9B%86%E7%BE%A4/" rel="next" title="基于 Docker 搭建 ZooKeeper 集群">
+      基于 Docker 搭建 ZooKeeper 集群 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#命名服务"><span class="nav-number">1.</span> <span class="nav-text">命名服务</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#数据发布-订阅"><span class="nav-number">2.</span> <span class="nav-text">数据发布&#x2F;订阅</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#分布式锁"><span class="nav-number">3.</span> <span class="nav-text">分布式锁</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Master-选举"><span class="nav-number">4.</span> <span class="nav-text">Master 选举</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#分布式协调-通知"><span class="nav-number">5.</span> <span class="nav-text">分布式协调&#x2F;通知</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#集群管理"><span class="nav-number">6.</span> <span class="nav-text">集群管理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#负载均衡"><span class="nav-number">7.</span> <span class="nav-text">负载均衡</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#分布式队列"><span class="nav-number">8.</span> <span class="nav-text">分布式队列</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考资料"><span class="nav-number">9.</span> <span class="nav-text">参考资料</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">晴天</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">198</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">58</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">晴天</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v4.2.1
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> v7.7.0
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: '5f0b1c1d42822204f803',
+      clientSecret: '56818d47fc75f1f4999acd7a3356879bbade310f',
+      repo: 'cdrcool.github.io',
+      owner: 'cdrcool',
+      admin: ['cdrcool'],
+      id: 'e0d1058df776e1221c88200e2a872d7f',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

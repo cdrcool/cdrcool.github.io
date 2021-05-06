@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('http://yoursite.com').hostname,
+    root: '/',
+    scheme: 'Muse',
+    version: '7.7.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="概述众所周知，微服务架构具有许多优点。包含松散耦合，自治服务，分散治理，更容易连续交付等。但与此同时，它使架构变得脆弱，因为每个用户的操作结果都会调用多个服务。它通过网络上的远程调用替换了单体系结构中的内存调用。但是当一个或多个服务不可用或表现出高延迟时，会导致整个系统出现级联故障。服务客户端的重试逻辑只会使情况更糟糕，并且可能导致系统彻底的崩溃。 断路器模式有助于防止跨多个系统的这种灾难性级联故">
+<meta property="og:type" content="article">
+<meta property="og:title" content="微服务-断路器（熔断、降级、限流、超时监控）">
+<meta property="og:url" content="http://yoursite.com/2020/02/28/%E5%BE%AE%E6%9C%8D%E5%8A%A1-%E6%96%AD%E8%B7%AF%E5%99%A8(%E7%86%94%E6%96%AD&%E9%99%8D%E7%BA%A7&%E9%99%90%E6%B5%81&%E8%B6%85%E6%97%B6%E7%9B%91%E6%8E%A7)/index.html">
+<meta property="og:site_name" content="OnePiece">
+<meta property="og:description" content="概述众所周知，微服务架构具有许多优点。包含松散耦合，自治服务，分散治理，更容易连续交付等。但与此同时，它使架构变得脆弱，因为每个用户的操作结果都会调用多个服务。它通过网络上的远程调用替换了单体系结构中的内存调用。但是当一个或多个服务不可用或表现出高延迟时，会导致整个系统出现级联故障。服务客户端的重试逻辑只会使情况更糟糕，并且可能导致系统彻底的崩溃。 断路器模式有助于防止跨多个系统的这种灾难性级联故">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://yoursite.com/images/microservice/%E5%AE%B9%E9%94%99%E6%A8%A1%E5%BC%8F.png">
+<meta property="og:image" content="http://yoursite.com/images/microservice/%E7%8A%B6%E6%80%81%E6%9C%BA%E6%A8%A1%E5%BC%8F.png">
+<meta property="og:image" content="http://yoursite.com/images/microservice/%E6%96%AD%E8%B7%AF%E5%99%A8%E6%A8%A1%E5%BC%8F.png">
+<meta property="og:image" content="http://yoursite.com/images/microservice/%E7%BA%BF%E7%A8%8B%E6%B1%A0%E4%B8%8E%E4%BF%A1%E5%8F%B7%E9%87%8F%E9%9A%94%E7%A6%BB.png">
+<meta property="og:image" content="http://yoursite.com/images/microservice/%E7%BA%BF%E7%A8%8B%E6%B1%A0%E9%9A%94%E7%A6%BB%E6%A1%88%E4%BE%8B.png">
+<meta property="article:published_time" content="2020-02-28T02:34:00.000Z">
+<meta property="article:modified_time" content="2021-05-06T07:11:29.219Z">
+<meta property="article:author" content="晴天">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/images/microservice/%E5%AE%B9%E9%94%99%E6%A8%A1%E5%BC%8F.png">
+
+<link rel="canonical" href="http://yoursite.com/2020/02/28/%E5%BE%AE%E6%9C%8D%E5%8A%A1-%E6%96%AD%E8%B7%AF%E5%99%A8(%E7%86%94%E6%96%AD&%E9%99%8D%E7%BA%A7&%E9%99%90%E6%B5%81&%E8%B6%85%E6%97%B6%E7%9B%91%E6%8E%A7)/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>微服务-断路器（熔断、降级、限流、超时监控） | OnePiece</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">OnePiece</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">人的知识就好比一个圆圈，圆圈里面是已知的，圆圈外面是未知的。你知道得越多，圆圈也就越大，你不知道的也就越多。</p>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+  </ul>
+
+</nav>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/02/28/%E5%BE%AE%E6%9C%8D%E5%8A%A1-%E6%96%AD%E8%B7%AF%E5%99%A8(%E7%86%94%E6%96%AD&%E9%99%8D%E7%BA%A7&%E9%99%90%E6%B5%81&%E8%B6%85%E6%97%B6%E7%9B%91%E6%8E%A7)/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="晴天">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="OnePiece">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          微服务-断路器（熔断、降级、限流、超时监控）
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-02-28 10:34:00" itemprop="dateCreated datePublished" datetime="2020-02-28T10:34:00+08:00">2020-02-28</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-05-06 15:11:29" itemprop="dateModified" datetime="2021-05-06T15:11:29+08:00">2021-05-06</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%BE%AE%E6%9C%8D%E5%8A%A1/" itemprop="url" rel="index">
+                    <span itemprop="name">微服务</span>
+                  </a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>众所周知，微服务架构具有许多优点。包含松散耦合，自治服务，分散治理，更容易连续交付等。但与此同时，它使架构变得脆弱，因为每个用户的操作结果都会调用多个服务。它通过网络上的远程调用替换了单体系结构中的内存调用。但是当一个或多个服务不可用或表现出高延迟时，会导致整个系统出现级联故障。服务客户端的重试逻辑只会使情况更糟糕，并且可能导致系统彻底的崩溃。</p>
+<p><strong>断路器模式有助于防止跨多个系统的这种灾难性级联故障。断路器模式允许我们构建容错和弹性的系统，当关键服务不可用或具有高延迟时，系统仍然可以正常运行。</strong></p>
+<h2 id="容错模式"><a href="#容错模式" class="headerlink" title="容错模式"></a>容错模式</h2><p><img src="/images/microservice/%E5%AE%B9%E9%94%99%E6%A8%A1%E5%BC%8F.png" alt="容错模式"></p>
+<h3 id="服务熔断"><a href="#服务熔断" class="headerlink" title="服务熔断"></a>服务熔断</h3><p>当调用目标服务的请求和调用大量超时或失败，服务调用方为避免造成长时间的阻塞造成影响其他服务，后续对该服务接口的调用不再经过进行请求，直接执行本地的默认方法。</p>
+<h3 id="服务降级"><a href="#服务降级" class="headerlink" title="服务降级"></a>服务降级</h3><p>为了保证核心业务在大量请求下能正常运行，根据实际业务情况及流量，对部分服务降低优先级，有策略的不处理或用简单的方式处理。</p>
+<h3 id="服务限流"><a href="#服务限流" class="headerlink" title="服务限流"></a>服务限流</h3><p>当系统资源不够，不足以应对大量请求，对系统按照预设的规则进行流量限制或功能限制。</p>
+<h3 id="回退"><a href="#回退" class="headerlink" title="回退"></a>回退</h3><p>在熔断或者限流发生的时候，应用程序的后续处理逻辑是什么？回退是系统的弹性恢复能力，常见的处理策略有，直接抛出异常，也称快速失败（Fail Fast），也可以返回空值或缺省值，还可以返回备份数据，如果主服务熔断了，可以从备份服务获取数据。</p>
+<h2 id="容错理念"><a href="#容错理念" class="headerlink" title="容错理念"></a>容错理念</h2><ul>
+<li>凡是依赖都可能会失败</li>
+<li>凡是资源（CPU/Memory/Threads/Queue）都有限制</li>
+<li>网络并不可靠</li>
+<li>延迟是应用稳定性杀手</li>
+</ul>
+<h2 id="断路器模式"><a href="#断路器模式" class="headerlink" title="断路器模式"></a>断路器模式</h2><p>断路器模式源于 Martin Fowler 的 Circuit Breaker 一文。“断路器”本身是一种开关装置，用于在电路上保护线路过载，当线路中有电器发生短路时，“断路器”能够及时的切断故障电路，防止发生过载、发热、甚至起火等严重后果。</p>
+<p>在分布式架构中，断路器模式的作用也是类似的，当某个服务单元发生故障（类似用电器发生短路）之后，通过断路器的故障监控（类似熔断保险丝），向调用方返回一个错误响应，而不是长时间的等待。这样就不会使得线程因调用故障服务被长时间占用不释放，避免了故障在分布式系统中的蔓延。</p>
+<h3 id="状态机模式"><a href="#状态机模式" class="headerlink" title="状态机模式"></a>状态机模式</h3><p>断路器的实现采用状态机模式，它有 3 种不同的状态：关闭、打开和半打开。</p>
+<ul>
+<li>关闭：当一切正常时，断路器保持闭合状态，所有调用都能访问到服务。当故障数超过预定阈值时，断路器跳闸，并进入打开状态。</li>
+<li>打开：断路器在不执行该服务的情况下为调用返回错误。</li>
+<li>半开：超时后，断路器切换到半开状态，以测试问题是否仍然存在。如果在这种半开状态下单个调用失败，则断路器再次打开。如果成功，则断路器重置回正常关闭状态。</li>
+</ul>
+<p><img src="/images/microservice/%E7%8A%B6%E6%80%81%E6%9C%BA%E6%A8%A1%E5%BC%8F.png" alt="状态机模式"></p>
+<p><img src="/images/microservice/%E6%96%AD%E8%B7%AF%E5%99%A8%E6%A8%A1%E5%BC%8F.png" alt="断路器模式"></p>
+<h3 id="舱壁隔离模式"><a href="#舱壁隔离模式" class="headerlink" title="舱壁隔离模式"></a>舱壁隔离模式</h3><p>舱壁隔离模式，顾名思义，该模式像舱壁一样对资源或失败单元进行隔离，如果一个船舱破了进水，只损失一个船舱，其它船舱可以不受影响 。线程隔离就是舱壁隔离模式的一个例子，假定一个应用程序 A 调用了 Svc1/Svc2/Svc3 三个服务，且部署 A 的容器一共有 120 个工作线程，采用线程隔离机制，可以给对 Svc1/Svc2/Svc3 的调用各分配 40 个线程，当 Svc2 慢了，给 Svc2 分配的 40 个线程因慢而阻塞并最终耗尽，线程隔离可以保证给 Svc1/Svc3 分配的 80 个线程可以不受影响，如果没有这种隔离机制，当 Svc2 慢的时候，120 个工作线程会很快全部被对 Svc2 的调用吃光，整个应用程序会全部慢下来。</p>
+<h2 id="线程池隔离与信号量隔离"><a href="#线程池隔离与信号量隔离" class="headerlink" title="线程池隔离与信号量隔离"></a>线程池隔离与信号量隔离</h2><h3 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h3><p><img src="/images/microservice/%E7%BA%BF%E7%A8%8B%E6%B1%A0%E4%B8%8E%E4%BF%A1%E5%8F%B7%E9%87%8F%E9%9A%94%E7%A6%BB.png" alt="线程池与信号量隔离"></p>
+<ul>
+<li>线程池隔离：每次都开启一个单独线程运行。它的隔离是通过线程池，即每个隔离粒度都是个线程池，互相不干扰。</li>
+<li>信号量隔离：每次调用线程，当前请求通过计数信号量进行限制，当信号大于了最大请求数（maxConcurrentRequests）时，进行限制。</li>
+</ul>
+<h3 id="对比"><a href="#对比" class="headerlink" title="对比"></a>对比</h3><p><strong>特性对比：</strong></p>
+<table>
+<thead>
+<tr>
+<th align="center"></th>
+<th align="center">线程池隔离</th>
+<th align="center">信号量隔离</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">隔离原理</td>
+<td align="center">每个服务单独用线程池</td>
+<td align="center">通过信号量的计数器</td>
+</tr>
+<tr>
+<td align="center">是否支持熔断</td>
+<td align="center">支持，当线程池到达MaxSize后，再请求会触发fallback接口进行熔断</td>
+<td align="center">支持，当信号量达到maxConcurrentRequest后，再请求会触发fallback</td>
+</tr>
+<tr>
+<td align="center">是否支持超时</td>
+<td align="center">支持，可直接返回</td>
+<td align="center">不支持，如果阻塞，只能通过调用协议</td>
+</tr>
+<tr>
+<td align="center">是否支持异步调用</td>
+<td align="center">可以是异步，也可以是同步。看调用的方法</td>
+<td align="center">同步调用，不支持异步</td>
+</tr>
+<tr>
+<td align="center">资源消耗</td>
+<td align="center">大，大量线程的上下文切换，容易造成机器负载高</td>
+<td align="center">小，只是个计数器</td>
+</tr>
+</tbody></table>
+<p><strong>优缺点对比：</strong></p>
+<table>
+<thead>
+<tr>
+<th align="center"></th>
+<th align="center">优点</th>
+<th align="center">不足</th>
+<th align="center">适用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">线程池隔离</td>
+<td align="center">支持任务排队和超时<br>支持异步调用</td>
+<td align="center">线程调用会产生额外的开销</td>
+<td align="center">不受信客户<br>有限扇出</td>
+</tr>
+<tr>
+<td align="center">信号量隔离</td>
+<td align="center">轻量，无额外开销</td>
+<td align="center">不支持任务排队和主动超时<br>不支持异步调用</td>
+<td align="center">受信客户<br>高扇出（网关）<br>高频高速调用（cache）</td>
+</tr>
+</tbody></table>
+<h3 id="案例"><a href="#案例" class="headerlink" title="案例"></a>案例</h3><p><strong>线程池隔离案例：</strong><br><img src="/images/microservice/%E7%BA%BF%E7%A8%8B%E6%B1%A0%E9%9A%94%E7%A6%BB%E6%A1%88%E4%BE%8B.png" alt="线程池隔离案例"></p>
+<h2 id="主流开源断路器概览"><a href="#主流开源断路器概览" class="headerlink" title="主流开源断路器概览"></a>主流开源断路器概览</h2><table>
+<thead>
+<tr>
+<th align="center"></th>
+<th align="center">Sentinel</th>
+<th align="center">Hystrix</th>
+<th align="center">resilience4j</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">隔离策略</td>
+<td align="center">信号量隔离（并发线程数限流）</td>
+<td align="center">线程池隔离/信号量隔离</td>
+<td align="center">信号量隔离</td>
+</tr>
+<tr>
+<td align="center">熔断降级策略</td>
+<td align="center">基于响应时间、异常比率、异常数</td>
+<td align="center">基于异常比率</td>
+<td align="center">基于异常比率、响应时间</td>
+</tr>
+<tr>
+<td align="center">实时统计实现</td>
+<td align="center">滑动窗口（LeapArray）</td>
+<td align="center">滑动窗口（基于 RxJava）</td>
+<td align="center">Ring Bit Buffer</td>
+</tr>
+<tr>
+<td align="center">动态规则配置</td>
+<td align="center">支持多种数据源</td>
+<td align="center">支持多种数据源</td>
+<td align="center">有限支持</td>
+</tr>
+<tr>
+<td align="center">扩展性</td>
+<td align="center">多个扩展点</td>
+<td align="center">插件的形式</td>
+<td align="center">接口的形式</td>
+</tr>
+<tr>
+<td align="center">基于注解的支持</td>
+<td align="center">支持</td>
+<td align="center">支持</td>
+<td align="center">支持</td>
+</tr>
+<tr>
+<td align="center">限流</td>
+<td align="center">基于 QPS，支持基于调用关系的限流</td>
+<td align="center">有限的支持</td>
+<td align="center">Rate Limiter</td>
+</tr>
+<tr>
+<td align="center">流量整形</td>
+<td align="center">支持预热模式、匀速器模式、预热排队模式</td>
+<td align="center">不支持</td>
+<td align="center">简单的 Rate Limiter 模式</td>
+</tr>
+<tr>
+<td align="center">系统自适应保护</td>
+<td align="center">支持</td>
+<td align="center">不支持</td>
+<td align="center">不支持</td>
+</tr>
+<tr>
+<td align="center">控制台</td>
+<td align="center">提供开箱即用的控制台，可配置规则、查看秒级监控、机器发现等</td>
+<td align="center">简单的监控查看</td>
+<td align="center">不提供控制台，可对接其它监控系统</td>
+</tr>
+</tbody></table>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ol>
+<li><a href="https://blog.csdn.net/peterwanghao/article/details/81509944" target="_blank" rel="noopener">微服务与断路器</a></li>
+<li><a href="https://github.com/alibaba/Sentinel/wiki/Guideline:-%E4%BB%8E-Hystrix-%E8%BF%81%E7%A7%BB%E5%88%B0-Sentinel" target="_blank" rel="noopener">Guideline: 从 Hystrix 迁移到 Sentinel</a></li>
+</ol>
+
+    </div>
+
+    
+    
+    
+        <div class="reward-container">
+  <div>小礼物走一走，来 Github 关注我</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/wechatpay.png" alt="晴天 微信支付">
+        <p>微信支付</p>
+      </div>
+      
+      <div style="display: inline-block;">
+        <img src="/images/alipay.png" alt="晴天 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/02/27/Spring%20Cloud%20Gateway%E5%BC%80%E5%8F%91%E6%8C%87%E5%8D%97(%E5%85%AD)%20Custom%20Extend/" rel="prev" title="Spring Cloud Gateway 开发指南（六） Custom Extend">
+      <i class="fa fa-chevron-left"></i> Spring Cloud Gateway 开发指南（六） Custom Extend
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/02/28/Spring%20Cloud%20Circuit%20Breaker%E5%BC%80%E5%8F%91%E6%8C%87%E5%8D%97/" rel="next" title="Spring Cloud Circuit Breaker 开发指南">
+      Spring Cloud Circuit Breaker 开发指南 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#概述"><span class="nav-number">1.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#容错模式"><span class="nav-number">2.</span> <span class="nav-text">容错模式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#服务熔断"><span class="nav-number">2.1.</span> <span class="nav-text">服务熔断</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#服务降级"><span class="nav-number">2.2.</span> <span class="nav-text">服务降级</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#服务限流"><span class="nav-number">2.3.</span> <span class="nav-text">服务限流</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#回退"><span class="nav-number">2.4.</span> <span class="nav-text">回退</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#容错理念"><span class="nav-number">3.</span> <span class="nav-text">容错理念</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#断路器模式"><span class="nav-number">4.</span> <span class="nav-text">断路器模式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#状态机模式"><span class="nav-number">4.1.</span> <span class="nav-text">状态机模式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#舱壁隔离模式"><span class="nav-number">4.2.</span> <span class="nav-text">舱壁隔离模式</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#线程池隔离与信号量隔离"><span class="nav-number">5.</span> <span class="nav-text">线程池隔离与信号量隔离</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#概念"><span class="nav-number">5.1.</span> <span class="nav-text">概念</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#对比"><span class="nav-number">5.2.</span> <span class="nav-text">对比</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#案例"><span class="nav-number">5.3.</span> <span class="nav-text">案例</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#主流开源断路器概览"><span class="nav-number">6.</span> <span class="nav-text">主流开源断路器概览</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考资料"><span class="nav-number">7.</span> <span class="nav-text">参考资料</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">晴天</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">198</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">58</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">晴天</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v4.2.1
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> v7.7.0
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: '5f0b1c1d42822204f803',
+      clientSecret: '56818d47fc75f1f4999acd7a3356879bbade310f',
+      repo: 'cdrcool.github.io',
+      owner: 'cdrcool',
+      admin: ['cdrcool'],
+      id: 'f2f68f5969d940feb79bf28dea6b9eb4',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

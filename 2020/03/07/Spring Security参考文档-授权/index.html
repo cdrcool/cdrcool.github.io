@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('http://yoursite.com').hostname,
+    root: '/',
+    scheme: 'Muse',
+    version: '7.7.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="Spring Security 中的高级授权功能是其流行的最引人注目的原因之一。无论选择如何进行身份验证—无论是使用 Spring Security-provided 机制和提供者，还是与容器或其他非 Spring Security 身份验证授权机构集成—都会发现授权服务可以在应用程序中以一致且简单的方式使用。 在本部分中，我们将探讨不同的 AbstractSecurityInterceptor">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Spring Security 参考文档-授权">
+<meta property="og:url" content="http://yoursite.com/2020/03/07/Spring%20Security%E5%8F%82%E8%80%83%E6%96%87%E6%A1%A3-%E6%8E%88%E6%9D%83/index.html">
+<meta property="og:site_name" content="OnePiece">
+<meta property="og:description" content="Spring Security 中的高级授权功能是其流行的最引人注目的原因之一。无论选择如何进行身份验证—无论是使用 Spring Security-provided 机制和提供者，还是与容器或其他非 Spring Security 身份验证授权机构集成—都会发现授权服务可以在应用程序中以一致且简单的方式使用。 在本部分中，我们将探讨不同的 AbstractSecurityInterceptor">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://yoursite.com/images/springsecurity/access-decision-voting.png">
+<meta property="og:image" content="http://yoursite.com/images/springsecurity/after-invocation.png">
+<meta property="og:image" content="http://yoursite.com/images/springsecurity/filtersecurityinterceptor.png">
+<meta property="article:published_time" content="2020-03-07T03:50:00.000Z">
+<meta property="article:modified_time" content="2021-05-06T07:11:29.203Z">
+<meta property="article:author" content="晴天">
+<meta property="article:tag" content="Spring Security">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/images/springsecurity/access-decision-voting.png">
+
+<link rel="canonical" href="http://yoursite.com/2020/03/07/Spring%20Security%E5%8F%82%E8%80%83%E6%96%87%E6%A1%A3-%E6%8E%88%E6%9D%83/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>Spring Security 参考文档-授权 | OnePiece</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">OnePiece</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">人的知识就好比一个圆圈，圆圈里面是已知的，圆圈外面是未知的。你知道得越多，圆圈也就越大，你不知道的也就越多。</p>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+  </ul>
+
+</nav>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/03/07/Spring%20Security%E5%8F%82%E8%80%83%E6%96%87%E6%A1%A3-%E6%8E%88%E6%9D%83/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="晴天">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="OnePiece">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Spring Security 参考文档-授权
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-03-07 11:50:00" itemprop="dateCreated datePublished" datetime="2020-03-07T11:50:00+08:00">2020-03-07</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-05-06 15:11:29" itemprop="dateModified" datetime="2021-05-06T15:11:29+08:00">2021-05-06</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Spring-Security/" itemprop="url" rel="index">
+                    <span itemprop="name">Spring Security</span>
+                  </a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>Spring Security 中的高级授权功能是其流行的最引人注目的原因之一。无论选择如何进行身份验证—无论是使用 Spring Security-provided 机制和提供者，还是与容器或其他非 Spring Security 身份验证授权机构集成—都会发现授权服务可以在应用程序中以一致且简单的方式使用。</p>
+<p>在本部分中，我们将探讨不同的 AbstractSecurityInterceptor 实现，然后我们将继续研究如何通过使用域访问控制列表来调整授权。</p>
+<h2 id="授权架构"><a href="#授权架构" class="headerlink" title="授权架构"></a>授权架构</h2><h3 id="权限"><a href="#权限" class="headerlink" title="权限"></a>权限</h3><p>Authentication，讨论所有 Authentication 实现如何存储 GrantedAuthority 对象列表。这些代表了授予主体的权力。GrantedAuthority 由 AuthenticationManager 插入到 Authentication 对象中，然后由 AccessDecisionManager 在作出授权决策时读取。</p>
+<p>GrantedAuthority 是一个只有一个方法的接口：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">String <span class="title">getAuthority</span><span class="params">()</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>此方法允许 AccessDecisionManager 获取 GrantedAuthority 的精确字符串表示形式。通过返回一个表示为字符串的形式，大多数 AccessDecisionManager 可以轻松地“读取” GrantedAuthority。如果 GrantedAuthority 不能精确地表示为字符串，则认为 GrantedAuthority 是“复杂的”，getAuthority() 必须返回 null。</p>
+<p>“复杂” GrantedAuthority 的一个例子是一个实现，它存储一个操作列表和适用于不同客户帐号的权限阈值。将这个复杂的 GrantedAuthority 表示为字符串非常困难，因此 getAuthority() 方法应该返回 null。这将向任何 AccessDecisionManager 指示，它将需要专门支持 GrantedAuthority 实现，以便理解其内容。</p>
+<p>Spring Security 包括一个具体的 GrantedAuthority 实现 SimpleGrantedAuthority。这允许将任何用户指定的字符串转换为 GrantedAuthority。安全体系结构中包含的所有 AuthenticationProviders 都使用 SimpleGrantedAuthority 来填充 Authentication 对象。</p>
+<h3 id="预调用处理"><a href="#预调用处理" class="headerlink" title="预调用处理"></a>预调用处理</h3><p>Spring Security 提供了拦截器，用于控制对安全对象（如方法调用或 web 请求）的访问。AccessDecisionManager将在调用前决定是否允许继续调用。</p>
+<h4 id="AccessDecisionManager"><a href="#AccessDecisionManager" class="headerlink" title="AccessDecisionManager"></a>AccessDecisionManager</h4><p>AccessDecisionManager 由 AbstractSecurityInterceptor 调用，负责做出最终的访问控制决策。AccessDecisionManager 接口包含三个方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">decide</span><span class="params">(Authentication authentication， Object secureObject，</span></span></span><br><span class="line"><span class="function"><span class="params">    Collection&lt;ConfigAttribute&gt; attrs)</span> <span class="keyword">throws</span> AccessDeniedException</span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">boolean</span> <span class="title">supports</span><span class="params">(ConfigAttribute attribute)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">boolean</span> <span class="title">supports</span><span class="params">(Class clazz)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>AccessDecisionManager 的 decide 方法将传递它所需的所有相关信息，以便进行授权决策。特别是，传递安全对象可以检查实际安全对象调用中包含的那些参数。例如，假设安全对象是 MethodInvocation。查询 MethodInvocation 中的任何客户参数都很容易，然后在 AccessDecisionManager 中实现某种安全逻辑，以确保允许主体对该客户进行操作。如果访问被拒绝，则实现将抛出 AccessDeniedException。</p>
+<p>AbstractSecurityInterceptor 在启动时调用 supports(ConfigAttribute) 方法，以确定 AccessDecisionManager 是否可以处理传递的 ConfigAttribute。安全拦截器实现调用 supports(Class) 方法，以确保配置的 AccessDecisionManager 支持安全拦截器将提供的安全对象的类型。</p>
+<h4 id="基于投票的-AccessDecisionManager-实现"><a href="#基于投票的-AccessDecisionManager-实现" class="headerlink" title="基于投票的 AccessDecisionManager 实现"></a>基于投票的 AccessDecisionManager 实现</h4><p>虽然用户可以实现自己的 AccessDecisionManager 来控制授权的所有方面，但 Spring Security 包含几个基于投票的 AccessDecisionManager 实现。投票决策管理器演示了相关的类。</p>
+<p><img src="/images/springsecurity/access-decision-voting.png" alt="access-decision-voting"></p>
+<p>使用此方法，将对一系列 AccessDecisionVoter 实现进行授权决策的轮询。然后 AccessDecisionManager 根据它对投票的评估来决定是否抛出 AccessDeniedException。</p>
+<p>AccessDecisionVoter 接口有三个方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">vote</span><span class="params">(Authentication authentication， Object object， Collection&lt;ConfigAttribute&gt; attrs)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">boolean</span> <span class="title">supports</span><span class="params">(ConfigAttribute attribute)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">boolean</span> <span class="title">supports</span><span class="params">(Class clazz)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>具体的实现返回一个 int，可能的值反映在 AccessDecisionVoter 静态字段 ACCESS_ABSTAIN、ACCESS_DENIED 和 ACCESS_GRANTED 中。如果投票实现对授权决策没有意见，则返回 ACCESS_ABSTAIN。如果它有意见，它必须返回 ACCESS_DENIED 或 ACCESS_GRANTED。</p>
+<p>Spring Security 提供了三个具体的 AccessDecisionManager 来记录投票。ConsensusBased 实现将基于不弃权投票的共识批准或拒绝访问。属性用于在投票相等或所有投票弃权的情况下控制行为。如果收到一个或多个 ACCESS_GRANTED 投票，AffirmativeBased 将授予访问权（即，如果至少有一个授予投票，则拒绝投票将被忽略）。与 ConsensusBased 一样，如果所有选民都弃权，则有一个参数控制行为。UnanimousBased 提供者期望一致的 ACCESS_GRANTED 投票来授予访问权限，而忽略弃权。如果有任何 ACCESS_DENIED 投票，它将拒绝访问。与其他实现一样，如果所有投票者都弃权，则有一个参数控制行为。</p>
+<p>可以实现一个自定义 AccessDecisionManager，它以不同的方式记录投票。例如，来自特定 AccessDecisionVoter 的投票可能会获得额外的权重，而来自特定投票者的拒绝投票可能会产生否决效果。</p>
+<h5 id="RoleVoter"><a href="#RoleVoter" class="headerlink" title="RoleVoter"></a>RoleVoter</h5><p>Spring Security 提供的最常用的 AccessDecisionVoter 是简单的 RoleVoter，它将配置属性视为简单的角色名，如果用户被分配了该角色，则通过投票来授予访问权。</p>
+<p>如果任何 ConfigAttribute 以前缀 ROLE_ 开头，它就会进行投票。如果有一个 GrantedAuthority 返回一个字符串表示（通过 getAuthority() 方法）恰好等于一个或多个以 ROLE_ 开头的 ConfigAttributes，那么它将投票授予访问权。如果以 ROLE_ 开头的 ConfigAttribute 没有完全匹配，RoleVoter 将投票拒绝访问。如果没有 ConfigAttribute 以 ROLE_ 开头，投票者将弃权。</p>
+<h5 id="AuthenticatedVoter"><a href="#AuthenticatedVoter" class="headerlink" title="AuthenticatedVoter"></a>AuthenticatedVoter</h5><p>我们已经隐式看到的另一个投票者是 AuthenticatedVoter，它可用于区分匿名的、完全身份验证的和 remember-me 身份验证的用户。许多站点在 remember-me 身份验证下允许某些有限的访问，但要求用户通过登录进行完全访问来确认自己的身份。</p>
+<p>当我们使用属性 IS_AUTHENTICATED_ANONYMOUSLY 来授予匿名访问时，此属性由 AuthenticatedVoter 处理。</p>
+<h5 id="自定义投票者"><a href="#自定义投票者" class="headerlink" title="自定义投票者"></a>自定义投票者</h5><p>显然，还可以实现一个自定义的 AccessDecisionVoter，并且可以在其中加入任何想要的访问控制逻辑。它可能特定于的应用程序（与业务逻辑相关），也可能实现一些安全管理逻辑。例如，在 Spring web 站点上有一篇<a href="https://spring.io/blog/2009/01/03/spring-security-customization-part-2-adjusting-secured-session-in-real-time" target="_blank" rel="noopener">博客文章</a>，其中描述了如何使用投票者实时拒绝帐户已挂起的用户访问。</p>
+<h3 id="后调用处理"><a href="#后调用处理" class="headerlink" title="后调用处理"></a>后调用处理</h3><p>虽然 AccessDecisionManager 是由 AbstractSecurityInterceptor 在继续安全对象调用之前调用的，但是一些应用程序需要一种修改安全对象调用实际返回的对象的方法。虽然可以轻松实现自己的 AOP 关注点来实现这一点，但 Spring Security 提供了一个方便的挂钩，它有几个与 ACL 功能集成的具体实现。</p>
+<p>After Invocation 实现演示了 Spring Security 的 AfterInvocationManager 及其具体实现。</p>
+<p><img src="/images/springsecurity/after-invocation.png" alt="after-invocation"></p>
+<p>像 Spring Security 的许多其他部分一样， AfterInvocationManager 有一个具体实现 AfterInvocationProviderManager，它轮询 AfterInvocationProvider 的列表。允许每个 AfterInvocationProvider 修改返回对象或抛出 AccessDeniedException。实际上，多个提供程序可以修改对象，因为上一个提供程序的结果将传递给列表中的下一个提供程序。</p>
+<p>注意，如果使用的是 AfterInvocationManager，仍然需要配置属性来允许 MethodSecurityInterceptor 的 AccessDecisionManager 允许一个操作。如果使用的是典型的包含 Spring Security 的 AccessDecisionManager 实现，没有为特定的安全方法调用定义配置属性将导致每个 AccessDecisionVoter 放弃投票。反过来，如果 AccessDecisionManager 的属性 allowIfAllAbstainDecisions 为 false，则抛出 AccessDeniedException。 可以通过将 allowIfAllAbstainDecisions 设置为 true(尽管通常不建议这样做) 或简单地确保 AccessDecisionVoter 将投票授予访问权限的配置属性至少有一个来避免此潜在问题。后一种（推荐的）方法通常通过 ROLE_USER 或 ROLE_AUTHENTICATED 配置属性实现。</p>
+<h3 id="层次化角色"><a href="#层次化角色" class="headerlink" title="层次化角色"></a>层次化角色</h3><p>应用程序中的特定角色应自动“包含”其他角色，这是一个常见的要求。例如，在具有“admin”和“user”角色概念的应用程序中，我们可能希望管理员能够执行普通用户可以执行的所有操作。为了实现这一点，可以确保所有管理员用户也被分配了“user”角色。或者，可以修改要求“user”角色也包括“admin”角色的每个访问约束。如果应用程序中有很多不同的角色，这可能会变得相当复杂。</p>
+<p>使用角色层次结构允许配置哪些角色（或权限）应该包含其他角色。Spring Security 的 RoleVoter 的扩展版本 RoleHierarchyVoter 配置了一个 RoleHierarchy，从这个 RoleHierarchy 中可以获得分配给用户的所有“可访问权限”。典型的配置可能如下所示：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">project</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"roleVoter"</span> <span class="attr">class</span>=<span class="string">"org.springframework.security.access.vote.RoleHierarchyVoter"</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">constructor-arg</span> <span class="attr">ref</span>=<span class="string">"roleHierarchy"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">bean</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"roleHierarchy"</span> <span class="attr">class</span>=<span class="string">"org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl"</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"hierarchy"</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">value</span>&gt;</span></span><br><span class="line">                ROLE_ADMIN &gt; ROLE_STAFF</span><br><span class="line">                ROLE_STAFF &gt; ROLE_USER</span><br><span class="line">                ROLE_USER &gt; ROLE_GUEST</span><br><span class="line">            <span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">bean</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">project</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>在这里，我们有四个角色在层次结构中，角色是 ROLE_ADMIN、ROLE_STAFF、ROLE_USER、ROLE_GUEST。当根据配置有上述 RoleHierarchyVoter 的 AccessDecisionManager 评估安全约束时，使用 ROLE_ADMIN 进行身份验证的用户将表现为拥有所有四个角色。&gt; 符号可以被认为是“包含”的意思。</p>
+<p>角色层次结构提供了一种方便的方法，可以简化应用程序的访问控制配置数据和/或减少需要分配给用户的权限数。对于更复杂的需求，您可能希望定义应用程序所需的特定访问权限与分配给用户的角色之间的逻辑映射，并在加载用户信息时在两者之间进行转换。</p>
+<h2 id="使用-FilterSecurityInterceptor-授权-HttpServletRequest"><a href="#使用-FilterSecurityInterceptor-授权-HttpServletRequest" class="headerlink" title="使用 FilterSecurityInterceptor 授权 HttpServletRequest"></a>使用 FilterSecurityInterceptor 授权 HttpServletRequest</h2><p>本节通过深入研究授权如何在基于 Servlet 的应用程序中工作来构建 Servlet 体系结构和实现。</p>
+<p>FilterSecurityInterceptor 为 HttpServletRequests 提供授权。它作为安全过滤器之一插入到 FilterChainProxy 中。</p>
+<p><img src="/images/springsecurity/filtersecurityinterceptor.png" alt="filtersecurityinterceptor"></p>
+<ol>
+<li><p>首先，FilterSecurityInterceptor 从 SecurityContextHolder 获得 Authentication 。</p>
+</li>
+<li><p>其次，FilterSecurityInterceptor 从传递到 FilterSecurityInterceptor 的 HttpServletRequest、HttpServletResponse 和 FilterChain 创建一个 FilterInvocation。</p>
+</li>
+<li><p>接下来，它将 FilterInvocation 传递给 SecurityMetadataSource 来获取 ConfigAttributes。</p>
+</li>
+<li><p>最后，它将 Authentication、FilterInvocation 和 ConfigAttributes 传递给 AccessDecisionManager。</p>
+</li>
+<li><p>如果拒绝授权，则抛出 AccessDeniedException。在本例中，ExceptionTranslationFilter 处理 AccessDeniedException。</p>
+</li>
+<li><p>如果允许访问，FilterSecurityInterceptor 将继续使用 FilterChain，它允许应用程序正常处理。</p>
+</li>
+</ol>
+<p>默认情况下，Spring Security 的授权将要求对所有请求进行身份验证。显式配置如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">rotected <span class="keyword">void</span> <span class="title">configure</span><span class="params">(HttpSecurity http)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">    http</span><br><span class="line">        <span class="comment">// ...</span></span><br><span class="line">        .authorizeRequests(authorize -&gt; authorize</span><br><span class="line">            .anyRequest().authenticated()</span><br><span class="line">        );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们可以通过按照优先顺序添加更多的规则来配置 Spring Security，使其具有不同的规则。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">configure</span><span class="params">(HttpSecurity http)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">    http</span><br><span class="line">        <span class="comment">// ...</span></span><br><span class="line">        .authorizeRequests(authorize -&gt; authorize                                  </span><br><span class="line">            .mvcMatchers(<span class="string">"/resources/**"</span>, <span class="string">"/signup"</span>, <span class="string">"/about"</span>).permitAll()         </span><br><span class="line">            .mvcMatchers(<span class="string">"/admin/**"</span>).hasRole(<span class="string">"ADMIN"</span>)                             </span><br><span class="line">            .mvcMatchers(<span class="string">"/db/**"</span>).access(<span class="string">"hasRole('ADMIN') and hasRole('DBA')"</span>)   </span><br><span class="line">            .anyRequest().denyAll()                                                </span><br><span class="line">        );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li><p>指定了多个授权规则。每条规则都是按照其声明的顺序考虑的。</p>
+</li>
+<li><p>我们指定了多个用户可以访问的 URL 模式。具体来说，如果 URL 以“/resources/”、等于“/signup”或等于“/about”开头，任何用户都可以访问请求。</p>
+</li>
+<li><p>任何以“/admin/”开头的 URL 将被限制为具有“ROLE_ADMIN”角色的用户。由于我们正在调用 hasRole 方法，所以不需要指定 “ROLE_” 前缀。</p>
+</li>
+<li><p>任何以“/db/”开头的 URL 都要求用户同时具有“ROLE_ADMIN”和“ROLE_DBA”。由于我们使用的是 hasRole 表达式，所以不需要指定“ROLE_”前缀。</p>
+</li>
+<li><p>任何尚未匹配的 URL 都将被拒绝访问。如果不想意外地忘记更新授权规则，这是一个很好的策略。</p>
+</li>
+</ol>
+<h2 id="基于表达式的访问控制"><a href="#基于表达式的访问控制" class="headerlink" title="基于表达式的访问控制"></a>基于表达式的访问控制</h2><p>Spring Security 3.0 引入了使用 Spring EL 表达式作为授权机制的能力，此外还简单使用了前面提到的配置属性和访问决策投票者。基于表达式的访问控制建立在同一体系结构上，但允许将复杂的布尔逻辑封装在单个表达式中。</p>
+<h3 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h3><p>Spring Security 使用 Spring EL 来支持表达式。表达式使用“根对象”作为计算上下文的一部分进行计算。Spring Security 使用 web 的特定类和方法安全性作为根对象，以便提供内置表达式和对当前主体等值的访问。</p>
+<h4 id="常见的内置的表达式"><a href="#常见的内置的表达式" class="headerlink" title="常见的内置的表达式"></a>常见的内置的表达式</h4><p>表达式根对象的基类是 SecurityExpressionRoot。这提供了一些在 web 和方法安全性中都可用的公共表达式。</p>
+<table>
+<thead>
+<tr>
+<th align="center">Expression</th>
+<th align="center">Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">hasRole(String role)</td>
+<td align="center">如果当前主体具有指定的角色，则返回 true。<br>例如，hasRole(‘admin’)<br>默认情况下，如果提供的角色不是以 ‘ROLE_’ 开头，则将添加该角色。这可以通过修改 DefaultWebSecurityExpressionHandler 上的 defaultRolePrefix 进行自定义。</td>
+</tr>
+<tr>
+<td align="center">hasAnyRole(String…​ roles)</td>
+<td align="center">如果当前主体具有任何提供的角色（以逗号分隔的字符串列表形式给出），则返回 true。<br>例如，hasAnyRole(‘admin’,’user’)<br>默认情况下，如果提供的角色不是以 ‘ROLE_’ 开头，则将添加该角色。这可以通过修改 DefaultWebSecurityExpressionHandler 上的 defaultRolePrefix 进行自定义。</td>
+</tr>
+<tr>
+<td align="center">hasAuthority(String authority)</td>
+<td align="center">如果当前主体具有指定的权限，则返回 true。<br>例如，hasAuthority(‘read’)</td>
+</tr>
+<tr>
+<td align="center">hasAnyAuthority(String…​ authorities)</td>
+<td align="center">如果当前主体具有提供的任何权限（以逗号分隔的字符串列表形式给出），则返回 true<br>例如，hasAnyAuthority(‘read’，’write’)</td>
+</tr>
+<tr>
+<td align="center">principal</td>
+<td align="center">允许直接访问表示当前用户的主体对象</td>
+</tr>
+<tr>
+<td align="center">authentication</td>
+<td align="center">允许直接访问从 SecurityContext 获取的当前身份验证对象</td>
+</tr>
+<tr>
+<td align="center">permitAll</td>
+<td align="center">总是等于 true</td>
+</tr>
+<tr>
+<td align="center">denyAll</td>
+<td align="center">总是等于 false</td>
+</tr>
+<tr>
+<td align="center">isAnonymous()</td>
+<td align="center">如果当前主体是匿名用户，则返回 true</td>
+</tr>
+<tr>
+<td align="center">isRememberMe()</td>
+<td align="center">如果当前主体是 remember-me 用户，则返回 true</td>
+</tr>
+<tr>
+<td align="center">isAuthenticated()</td>
+<td align="center">如果用户不是匿名的，则返回 true</td>
+</tr>
+<tr>
+<td align="center">isFullyAuthenticated()</td>
+<td align="center">如果用户不是匿名用户或 remember-me 用户，则返回 true</td>
+</tr>
+<tr>
+<td align="center">hasPermission(Object target, Object permission)</td>
+<td align="center">如果用户有权访问给定权限的所提供目标，则返回 true。例如，hasPermission(domainObject,’read’)</td>
+</tr>
+<tr>
+<td align="center">hasPermission(Object targetId, String targetType, Object permission)</td>
+<td align="center">如果用户有权访问给定权限的所提供目标，则返回 true。例如， hasPermission(1, ‘com.example.domain.Message’, ‘read’)</td>
+</tr>
+</tbody></table>
+<h3 id="Web-安全表达式"><a href="#Web-安全表达式" class="headerlink" title="Web 安全表达式"></a>Web 安全表达式</h3><p>要使用表达式来保护单个 URL，首先需要将 <http> 元素中的 use-expressions 属性设置为 true。然后，Spring Security 将期望 <intercept-url> 元素的 access 属性包含 Spring EL 表达式。表达式的值应该是一个布尔值，定义是否允许访问。例如：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">http</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">intercept-url</span> <span class="attr">pattern</span>=<span class="string">"/admin*"</span> <span class="attr">access</span>=<span class="string">"hasRole('admin') and hasIpAddress('192.168.1.0/24')"</span>/&gt;</span></span><br><span class="line">    ...</span><br><span class="line"><span class="tag">&lt;/<span class="name">http</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>在这里，我们定义了应用程序的“admin”区域(由 URL 模式定义)应该只对具有授予的权限“admin”且其 IP 地址与本地子网匹配的用户可用。我们已经在前一节中看到了内置的 hasRole 表达式。表达式 hasIpAddress 是一个特定于 web 安全的附加内置表达式。它是由 WebSecurityExpressionRoot 类定义的，在计算 web 访问表达式时，该类的实例用作表达式根对象。该对象还直接在名称 request 下公开了 HttpServletRequest 对象，因此可以在表达式中直接调用请求。如果正在使用表达式，则将向命名空间使用的 AccessDecisionManager 中添加 WebExpressionVoter。因此，如果不使用命名空间并希望使用表达式，则必须将其中一个添加到配置中。</p>
+<h4 id="在-Web-安全表达式中引用-Beans"><a href="#在-Web-安全表达式中引用-Beans" class="headerlink" title="在 Web 安全表达式中引用 Beans"></a>在 Web 安全表达式中引用 Beans</h4><p>如果希望扩展可用的表达式，那么可以很容易地引用公开的任何 Spring Bean。例如，假设有一个名为 webSecurity 的 Bean，它包含以下方法签名：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">WebSecurity</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">check</span><span class="params">(Authentication authentication, HttpServletRequest request)</span> </span>&#123;</span><br><span class="line">        ...</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以参考以下方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">http</span><br><span class="line">    .authorizeRequests(authorize -&gt; authorize</span><br><span class="line">        .antMatchers(<span class="string">"/user/**"</span>).access(<span class="string">"@webSecurity.check(authentication,request)"</span>)</span><br><span class="line">        ...</span><br><span class="line">    )</span><br></pre></td></tr></table></figure>
+
+<h4 id="Web-安全表达式中的路径变量"><a href="#Web-安全表达式中的路径变量" class="headerlink" title="Web 安全表达式中的路径变量"></a>Web 安全表达式中的路径变量</h4><p>有时能够引用 URL 中的路径变量是很好的。例如，考虑一个 RESTful 应用程序，它从格式为 /user/{userId} 的 URL 路径中查找用户的 id。</p>
+<p>通过将路径变量放在模式中，可以很容易地引用它。例如，如果有一个名为 webSecurity 的 Bean，它包含以下方法签名：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">WebSecurity</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">checkUserId</span><span class="params">(Authentication authentication, <span class="keyword">int</span> id)</span> </span>&#123;</span><br><span class="line">        ...</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以参考以下方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">http</span><br><span class="line">    .authorizeRequests(authorize -&gt; authorize</span><br><span class="line">        .antMatchers(<span class="string">"/user/&#123;userId&#125;/**"</span>).access(<span class="string">"@webSecurity.checkUserId(authentication,#userId)"</span>)</span><br><span class="line">        ...</span><br><span class="line">    );</span><br></pre></td></tr></table></figure>
+
+<p>在这两种配置中，匹配的 URLs 都会将 path 变量（并将其转换）传递到 checkUserId 方法中。例如，如果 URL 是 /user/123/resource，那么传入的 id 将是 123。</p>
+<h3 id="方法安全表达式"><a href="#方法安全表达式" class="headerlink" title="方法安全表达式"></a>方法安全表达式</h3><p>方法安全性比简单的允许或拒绝规则稍微复杂一些。Spring Security 3.0 引入了一些新的注解，以便全面支持表达式的使用。</p>
+<h4 id="Pre-和-Post-注解"><a href="#Pre-和-Post-注解" class="headerlink" title="@Pre 和 @Post 注解"></a>@Pre 和 @Post 注解</h4><p>有四个注解支持表达式属性，以允许调用前和调用后的授权检查，还支持对提交的集合参数或返回值进行过滤。它们是 @PreAuthorize、@PreFilter、@PostAuthorize 和 @PostFilter。它们的使用是通过 global-method-security 命名空间元素启用的：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">global-method-security</span> <span class="attr">pre-post-annotations</span>=<span class="string">"enabled"</span>/&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="使用-PreAuthorize-和-PostAuthorize-进行访问控制"><a href="#使用-PreAuthorize-和-PostAuthorize-进行访问控制" class="headerlink" title="使用 @PreAuthorize 和 @PostAuthorize 进行访问控制"></a>使用 @PreAuthorize 和 @PostAuthorize 进行访问控制</h5><p>最明显有用的注解是 @PreAuthorize，它决定是否可以实际调用方法。例如（来自“Contacts”示例应用程序）</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@PreAuthorize</span>(<span class="string">"hasRole('USER')"</span>)</span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">create</span><span class="params">(Contact contact)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>这意味着只允许具有“ROLE_USER”角色的用户访问。显然，使用传统配置和所需角色的简单配置属性也可以很容易地实现相同的功能。但：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@PreAuthorize</span>(<span class="string">"hasPermission(#contact, 'admin')"</span>)</span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">deletePermission</span><span class="params">(Contact contact, Sid recipient, Permission permission)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>在这里，我们实际使用一个方法参数作为表达式的一部分来决定当前用户是否具有给定联系人的“admin”权限。内置的 hasPermission() 表达式通过应用程序上下文链接到  Spring Security ACL 模块，如下所示。可以通过名称作为表达式变量访问任何方法参数。</p>
+<p>Spring Security 可以通过多种方式解析方法参数。Spring Security 使用 DefaultSecurityParameterNameDiscoverer 来发现参数名称。默认情况下，将对整个方法尝试以下选项。</p>
+<ul>
+<li>如果 Spring Security 的 @P 注解出现在方法的单个参数上，那么将使用该值。这对于在 JDK 8 之前使用 JDK 编译的接口很有用，JDK 8 不包含任何有关参数名的信息。例如：</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> org.springframework.security.access.method.P;</span><br><span class="line"></span><br><span class="line">...</span><br><span class="line"></span><br><span class="line"><span class="meta">@PreAuthorize</span>(<span class="string">"#c.name == authentication.name"</span>)</span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">doSomething</span><span class="params">(@P(<span class="string">"c"</span>)</span> Contact contact)</span>;</span><br></pre></td></tr></table></figure>
+
+<p>在幕后，这个使用是使用 AnnotationParameterNameDiscoverer 实现的，可以对其进行自定义以支持任何指定注解的 value 属性。</p>
+<ul>
+<li>如果 Spring Data 的 @Param 注解出现在该方法的至少一个参数上，则将使用该值。这对于在 JDK 8 之前使用 JDK 编译的接口很有用，JDK 8 不包含任何有关参数名的信息。例如：</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> org.springframework.data.repository.query.Param;</span><br><span class="line"></span><br><span class="line">...</span><br><span class="line"></span><br><span class="line"><span class="meta">@PreAuthorize</span>(<span class="string">"#n == authentication.name"</span>)</span><br><span class="line"><span class="function">Contact <span class="title">findContactByName</span><span class="params">(@Param(<span class="string">"n"</span>)</span> String name)</span>;</span><br></pre></td></tr></table></figure>
+
+<p>在幕后，这种用法是使用 AnnotationParameterNameDiscoverer 实现的，可以对其进行自定义以支持任何指定注解的 value 属性。</p>
+<ul>
+<li><p>如果使用 JDK 8 编译带有 -parameters 参数的源代码，并且使用 Spring4+，则使用标准 JD K反射 API 来发现参数名。这对类和接口都有效。 </p>
+</li>
+<li><p>最后，如果代码是用调试符号编译的，那么将使用调试符号发现参数名。这对接口不起作用，因为它们没有关于参数名的调试信息。对于接口，必须使用注释或 JDK 8方法。 </p>
+</li>
+</ul>
+<p>任何 Spring-EL 功能在表达式中都是可用的，因此还可以访问参数的属性。例如，如果希望某个特定方法只允许访问其用户名与联系人的用户名匹配的用户，可以编写</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@PreAuthorize</span>(<span class="string">"#contact.name == authentication.name"</span>)</span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">doSomething</span><span class="params">(Contact contact)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>在这里，我们访问另一个内置表达式 authentication，它是存储在安全上下文中的 Authentication。还可以使用表达式 principal 直接访问其“principal”属性。该值通常是一个 UserDetails 实例，因此可以使用类似 principal.username 或 principal.enabled 这样的表达式。</p>
+<p>不太常见的是，可能希望在调用方法之后执行访问控制检查。这可以使用 @PostAuthorize 注解来实现。要访问方法的返回值，在表达式中使用内置的名称 returnObject。</p>
+<h5 id="使用-PreFilter-和-PostFilter-过滤"><a href="#使用-PreFilter-和-PostFilter-过滤" class="headerlink" title="使用 @PreFilter 和 @PostFilter 过滤"></a>使用 @PreFilter 和 @PostFilter 过滤</h5><p>我们可能已经知道，Spring Security 支持对集合和数组进行过滤，现在可以使用表达式来实现这一点。这通常是对方法的返回值执行的。例如：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@PreAuthorize</span>(<span class="string">"hasRole('USER')"</span>)</span><br><span class="line"><span class="meta">@PostFilter</span>(<span class="string">"hasPermission(filterObject, 'read') or hasPermission(filterObject, 'admin')"</span>)</span><br><span class="line"><span class="function"><span class="keyword">public</span> List&lt;Contact&gt; <span class="title">getAll</span><span class="params">()</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>当使用 @PostFilter 注解时，Spring Security 会遍历返回的集合，并删除所提供表达式为 false 的任何元素。名称 filterObject 引用集合中的当前对象。也可以在方法调用之前使用 @PreFilter 进行过滤，尽管这是一个不太常见的要求。语法是一样的，但是如果有多个集合类型的参数，则必须使用该注解的 filterTarget 属性按名称选择一个。</p>
+<p>注意，过滤显然不能替代优化数据检索查询。如果过滤大型集合并删除许多项，那么这可能是低效的。</p>
+<h4 id="内置表达式"><a href="#内置表达式" class="headerlink" title="内置表达式"></a>内置表达式</h4><p>有一些特定于方法安全性的内置表达式，我们已经在上面的使用中看到了。filterTarget 和returnValue 值非常简单，但是 hasPermission() 表达式的使用值得仔细研究。</p>
+<h5 id="PermissionEvaluator"><a href="#PermissionEvaluator" class="headerlink" title="PermissionEvaluator"></a>PermissionEvaluator</h5><p>hasPermission() 表达式被委托给 PermissionEvaluator 的实例。它旨在在表达式系统和 Spring Security 的 ACL 系统之间建立桥梁，允许基于抽象权限在域对象上指定授权约束。它对 ACL 模块没有显式的依赖关系，因此如果需要，可以将其替换为另一个实现。该接口有两个方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">boolean</span> <span class="title">hasPermission</span><span class="params">(Authentication authentication, Object targetDomainObject, Object permission)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">boolean</span> <span class="title">hasPermission</span><span class="params">(Authentication authentication, Serializable targetId, String targetType, Object permission)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>它直接映射到表达式的可用版本，但未提供第一个参数（Authentication 对象）除外。第一种方法用于已加载访问控制的域对象的情况。如果当前用户具有该对象的给定权限，那么表达式将返回 true。第二个版本用于没有加载对象，但知道其标识符的情况。还需要域对象的抽象“type”说明符，以便加载正确的 ACL 权限。这通常是对象的 Java 类，但只要与加载权限的方式一致，就不必是这样。</p>
+<p>要使用 hasPermission() 表达式，必须在应用程序上下文中显式配置 PermissionEvaluator。看起来像这样：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">project</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">security:global-method-security</span> <span class="attr">pre-post-annotations</span>=<span class="string">"enabled"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">security:expression-handler</span> <span class="attr">ref</span>=<span class="string">"expressionHandler"</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">security:global-method-security</span>&gt;</span></span><br><span class="line">    </span><br><span class="line">    <span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"expressionHandler"</span> <span class="attr">class</span>=<span class="string">"org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler"</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"permissionEvaluator"</span> <span class="attr">ref</span>=<span class="string">"myPermissionEvaluator"</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">bean</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">project</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>其中 myPermissionEvaluator 是实现 PermissionEvaluator 的 bean。通常这将是来自 ACL 模块的实现，该模块称为 AclPermissionEvaluator。</p>
+<h5 id="方法安全元注解"><a href="#方法安全元注解" class="headerlink" title="方法安全元注解"></a>方法安全元注解</h5><p>可以使用元注解实现方法安全性，从而使代码更具可读性。如果发现在整个代码库中重复使用相同的复杂表达式，那么这将特别方便。例如，考虑以下几点：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@PreAuthorize</span>(<span class="string">"#contact.name == authentication.name"</span>)</span><br></pre></td></tr></table></figure>
+
+<p>我们可以创建一个可以替代的元注解，而不是在任何地方重复此操作。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Retention</span>(RetentionPolicy.RUNTIME)</span><br><span class="line"><span class="meta">@PreAuthorize</span>(<span class="string">"#contact.name == authentication.name"</span>)</span><br><span class="line"><span class="keyword">public</span> <span class="meta">@interface</span> ContactPermission &#123;&#125;</span><br></pre></td></tr></table></figure>
+
+<p>元注解可以用于任何 Spring Security 方法的安全注解。为了保持与规范的兼容性，JSR-250 注解不支持元注解。</p>
+<h2 id="安全对象的实现"><a href="#安全对象的实现" class="headerlink" title="安全对象的实现"></a>安全对象的实现</h2><h3 id="AOP-Alliance-MethodInvocation-安全拦截器"><a href="#AOP-Alliance-MethodInvocation-安全拦截器" class="headerlink" title="AOP Alliance (MethodInvocation) 安全拦截器"></a>AOP Alliance (MethodInvocation) 安全拦截器</h3><p>在 Spring Security 2.0 之前，保护 MethodInvocation 需要大量的公式化配置。现在推荐的方法安全方式是使用命名空间配置。通过这种方式，方法安全基础设施 beans 将自动配置，因此实际上不需要了解实现类。我们将简要介绍这里涉及的类。</p>
+<p>方法安全是使用一个 MethodSecurityInterceptor 来实现的，它保护 MethodInvocation。根据配置方法，一个拦截器可能是特定于一个 bean 的，也可能是在多个 beans 之间共享的。拦截器使用一个 MethodSecurityMetadataSource 实例来获取应用于特定方法调用的配置属性。MapBasedMethodSecurityMetadataSource 用于存储由方法名（可以是通配符）键入的配置属性，当使用 <intercept-methods> 或 <protect-point> 元素在应用程序上下文中定义属性时，将在内部使用这些属性。其他实现将用于处理基于注解的配置。</p>
+<h4 id="显式-MethodSecurityInterceptor-配置"><a href="#显式-MethodSecurityInterceptor-配置" class="headerlink" title="显式 MethodSecurityInterceptor 配置"></a>显式 MethodSecurityInterceptor 配置</h4><p>当然，可以在的应用程序上下文中直接配置一个 MethodSecurityIterceptor 来使用 Spring AOP 的代理机制：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">project</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"bankManagerSecurity"</span> <span class="attr">class</span>=<span class="string">"org.springframework.security.access.intercept.aopalliance.MethodSecurityInterceptor"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"authenticationManager"</span> <span class="attr">ref</span>=<span class="string">"authenticationManager"</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"accessDecisionManager"</span> <span class="attr">ref</span>=<span class="string">"accessDecisionManager"</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"afterInvocationManager"</span> <span class="attr">ref</span>=<span class="string">"afterInvocationManager"</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"securityMetadataSource"</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">sec:method-security-metadata-source</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">sec:protect</span> <span class="attr">method</span>=<span class="string">"com.mycompany.BankManager.delete*"</span> <span class="attr">access</span>=<span class="string">"ROLE_SUPERVISOR"</span>/&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">sec:protect</span> <span class="attr">method</span>=<span class="string">"com.mycompany.BankManager.getBalance"</span> <span class="attr">access</span>=<span class="string">"ROLE_TELLER,ROLE_SUPERVISOR"</span>/&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">sec:method-security-metadata-source</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">bean</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">project</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="AspectJ-JoinPoint-安全拦截器"><a href="#AspectJ-JoinPoint-安全拦截器" class="headerlink" title="AspectJ (JoinPoint) 安全拦截器"></a>AspectJ (JoinPoint) 安全拦截器</h3><p>AspectJ 安全拦截器与上一节讨论的 AOP Alliance 安全拦截器非常相似。实际上，我们只会在这一节中讨论差异。</p>
+<p>AspectJ 拦截器被命名为 AspectJSecurityInterceptor。与 AOP Alliance 安全拦截器不同，AOP Alliance 安全拦截器依赖于 Spring 应用程序上下文通过代理编织在安全拦截器中，而 AspectJSecurityInterceptor 则是通过 AspectJ 编译器编织在安全拦截器中。在同一个应用程序中同时使用这两种类型的安全拦截器并不少见，AspectJSecurityInterceptor 用于域对象实例安全，而 AOP Alliance MethodSecurityInterceptor 用于服务层安全。</p>
+<p>我们首先考虑如何在 Spring 应用程序上下文中配置 AspectJSecurityInterceptor：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">project</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"bankManagerSecurity"</span> <span class="attr">class</span>=<span class="string">"org.springframework.security.access.intercept.aspectj.AspectJMethodSecurityInterceptor"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"authenticationManager"</span> <span class="attr">ref</span>=<span class="string">"authenticationManager"</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"accessDecisionManager"</span> <span class="attr">ref</span>=<span class="string">"accessDecisionManager"</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"afterInvocationManager"</span> <span class="attr">ref</span>=<span class="string">"afterInvocationManager"</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"securityMetadataSource"</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">sec:method-security-metadata-source</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">sec:protect</span> <span class="attr">method</span>=<span class="string">"com.mycompany.BankManager.delete*"</span> <span class="attr">access</span>=<span class="string">"ROLE_SUPERVISOR"</span>/&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">sec:protect</span> <span class="attr">method</span>=<span class="string">"com.mycompany.BankManager.getBalance"</span> <span class="attr">access</span>=<span class="string">"ROLE_TELLER,ROLE_SUPERVISOR"</span>/&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">sec:method-security-metadata-source</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">bean</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">project</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>可以看到，除了类名之外，AspectJSecurityInterceptor 与 AOP Alliance 安全拦截器完全相同。实际上，这两个拦截器可以共享同一个 securityMetadataSource，因为 SecurityMetadataSource 使用 java.lang.reflect 方法而不是特定于 AOP 库的类。当然，访问决策可以访问相关的AOP库特定的调用（比如 MethodInvocation或JoinPoint），因此在做出访问决策时可以考虑一系列附加条件（例如方法参数）。</p>
+<p>接下来需要定义 AspectJ 方面。例如：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> org.springframework.security.samples.aspectj;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.springframework.security.access.intercept.aspectj.AspectJSecurityInterceptor;</span><br><span class="line"><span class="keyword">import</span> org.springframework.security.access.intercept.aspectj.AspectJCallback;</span><br><span class="line"><span class="keyword">import</span> org.springframework.beans.factory.InitializingBean;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> aspect DomainObjectInstanceSecurityAspect implements InitializingBean &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> AspectJSecurityInterceptor securityInterceptor;</span><br><span class="line"></span><br><span class="line">    <span class="function">pointcut <span class="title">domainObjectInstanceExecution</span><span class="params">()</span>: <span class="title">target</span><span class="params">(PersistableEntity)</span></span></span><br><span class="line"><span class="function">        &amp;&amp; <span class="title">execution</span><span class="params">(<span class="keyword">public</span> * *(..)</span>) &amp;&amp; !<span class="title">within</span><span class="params">(DomainObjectInstanceSecurityAspect)</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function">Object <span class="title">around</span><span class="params">()</span>: <span class="title">domainObjectInstanceExecution</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">this</span>.securityInterceptor == <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span> proceed();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        AspectJCallback callback = <span class="keyword">new</span> AspectJCallback() &#123;</span><br><span class="line">            <span class="function"><span class="keyword">public</span> Object <span class="title">proceedWithObject</span><span class="params">()</span> </span>&#123;</span><br><span class="line">                <span class="keyword">return</span> proceed();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">this</span>.securityInterceptor.invoke(thisJoinPoint, callback);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> AspectJSecurityInterceptor <span class="title">getSecurityInterceptor</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> securityInterceptor;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setSecurityInterceptor</span><span class="params">(AspectJSecurityInterceptor securityInterceptor)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.securityInterceptor = securityInterceptor;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">afterPropertiesSet</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">this</span>.securityInterceptor == <span class="keyword">null</span>)</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(<span class="string">"securityInterceptor required"</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在上面的示例中，安全拦截器将应用于 PersistableEntity 的每个实例，PersistableEntity 是一个未显示的抽象类（可以使用任何其他喜欢的类或切入点表达式）。对于那些好奇的人来说，AspectJCallback 是必需的，因为 proceed(); 语句只有在 around() 主体中才有特殊意义。AspectJSecurityInterceptor 在希望目标对象继续时调用这个匿名的 AspectJCallback 类。</p>
+<p>需要配置 Spring 来加载切面并将它与 AspectJSecurityInterceptor 连接起来。实现这一点的 bean 声明如下所示：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"domainObjectInstanceSecurityAspect"</span></span></span><br><span class="line"><span class="tag">    <span class="attr">class</span>=<span class="string">"security.samples.aspectj.DomainObjectInstanceSecurityAspect"</span></span></span><br><span class="line"><span class="tag">    <span class="attr">factory-method</span>=<span class="string">"aspectOf"</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"securityInterceptor"</span> <span class="attr">ref</span>=<span class="string">"bankManagerSecurity"</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">bean</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>就这样！现在，可以在应用程序中的任何地方创建 beans，使用我们认为合适的任何方法（例如 new Person();），它们将应用安全拦截器。</p>
+<h2 id="方法安全"><a href="#方法安全" class="headerlink" title="方法安全"></a>方法安全</h2><p>从 2.0 版本开始，Spring Security 大大改进了对向服务层方法添加安全性的支持。它提供了对 JSR-250 注解安全性以及框架的原始 @Secured 注解的支持。从 3.0 开始，我们还可以使用新的基于表达式的注解。我们可以将安全性应用到单个 bean，使用 intercept-methods 元素来修饰 bean 声明，或者可以使用 AspectJ 风格的切入点来保护整个服务层的多个 beans。</p>
+<h3 id="EnableGlobalMethodSecurity"><a href="#EnableGlobalMethodSecurity" class="headerlink" title="EnableGlobalMethodSecurity"></a>EnableGlobalMethodSecurity</h3><p>我们可以在任何 @Configuration 实例上使用 @EnableGlobalMethodSecurity 注解来启用基于注解的安全。例如，下面的代码将启用 Spring Security 的 @Secure 注解。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@EnableGlobalMethodSecurity</span>(securedEnabled = <span class="keyword">true</span>)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MethodSecurityConfig</span> </span>&#123;</span><br><span class="line"><span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>向方法（在类或接口上）添加注解将相应地限制对该方法的访问。Spring Security 的原生注解支持为该方法定义了一组属性。这些将被传递给 AccessDecisionManager，让它做出实际的决定：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">BankService</span> </span>&#123;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Secured</span>(<span class="string">"IS_AUTHENTICATED_ANONYMOUSLY"</span>)</span><br><span class="line"><span class="function"><span class="keyword">public</span> Account <span class="title">readAccount</span><span class="params">(Long id)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Secured</span>(<span class="string">"IS_AUTHENTICATED_ANONYMOUSLY"</span>)</span><br><span class="line"><span class="keyword">public</span> Account[] findAccounts();</span><br><span class="line"></span><br><span class="line"><span class="meta">@Secured</span>(<span class="string">"ROLE_TELLER"</span>)</span><br><span class="line"><span class="function"><span class="keyword">public</span> Account <span class="title">post</span><span class="params">(Account account, <span class="keyword">double</span> amount)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以使用以下命令启用对 JSR-250 注解的支持：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@EnableGlobalMethodSecurity</span>(jsr250Enabled = <span class="keyword">true</span>)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MethodSecurityConfig</span> </span>&#123;</span><br><span class="line"><span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这些都是基于标准的，允许应用简单的基于角色的约束，但是没有 Spring Security 的原生注解的能力。要使用新的基于表达式的语法，我们将使用：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@EnableGlobalMethodSecurity</span>(prePostEnabled = <span class="keyword">true</span>)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MethodSecurityConfig</span> </span>&#123;</span><br><span class="line"><span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>等价的 Java 代码是：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">BankService</span> </span>&#123;</span><br><span class="line"></span><br><span class="line"><span class="meta">@PreAuthorize</span>(<span class="string">"isAnonymous()"</span>)</span><br><span class="line"><span class="function"><span class="keyword">public</span> Account <span class="title">readAccount</span><span class="params">(Long id)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="meta">@PreAuthorize</span>(<span class="string">"isAnonymous()"</span>)</span><br><span class="line"><span class="keyword">public</span> Account[] findAccounts();</span><br><span class="line"></span><br><span class="line"><span class="meta">@PreAuthorize</span>(<span class="string">"hasAuthority('ROLE_TELLER')"</span>)</span><br><span class="line"><span class="function"><span class="keyword">public</span> Account <span class="title">post</span><span class="params">(Account account, <span class="keyword">double</span> amount)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="GlobalMethodSecurityConfiguration"><a href="#GlobalMethodSecurityConfiguration" class="headerlink" title="GlobalMethodSecurityConfiguration"></a>GlobalMethodSecurityConfiguration</h3><p>有时，我们可能需要执行比使用 @EnableGlobalMethodSecurity 注解所允许的更复杂的操作。对于这些实例，可以扩展 GlobalMethodSecurityConfiguration，以确保 @EnableGlobalMethodSecurity 注解出现在子类中。例如，如果我们想提供一个自定义的 MethodSecurityExpressionHandler，可以使用以下配置：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@EnableGlobalMethodSecurity</span>(prePostEnabled = <span class="keyword">true</span>)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MethodSecurityConfig</span> <span class="keyword">extends</span> <span class="title">GlobalMethodSecurityConfiguration</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> MethodSecurityExpressionHandler <span class="title">createExpressionHandler</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">// ... create and return custom MethodSecurityExpressionHandler ...</span></span><br><span class="line">        <span class="keyword">return</span> expressionHandler;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="使用-protect-pointcut-添加安全切入点"><a href="#使用-protect-pointcut-添加安全切入点" class="headerlink" title="使用 protect-pointcut 添加安全切入点"></a>使用 protect-pointcut 添加安全切入点</h3><p>protect-pointcut 的用途特别强大，因为它允许我们仅通过一个简单的声明就可以将安全性应用到许多 beans。考虑以下示例：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">global-method-security</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">protect-pointcut</span> <span class="attr">expression</span>=<span class="string">"execution(* com.mycompany.*Service.*(..))"</span> <span class="attr">access</span>=<span class="string">"ROLE_USER"</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">global-method-security</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>这将保护在应用程序上下文中声明的 beans 上的所有方法，这些 beans 的类位于 com.mycompany 包中，其类名以 “Service” 结尾。只有具有 ROLE_USER 角色的用户才能调用这些方法。与 URL 匹配一样，在切入点列表中，最具体的匹配必须排在第一位，因为将使用第一个匹配表达式。安全注解优先于切入点。</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ol>
+<li><a href="https://docs.spring.io/spring-security/site/docs/5.3.0.RELEASE/reference/html5/#servlet-authorization" target="_blank" rel="noopener">Authorization</a></li>
+</ol>
+
+    </div>
+
+    
+    
+    
+        <div class="reward-container">
+  <div>小礼物走一走，来 Github 关注我</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/wechatpay.png" alt="晴天 微信支付">
+        <p>微信支付</p>
+      </div>
+      
+      <div style="display: inline-block;">
+        <img src="/images/alipay.png" alt="晴天 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Spring-Security/" rel="tag"># Spring Security</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/03/06/Spring%20Security%E5%8F%82%E8%80%83%E6%96%87%E6%A1%A3-%E8%BA%AB%E4%BB%BD%E9%AA%8C%E8%AF%81/" rel="prev" title="Spring Security 参考文档-身份验证">
+      <i class="fa fa-chevron-left"></i> Spring Security 参考文档-身份验证
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/03/14/Spring%20Cloud%20Stream%E5%BC%80%E5%8F%91%E5%AE%9E%E8%B7%B5/" rel="next" title="Spring Cloud Stream 开发实践">
+      Spring Cloud Stream 开发实践 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#授权架构"><span class="nav-number">1.</span> <span class="nav-text">授权架构</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#权限"><span class="nav-number">1.1.</span> <span class="nav-text">权限</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#预调用处理"><span class="nav-number">1.2.</span> <span class="nav-text">预调用处理</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#AccessDecisionManager"><span class="nav-number">1.2.1.</span> <span class="nav-text">AccessDecisionManager</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#基于投票的-AccessDecisionManager-实现"><span class="nav-number">1.2.2.</span> <span class="nav-text">基于投票的 AccessDecisionManager 实现</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#RoleVoter"><span class="nav-number">1.2.2.1.</span> <span class="nav-text">RoleVoter</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#AuthenticatedVoter"><span class="nav-number">1.2.2.2.</span> <span class="nav-text">AuthenticatedVoter</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#自定义投票者"><span class="nav-number">1.2.2.3.</span> <span class="nav-text">自定义投票者</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#后调用处理"><span class="nav-number">1.3.</span> <span class="nav-text">后调用处理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#层次化角色"><span class="nav-number">1.4.</span> <span class="nav-text">层次化角色</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用-FilterSecurityInterceptor-授权-HttpServletRequest"><span class="nav-number">2.</span> <span class="nav-text">使用 FilterSecurityInterceptor 授权 HttpServletRequest</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#基于表达式的访问控制"><span class="nav-number">3.</span> <span class="nav-text">基于表达式的访问控制</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#概述"><span class="nav-number">3.1.</span> <span class="nav-text">概述</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#常见的内置的表达式"><span class="nav-number">3.1.1.</span> <span class="nav-text">常见的内置的表达式</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Web-安全表达式"><span class="nav-number">3.2.</span> <span class="nav-text">Web 安全表达式</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#在-Web-安全表达式中引用-Beans"><span class="nav-number">3.2.1.</span> <span class="nav-text">在 Web 安全表达式中引用 Beans</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Web-安全表达式中的路径变量"><span class="nav-number">3.2.2.</span> <span class="nav-text">Web 安全表达式中的路径变量</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#方法安全表达式"><span class="nav-number">3.3.</span> <span class="nav-text">方法安全表达式</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Pre-和-Post-注解"><span class="nav-number">3.3.1.</span> <span class="nav-text">@Pre 和 @Post 注解</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#使用-PreAuthorize-和-PostAuthorize-进行访问控制"><span class="nav-number">3.3.1.1.</span> <span class="nav-text">使用 @PreAuthorize 和 @PostAuthorize 进行访问控制</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#使用-PreFilter-和-PostFilter-过滤"><span class="nav-number">3.3.1.2.</span> <span class="nav-text">使用 @PreFilter 和 @PostFilter 过滤</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#内置表达式"><span class="nav-number">3.3.2.</span> <span class="nav-text">内置表达式</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#PermissionEvaluator"><span class="nav-number">3.3.2.1.</span> <span class="nav-text">PermissionEvaluator</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#方法安全元注解"><span class="nav-number">3.3.2.2.</span> <span class="nav-text">方法安全元注解</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#安全对象的实现"><span class="nav-number">4.</span> <span class="nav-text">安全对象的实现</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#AOP-Alliance-MethodInvocation-安全拦截器"><span class="nav-number">4.1.</span> <span class="nav-text">AOP Alliance (MethodInvocation) 安全拦截器</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#显式-MethodSecurityInterceptor-配置"><span class="nav-number">4.1.1.</span> <span class="nav-text">显式 MethodSecurityInterceptor 配置</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#AspectJ-JoinPoint-安全拦截器"><span class="nav-number">4.2.</span> <span class="nav-text">AspectJ (JoinPoint) 安全拦截器</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#方法安全"><span class="nav-number">5.</span> <span class="nav-text">方法安全</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#EnableGlobalMethodSecurity"><span class="nav-number">5.1.</span> <span class="nav-text">EnableGlobalMethodSecurity</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#GlobalMethodSecurityConfiguration"><span class="nav-number">5.2.</span> <span class="nav-text">GlobalMethodSecurityConfiguration</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用-protect-pointcut-添加安全切入点"><span class="nav-number">5.3.</span> <span class="nav-text">使用 protect-pointcut 添加安全切入点</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考资料"><span class="nav-number">6.</span> <span class="nav-text">参考资料</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">晴天</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">198</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">58</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">晴天</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v4.2.1
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> v7.7.0
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: '5f0b1c1d42822204f803',
+      clientSecret: '56818d47fc75f1f4999acd7a3356879bbade310f',
+      repo: 'cdrcool.github.io',
+      owner: 'cdrcool',
+      admin: ['cdrcool'],
+      id: '3f0390a2739c5a89e7f8fd315535450c',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

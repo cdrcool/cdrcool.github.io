@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('http://yoursite.com').hostname,
+    root: '/',
+    scheme: 'Muse',
+    version: '7.7.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="KafkaApache Kafka 是一款开源的消息引擎系统，其主要功能是提供一套完备的消息发布与订阅解决方案。在 Kafka 中，发布订阅的对象是主题（Topic），我们可以为每个业务、每个应用甚至是每类数据都创建专属的主题。 消息（Record）我们已经知道，Kafka 是消息引擎，这里的消息就是指 Kafka 处理的主要对象。 主题（Topic）主题是承载消息的逻辑容器，在实际使用中多用来区">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Kafka 核心概念">
+<meta property="og:url" content="http://yoursite.com/2020/01/20/Kafka%E6%A0%B8%E5%BF%83%E6%A6%82%E5%BF%B5/index.html">
+<meta property="og:site_name" content="OnePiece">
+<meta property="og:description" content="KafkaApache Kafka 是一款开源的消息引擎系统，其主要功能是提供一套完备的消息发布与订阅解决方案。在 Kafka 中，发布订阅的对象是主题（Topic），我们可以为每个业务、每个应用甚至是每类数据都创建专属的主题。 消息（Record）我们已经知道，Kafka 是消息引擎，这里的消息就是指 Kafka 处理的主要对象。 主题（Topic）主题是承载消息的逻辑容器，在实际使用中多用来区">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-01-20T11:19:00.000Z">
+<meta property="article:modified_time" content="2021-05-06T07:11:29.184Z">
+<meta property="article:author" content="晴天">
+<meta property="article:tag" content="Kafka">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://yoursite.com/2020/01/20/Kafka%E6%A0%B8%E5%BF%83%E6%A6%82%E5%BF%B5/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>Kafka 核心概念 | OnePiece</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">OnePiece</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">人的知识就好比一个圆圈，圆圈里面是已知的，圆圈外面是未知的。你知道得越多，圆圈也就越大，你不知道的也就越多。</p>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+  </ul>
+
+</nav>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/01/20/Kafka%E6%A0%B8%E5%BF%83%E6%A6%82%E5%BF%B5/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="晴天">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="OnePiece">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Kafka 核心概念
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-01-20 19:19:00" itemprop="dateCreated datePublished" datetime="2020-01-20T19:19:00+08:00">2020-01-20</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-05-06 15:11:29" itemprop="dateModified" datetime="2021-05-06T15:11:29+08:00">2021-05-06</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Kafka/" itemprop="url" rel="index">
+                    <span itemprop="name">Kafka</span>
+                  </a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="Kafka"><a href="#Kafka" class="headerlink" title="Kafka"></a>Kafka</h2><p>Apache Kafka 是一款开源的消息引擎系统，其主要功能是提供一套完备的消息发布与订阅解决方案。<br>在 Kafka 中，发布订阅的对象是主题（Topic），我们可以为每个业务、每个应用甚至是每类数据都创建专属的主题。</p>
+<h2 id="消息（Record）"><a href="#消息（Record）" class="headerlink" title="消息（Record）"></a>消息（Record）</h2><p>我们已经知道，Kafka 是消息引擎，这里的消息就是指 Kafka 处理的主要对象。</p>
+<h2 id="主题（Topic）"><a href="#主题（Topic）" class="headerlink" title="主题（Topic）"></a>主题（Topic）</h2><p>主题是承载消息的逻辑容器，在实际使用中多用来区分具体的业务。</p>
+<h2 id="生产者（Producer）"><a href="#生产者（Producer）" class="headerlink" title="生产者（Producer）"></a>生产者（Producer）</h2><p>向主题发布消息的客户端应用程序。</p>
+<h2 id="消费者（Consumer）"><a href="#消费者（Consumer）" class="headerlink" title="消费者（Consumer）"></a>消费者（Consumer）</h2><p>从主题订阅消息的应用程序。</p>
+<h2 id="客户端（Clients）"><a href="#客户端（Clients）" class="headerlink" title="客户端（Clients）"></a>客户端（Clients）</h2><p>我们把生产者和消费者统称为客户端。</p>
+<h2 id="服务器端（Broker）"><a href="#服务器端（Broker）" class="headerlink" title="服务器端（Broker）"></a>服务器端（Broker）</h2><p>由被称为 Broker 的服务进程构成，即一个 Kafka 集群由多个 Broker 组成，Broker 负责接收和处理客户端发来的请求，以及对消息进行持久化。</p>
+<h2 id="分区（Partition）"><a href="#分区（Partition）" class="headerlink" title="分区（Partition）"></a>分区（Partition）</h2><p>一个有序不变的消息队列。每个主题下可以有多个分区。<br>生产者生产的每条消息只会被发送到一个分区中，也就是说如果向一个双分区的主题发送一条消息，这条消息要么在分区 0 中，要么在分区 1 中。（Kafka 的分区编号从 0 开始递增）<br>分区的设计是为了解决分布式系统中的伸缩性问题：把数据分割成多份保存在不同的 Broker 上，从而避免数据太多以至于单台 Broker 都无法容纳。<br>Partition 与 MongoDB 和 Elasticsearch 中的 Sharding、HBase中的Region，其实它们都是相同的原理，只是 Partitioning 是最标准的名称。</p>
+<h2 id="副本（Replica）"><a href="#副本（Replica）" class="headerlink" title="副本（Replica）"></a>副本（Replica）</h2><p>Kafka 中同一条消息能够被拷贝到多个地方以提供数据冗余，这些地方就是所谓的副本。<br>副本是在分区层级下实现的，即每个分区可配置多个副本实现高可用。<br>副本可以分为领导者副本（Leader Replica）和追随者副本（Follower Replica）。前者对外提供服务，这里的对外指的是与客户端程序进行交互；而后者只是被动的追随前者而已，不能与外界进行交互。<br>副本的工作机制：生产者总是向领导者副本写消息；而消费者总是从领导者副本读消息。至于追随者副本，它只做一件事：向领导者副本发送请求，请求领导者把最新生产的消息发给它，这样它能保持与领导者的同步。</p>
+<p>我们知道，MySQL 的从库是可以处理读操作的，但是在 Kafka 中追随者副本不会对外提供服务。其原因有以下几点：</p>
+<ul>
+<li>kafka 的分区已经能够让读写操作在多个 Broker 上，而不像 MySQL 的主从，压力都在主上；</li>
+<li>kafka 保存的数据和数据库的性质有实质的区别：Kafka 中的数据是流数据，需要记录消费位移，而数据库是实体数据不存在这个概念，如果从 Kafka 的 Follower 读，消费端 offset 控制将更复杂；</li>
+<li>对于生产者来说，kafka 可以通过配置来控制是否等待 Follower 的消息确认，如果从上面读，也需要所有的 Follower 都确认了才可以回复生产者，造成性能下降，如果 Follower 出问题了也不好处理。</li>
+</ul>
+<h2 id="消费者组（Consumer-Group）"><a href="#消费者组（Consumer-Group）" class="headerlink" title="消费者组（Consumer Group）"></a>消费者组（Consumer Group）</h2><p>多个消费者实例共同组成的一个组，同时消费多个分区以实现高吞吐。<br>主题中的每个分区都只会被组内的一个消费者实例消费，其它消费者实例不能消费它。一个消费者实例可以消费多个分区。分区数决定了消费者个数的上限，一般情况下消费者个数应与分区数一致，消费者个数过多会浪费系统资源，因为多出的消费者不会被分配到任何分区。</p>
+<h2 id="重平衡（Rebalance）"><a href="#重平衡（Rebalance）" class="headerlink" title="重平衡（Rebalance）"></a>重平衡（Rebalance）</h2><p>消费者组内某个实例挂掉后，其它消费者实例自动重新分配订阅主题分区的过程。Rebalance 是 Kafka 实现高可用的重要手段。</p>
+<h2 id="消息位移（Offset）"><a href="#消息位移（Offset）" class="headerlink" title="消息位移（Offset）"></a>消息位移（Offset）</h2><p>表示分区中每条消息的位置信息，是一个单调递增且不变的值。</p>
+<h2 id="消费者位移（Consumer-Offset）"><a href="#消费者位移（Consumer-Offset）" class="headerlink" title="消费者位移（Consumer Offset）"></a>消费者位移（Consumer Offset）</h2><p>表示消费者的消费进度，每个消费者都有自己的消费者位移。</p>
+
+    </div>
+
+    
+    
+    
+        <div class="reward-container">
+  <div>小礼物走一走，来 Github 关注我</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/wechatpay.png" alt="晴天 微信支付">
+        <p>微信支付</p>
+      </div>
+      
+      <div style="display: inline-block;">
+        <img src="/images/alipay.png" alt="晴天 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Kafka/" rel="tag"># Kafka</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/01/16/Spring%20Boot%E9%9B%86%E6%88%90Kafka/" rel="prev" title="Spring Boot 集成 Kafka">
+      <i class="fa fa-chevron-left"></i> Spring Boot 集成 Kafka
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/01/21/Kafka%E6%B6%88%E6%81%AF%E6%A8%A1%E5%9E%8B/" rel="next" title="Kafka 消息模型">
+      Kafka 消息模型 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Kafka"><span class="nav-number">1.</span> <span class="nav-text">Kafka</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#消息（Record）"><span class="nav-number">2.</span> <span class="nav-text">消息（Record）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#主题（Topic）"><span class="nav-number">3.</span> <span class="nav-text">主题（Topic）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#生产者（Producer）"><span class="nav-number">4.</span> <span class="nav-text">生产者（Producer）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#消费者（Consumer）"><span class="nav-number">5.</span> <span class="nav-text">消费者（Consumer）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#客户端（Clients）"><span class="nav-number">6.</span> <span class="nav-text">客户端（Clients）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#服务器端（Broker）"><span class="nav-number">7.</span> <span class="nav-text">服务器端（Broker）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#分区（Partition）"><span class="nav-number">8.</span> <span class="nav-text">分区（Partition）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#副本（Replica）"><span class="nav-number">9.</span> <span class="nav-text">副本（Replica）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#消费者组（Consumer-Group）"><span class="nav-number">10.</span> <span class="nav-text">消费者组（Consumer Group）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#重平衡（Rebalance）"><span class="nav-number">11.</span> <span class="nav-text">重平衡（Rebalance）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#消息位移（Offset）"><span class="nav-number">12.</span> <span class="nav-text">消息位移（Offset）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#消费者位移（Consumer-Offset）"><span class="nav-number">13.</span> <span class="nav-text">消费者位移（Consumer Offset）</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">晴天</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">198</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">58</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">晴天</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v4.2.1
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> v7.7.0
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: '5f0b1c1d42822204f803',
+      clientSecret: '56818d47fc75f1f4999acd7a3356879bbade310f',
+      repo: 'cdrcool.github.io',
+      owner: 'cdrcool',
+      admin: ['cdrcool'],
+      id: '049e67abc2d5d0f46a0bbe22f260deed',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

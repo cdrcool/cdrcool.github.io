@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('http://yoursite.com').hostname,
+    root: '/',
+    scheme: 'Muse',
+    version: '7.7.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="整体流程在审批操作前后，我们系统中都提供了相应的扩展接口，并且在弃审前，也会帮我们自动做数据引用校验，先看看目前的整体流程：整体流程没问题，只是有4个小地方我认为可以改进下：  bpm是从数据库中查找回调地址（&#x2F;icopbpm&#x2F;updateBillState）的，这就要求我们每创建个单据，都要去数据库添加一行几乎相同记录，很麻烦也没必要。我认为要么代码中固定为&#x2F;icopbpm&#x2F;updateBill">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ijz后端框架(十)审批扩展">
+<meta property="og:url" content="http://yoursite.com/2019/02/22/ijz%E5%90%8E%E7%AB%AF%E6%A1%86%E6%9E%B6(%E5%8D%81)%E5%AE%A1%E6%89%B9%E6%89%A9%E5%B1%95/index.html">
+<meta property="og:site_name" content="OnePiece">
+<meta property="og:description" content="整体流程在审批操作前后，我们系统中都提供了相应的扩展接口，并且在弃审前，也会帮我们自动做数据引用校验，先看看目前的整体流程：整体流程没问题，只是有4个小地方我认为可以改进下：  bpm是从数据库中查找回调地址（&#x2F;icopbpm&#x2F;updateBillState）的，这就要求我们每创建个单据，都要去数据库添加一行几乎相同记录，很麻烦也没必要。我认为要么代码中固定为&#x2F;icopbpm&#x2F;updateBill">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://yoursite.com/images/ijz/%E5%AE%A1%E6%89%B9%E6%B5%81%E7%A8%8B%E6%97%B6%E5%BA%8F%E5%9B%BE%EF%BC%88%E6%94%B9%E9%80%A0%E5%89%8D%EF%BC%89.png">
+<meta property="og:image" content="http://yoursite.com/images/ijz/%E5%AE%A1%E6%89%B9%E6%B5%81%E7%A8%8B%E6%97%B6%E5%BA%8F%E5%9B%BE%EF%BC%88%E6%94%B9%E9%80%A0%E5%90%8E%EF%BC%89.png">
+<meta property="og:image" content="http://yoursite.com/images/ijz/%E5%BC%83%E5%AE%A1%E6%A0%A1%E9%AA%8C%E6%97%B6%E5%BA%8F%E5%9B%BE%EF%BC%88%E6%94%B9%E9%80%A0%E5%89%8D%EF%BC%89.png">
+<meta property="og:image" content="http://yoursite.com/images/ijz/%E5%BC%83%E5%AE%A1%E6%A0%A1%E9%AA%8C%E6%97%B6%E5%BA%8F%E5%9B%BE%EF%BC%88%E6%94%B9%E9%80%A0%E5%90%8E%EF%BC%89.png">
+<meta property="article:published_time" content="2019-02-22T07:37:10.000Z">
+<meta property="article:modified_time" content="2021-05-06T07:11:29.209Z">
+<meta property="article:author" content="晴天">
+<meta property="article:tag" content="InitializingBean">
+<meta property="article:tag" content="DisposableBean">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/images/ijz/%E5%AE%A1%E6%89%B9%E6%B5%81%E7%A8%8B%E6%97%B6%E5%BA%8F%E5%9B%BE%EF%BC%88%E6%94%B9%E9%80%A0%E5%89%8D%EF%BC%89.png">
+
+<link rel="canonical" href="http://yoursite.com/2019/02/22/ijz%E5%90%8E%E7%AB%AF%E6%A1%86%E6%9E%B6(%E5%8D%81)%E5%AE%A1%E6%89%B9%E6%89%A9%E5%B1%95/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>ijz后端框架(十)审批扩展 | OnePiece</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">OnePiece</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">人的知识就好比一个圆圈，圆圈里面是已知的，圆圈外面是未知的。你知道得越多，圆圈也就越大，你不知道的也就越多。</p>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+  </ul>
+
+</nav>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/02/22/ijz%E5%90%8E%E7%AB%AF%E6%A1%86%E6%9E%B6(%E5%8D%81)%E5%AE%A1%E6%89%B9%E6%89%A9%E5%B1%95/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="晴天">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="OnePiece">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          ijz后端框架(十)审批扩展
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-02-22 15:37:10" itemprop="dateCreated datePublished" datetime="2019-02-22T15:37:10+08:00">2019-02-22</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-05-06 15:11:29" itemprop="dateModified" datetime="2021-05-06T15:11:29+08:00">2021-05-06</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/ijz%E5%90%8E%E7%AB%AF%E6%A1%86%E6%9E%B6/" itemprop="url" rel="index">
+                    <span itemprop="name">ijz后端框架</span>
+                  </a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="整体流程"><a href="#整体流程" class="headerlink" title="整体流程"></a>整体流程</h2><p>在审批操作前后，我们系统中都提供了相应的扩展接口，并且在弃审前，也会帮我们自动做数据引用校验，先看看目前的整体流程：<br><img src="/images/ijz/%E5%AE%A1%E6%89%B9%E6%B5%81%E7%A8%8B%E6%97%B6%E5%BA%8F%E5%9B%BE%EF%BC%88%E6%94%B9%E9%80%A0%E5%89%8D%EF%BC%89.png" alt="审批流程时序图（改造前）"><br>整体流程没问题，只是有4个小地方我认为可以改进下：</p>
+<ul>
+<li>bpm是从数据库中查找回调地址（/icopbpm/updateBillState）的，这就要求我们每创建个单据，都要去数据库添加一行几乎相同记录，很麻烦也没必要。<br>我认为要么代码中固定为<strong>/icopbpm/updateBillState</strong>，要么这个回调地址是由前端通过参数传递为bpm（类似cas登陆验证）。</li>
+<li>IBusinessService的查找是通过Spring监听器，可以改为使用InitializingBean和DisposableBean接口。</li>
+<li>弃审前和审批后扩展接口可以由2个合并成1个，另外提供弃审后扩展接口。</li>
+<li>扩展接口都是返回JsonBackData对象，以提示操作成功或失败，有点多余。成功继续执行，失败直接抛异常好了。</li>
+</ul>
+<p>改造后的整体流程：<br><img src="/images/ijz/%E5%AE%A1%E6%89%B9%E6%B5%81%E7%A8%8B%E6%97%B6%E5%BA%8F%E5%9B%BE%EF%BC%88%E6%94%B9%E9%80%A0%E5%90%8E%EF%BC%89.png" alt="审批流程时序图（改造后）"></p>
+<h2 id="弃审校验"><a href="#弃审校验" class="headerlink" title="弃审校验"></a>弃审校验</h2><p>目前的弃审校验流程：<br><img src="/images/ijz/%E5%BC%83%E5%AE%A1%E6%A0%A1%E9%AA%8C%E6%97%B6%E5%BA%8F%E5%9B%BE%EF%BC%88%E6%94%B9%E9%80%A0%E5%89%8D%EF%BC%89.png" alt="弃审校验时序图（改造前）"><br>我主要是认为没必要请求support，自定义配置可以配置到元数据或配置文件里，多一次请求意味着多一点时间开销，多一次意外情况。另外我们公有云之前有遇到按引用实体的创建时间大于被引用实体的审批时间来做弃审校验，对于这点我做了支持。<br>改造后的弃审校验流程：<br><img src="/images/ijz/%E5%BC%83%E5%AE%A1%E6%A0%A1%E9%AA%8C%E6%97%B6%E5%BA%8F%E5%9B%BE%EF%BC%88%E6%94%B9%E9%80%A0%E5%90%8E%EF%BC%89.png" alt="弃审校验时序图（改造后）"><br>还是请求了一次support，因为没有现成的接口可以直接获取元数据信息。</p>
+<h2 id="兼容性"><a href="#兼容性" class="headerlink" title="兼容性"></a>兼容性</h2><p>在公有云合约系统中，像dr、billState字段都是在公共表里，但现在更新状态都是直接去更新合同表，所以我在各类合同表里也存了份字段。不过如果升级Hibernate到最新版本，又有新的问题：hibernate不会再自动同步更新公共表和实体表，<br>所以在改造后的实现中，我会依据属性<code>ijz.bill.persistenceType</code>的值（jpa|jdbc）来决定是使用<code>EntityManager</code>还是<code>JdbcTemplate</code>更新表字段。</p>
+
+    </div>
+
+    
+    
+    
+        <div class="reward-container">
+  <div>小礼物走一走，来 Github 关注我</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/wechatpay.png" alt="晴天 微信支付">
+        <p>微信支付</p>
+      </div>
+      
+      <div style="display: inline-block;">
+        <img src="/images/alipay.png" alt="晴天 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/InitializingBean/" rel="tag"># InitializingBean</a>
+              <a href="/tags/DisposableBean/" rel="tag"># DisposableBean</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/02/22/ijz%E5%90%8E%E7%AB%AF%E6%A1%86%E6%9E%B6(%E4%B9%9D)%E5%BC%95%E7%94%A8%E5%80%BC%E5%BA%8F%E5%88%97%E5%8C%96&%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/" rel="prev" title="ijz后端框架(九)引用值序列化&反序列化">
+      <i class="fa fa-chevron-left"></i> ijz后端框架(九)引用值序列化&反序列化
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/02/22/ijz%E5%90%8E%E7%AB%AF%E6%A1%86%E6%9E%B6(%E4%B8%89)%E6%A8%A1%E5%9D%97%E5%88%92%E5%88%86/" rel="next" title="ijz后端框架(三)模块划分">
+      ijz后端框架(三)模块划分 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#整体流程"><span class="nav-number">1.</span> <span class="nav-text">整体流程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#弃审校验"><span class="nav-number">2.</span> <span class="nav-text">弃审校验</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#兼容性"><span class="nav-number">3.</span> <span class="nav-text">兼容性</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">晴天</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">198</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">58</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">晴天</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v4.2.1
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> v7.7.0
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: '5f0b1c1d42822204f803',
+      clientSecret: '56818d47fc75f1f4999acd7a3356879bbade310f',
+      repo: 'cdrcool.github.io',
+      owner: 'cdrcool',
+      admin: ['cdrcool'],
+      id: '133b07f0166ce8276a0962012fd1f9f7',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

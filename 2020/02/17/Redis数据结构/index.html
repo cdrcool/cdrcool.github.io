@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('http://yoursite.com').hostname,
+    root: '/',
+    scheme: 'Muse',
+    version: '7.7.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="Redis 中所有的数据结构都是以唯一的 key 字符串作为名称，然后通过这个唯一的 key 值来获取相应的 value 数据。不同类型的数据结构的差异就在于 value 的结构不一样。 String（字符串）String 类型是 Redis 的最基本的数据类型。 Redis String 类型是二进制安全的。意思是 String 可以包含任何数据，比如 jpg 图片或者序列化的对象。 Redis">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Redis 数据结构">
+<meta property="og:url" content="http://yoursite.com/2020/02/17/Redis%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/index.html">
+<meta property="og:site_name" content="OnePiece">
+<meta property="og:description" content="Redis 中所有的数据结构都是以唯一的 key 字符串作为名称，然后通过这个唯一的 key 值来获取相应的 value 数据。不同类型的数据结构的差异就在于 value 的结构不一样。 String（字符串）String 类型是 Redis 的最基本的数据类型。 Redis String 类型是二进制安全的。意思是 String 可以包含任何数据，比如 jpg 图片或者序列化的对象。 Redis">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-02-17T09:17:00.000Z">
+<meta property="article:modified_time" content="2021-05-06T07:11:29.194Z">
+<meta property="article:author" content="晴天">
+<meta property="article:tag" content="Redis">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://yoursite.com/2020/02/17/Redis%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>Redis 数据结构 | OnePiece</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">OnePiece</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">人的知识就好比一个圆圈，圆圈里面是已知的，圆圈外面是未知的。你知道得越多，圆圈也就越大，你不知道的也就越多。</p>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+  </ul>
+
+</nav>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/02/17/Redis%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="晴天">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="OnePiece">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Redis 数据结构
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-02-17 17:17:00" itemprop="dateCreated datePublished" datetime="2020-02-17T17:17:00+08:00">2020-02-17</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-05-06 15:11:29" itemprop="dateModified" datetime="2021-05-06T15:11:29+08:00">2021-05-06</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Redis/" itemprop="url" rel="index">
+                    <span itemprop="name">Redis</span>
+                  </a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>Redis 中所有的数据结构都是以唯一的 key 字符串作为名称，然后通过这个唯一的 key 值来获取相应的 value 数据。不同类型的数据结构的差异就在于 value 的结构不一样。</p>
+<h2 id="String（字符串）"><a href="#String（字符串）" class="headerlink" title="String（字符串）"></a>String（字符串）</h2><p>String 类型是 Redis 的最基本的数据类型。</p>
+<p>Redis String 类型是二进制安全的。意思是 String 可以包含任何数据，比如 jpg 图片或者序列化的对象。</p>
+<p>Redis String 是动态字符串，内部结构实现上类似于 Java 的 ArrayList，采用预分配冗余空间的方式来减少内存的频繁分配（字符串实际分配的空间 capacity 一般要高于字符串实际长度 length）。当字符串长于小于 1M 时，扩容都是加倍现有的空间。如果超过 1M，扩容时一次只会多扩 1M 的空间。字符串的最大长度为 512M。</p>
+<p>使用场景：</p>
+<ul>
+<li>常规 key-value 缓存引用</li>
+<li>常规计数：微博数、粉丝数</li>
+</ul>
+<p>命令：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"># 设置 key-value</span><br><span class="line">set key value</span><br><span class="line"></span><br><span class="line"># 获取 key 值</span><br><span class="line">get key</span><br><span class="line"></span><br><span class="line"># 检查是否存在 key</span><br><span class="line">exists key</span><br><span class="line"></span><br><span class="line"># 删除 key</span><br><span class="line">del key</span><br><span class="line"></span><br><span class="line"># 批量设置 key-value list</span><br><span class="line">mset key1 value1 key2 value2 key3 value3</span><br><span class="line"></span><br><span class="line"># 批量获取 keys</span><br><span class="line">mget key1 key2 key3</span><br><span class="line"></span><br><span class="line"># 设置 key 5s 后过期</span><br><span class="line">expire key 5</span><br><span class="line"></span><br><span class="line"># 设置 key-value，key 在 5s 后过期</span><br><span class="line">setex key 5 value</span><br><span class="line"></span><br><span class="line"># 如果 key 不存在，设置 key-value</span><br><span class="line">setnx key value</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"># 如果 value 是一个整数，还可以对它进行自增&#x2F;自减操作。</span><br><span class="line">set age 30</span><br><span class="line"></span><br><span class="line"># 自增 +1</span><br><span class="line">incr age</span><br><span class="line"></span><br><span class="line"># 自增 +5</span><br><span class="line">incrby age 5</span><br><span class="line"></span><br><span class="line"># 自减 -1</span><br><span class="line">decr age</span><br><span class="line"></span><br><span class="line"># 自减 -5</span><br><span class="line">decrby age 5</span><br></pre></td></tr></table></figure>
+
+<h2 id="List（列表）"><a href="#List（列表）" class="headerlink" title="List（列表）"></a>List（列表）</h2><p>Redis List 是简单的字符串列表，按照插入顺序排序。可以添加一个元素到列表的头部（左边）或者尾部（右边）。</p>
+<p>Redis List 相当于 Java 里面的 LinkedList，注意<strong>它是链表而不是数组</strong>，这意味着 List 的插入和删除操作非常快，事件复杂度为 O(1)，但是索引定位很慢，时间复杂度为 O(n)。</p>
+<p>当列表弹出了最后一个元素之后，该数据结构自动被删除，内存被回收。</p>
+<p>使用场景：</p>
+<ul>
+<li>消息队列</li>
+<li>取最新 N 个数据的操作</li>
+</ul>
+<p>命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 在头部添加元素</span></span><br><span class="line">lpush books java</span><br><span class="line"></span><br><span class="line"><span class="comment"># 在尾部添加元素</span></span><br><span class="line">rpush books java</span><br><span class="line"></span><br><span class="line"><span class="comment"># 获取队列长度</span></span><br><span class="line">llen books</span><br><span class="line"></span><br><span class="line"><span class="comment"># 获取所有元素（O(n) 慎用）</span></span><br><span class="line">lrange books 0 -1</span><br><span class="line"></span><br><span class="line"><span class="comment"># 获取第 i 个元素（O(n) 慎用）</span></span><br><span class="line">lindex books 0</span><br><span class="line"></span><br><span class="line"><span class="comment"># 保留第一个元素之后的值（O(n) 慎用）</span></span><br><span class="line">ltrim books 1 -1</span><br><span class="line"></span><br><span class="line"><span class="comment"># 队列（右边进左边出）</span></span><br><span class="line">rpush books python java golang</span><br><span class="line"></span><br><span class="line">lpop books</span><br><span class="line"></span><br><span class="line">lpop books</span><br><span class="line"></span><br><span class="line">lpop books</span><br><span class="line"></span><br><span class="line"><span class="comment"># 栈（右边进右边出）</span></span><br><span class="line">rpush books python java golang</span><br><span class="line"></span><br><span class="line">rpop books</span><br><span class="line"></span><br><span class="line">rpop books</span><br><span class="line"></span><br><span class="line">rpop books</span><br></pre></td></tr></table></figure>
+
+<p>补充：<br><strong>Redis List 底层存储的不是一个简单的 LinkedList，而是称之为快速链表 quicklist 的一个结构。</strong><br>在列表元素较少的情况下会使用一块连续的内存存储，这个结构是 ziplist，也即是压缩列表。它将所有的元素紧挨着一起存储，分配的是一块连续的内存。<br>当数据量比较多的时候就会改成 quicklist。<br>因为普通的链表需要用到附加指针（prev 和 next），会比较浪费空间，而且会加重内存的碎片化。所以 Redis 将链表和 ziplist 结合起来组成了 quicklist。也就是将多个 ziplist 使用双向指针串起来使用。这样既满足了快速的插入删除性能，又不会出现太大的空间冗余。</p>
+<h2 id="Hash（字典）"><a href="#Hash（字典）" class="headerlink" title="Hash（字典）"></a>Hash（字典）</h2><p>Redis Hash 相当于 Java 语言里面的 HashMap，它是无序字典。内部实现结构上同 Java 的 HashMap 也是一致的：同样的数组 + 链表二维结构。第一维 hash 的数组位置碰撞时，就会将碰撞的元素使用链表串接起来。不同的是，Redis 的字典的值只能是字符串。</p>
+<p>Redis 为了高性能，不能阻塞服务，所以采用了渐进式的 rehash 策略。渐进式 rehash 会在 rehash 的同时，保留新旧两个 hash 结构，查询时会同时查询两个 hash 结构，然后在后续的定时任务中以及 hash 操作指令中，循序渐进地将旧 hash 的内容一点点迁移到新的 hash 结构中。当迁移完成了，就会使用新的 hash 结构五而代之。</p>
+<p>当 Hash 移除了最后一个元素之后，该数据结构会自动被删除，内存被回收。</p>
+<p>Hash 结构特别适合用于存储对象。缺点在于其存储消耗要高于单个字符串。到底该使用 Hash 还是字符串，需要根据实际情况再三权衡。</p>
+<p>使用场景：</p>
+<ul>
+<li>存储部分变更数据，如用户信息等。</li>
+</ul>
+<p>命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># put key-value</span></span><br><span class="line">hset books java <span class="string">"think in java"</span></span><br><span class="line"></span><br><span class="line">hset books golang <span class="string">"concurrency in go"</span></span><br><span class="line"></span><br><span class="line">hset books python <span class="string">"python cookbook"</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 获取所有键值对</span></span><br><span class="line">hgetall books</span><br><span class="line"></span><br><span class="line"><span class="comment"># 获取元素个数</span></span><br><span class="line">hlen books</span><br><span class="line"></span><br><span class="line"><span class="comment"># 获取某个 key 的值</span></span><br><span class="line">hget books java</span><br><span class="line"></span><br><span class="line"><span class="comment"># 设置某个 key 的值</span></span><br><span class="line">hset books golang <span class="string">"learning go programming"</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 删除某个 key 的值</span></span><br><span class="line">hdel books java</span><br><span class="line"></span><br><span class="line"><span class="comment"># 同字符串一样，hash 结构中的单个子 key 也可以进行计数</span></span><br><span class="line">hset user age 30</span><br><span class="line"></span><br><span class="line">hincrby user age 1</span><br></pre></td></tr></table></figure>
+
+<h2 id="Set（集合）"><a href="#Set（集合）" class="headerlink" title="Set（集合）"></a>Set（集合）</h2><p>Redis Set 相当于 Java 语言里面的 HashSet，它内部的键值对是唯一且无序的。它的内部实现相当于一个特殊的字典，字典中所有的value 都是一个值 NULL。</p>
+<p>当 Set 移除了最后一个元素之后，该数据结构会自动被删除，内存被回收。</p>
+<p>使用场景：</p>
+<ul>
+<li>交集，并集，差集</li>
+<li>获取某段时间所有数据去重值</li>
+</ul>
+<p>命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 添加元素</span></span><br><span class="line">sadd books python</span><br><span class="line"></span><br><span class="line"><span class="comment"># 重复添加</span></span><br><span class="line">sadd books python</span><br><span class="line"></span><br><span class="line"><span class="comment"># 批量添加</span></span><br><span class="line">sadd books java golang</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看集合成员（顺序不一定和插入的一致）</span></span><br><span class="line">smembers books</span><br><span class="line"></span><br><span class="line"><span class="comment"># 获取元素个数</span></span><br><span class="line">scard books</span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查某个 value 是否在集合中</span></span><br><span class="line">sismember books java</span><br><span class="line"></span><br><span class="line"><span class="comment"># 弹出一个元素</span></span><br><span class="line">spop books</span><br><span class="line"></span><br><span class="line"><span class="comment"># 删除成员</span></span><br><span class="line">srem books python</span><br></pre></td></tr></table></figure>
+
+<h2 id="zset（有序集合）"><a href="#zset（有序集合）" class="headerlink" title="zset（有序集合）"></a>zset（有序集合）</h2><p>类似于 Java 的 SortedSet 和 HashMap 的集合体，一方面它是一个 set，保证了内部 value 的唯一性，另一方面它可以给每个 value 赋予一个 score，代表这个 value 的排序权重。它的内部实现用的是一种叫做<strong>跳跃链表</strong>的数据结构。</p>
+<p>zset 中最后一个 value 被移除后，数据结构自动删除，内存被回收。</p>
+<p>使用场景：</p>
+<ul>
+<li>排行榜应用，取 TOP N 操作</li>
+<li>范围查找</li>
+<li>优先级队列</li>
+<li>需要精确设定过期时间的应用（score 值设置成过期时间的时间戳）</li>
+</ul>
+<p>命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 添加元素</span></span><br><span class="line">zadd books 9.0 <span class="string">"think in java"</span></span><br><span class="line">zadd books 8.9 <span class="string">"java concurrency"</span></span><br><span class="line">zadd books 8.6 <span class="string">"java cookbook"</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 按 score 排序列出</span></span><br><span class="line">zrange books 0 -1</span><br><span class="line"></span><br><span class="line"><span class="comment"># 按 score 逆序列出</span></span><br><span class="line">zrevrange books 0 -1</span><br><span class="line"></span><br><span class="line"><span class="comment"># 获取元素个数</span></span><br><span class="line">zcard books</span><br><span class="line"></span><br><span class="line"><span class="comment"># 获取指定元素的 score</span></span><br><span class="line">zscore books <span class="string">"java concurrency"</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 获取指定元素的 score 排名</span></span><br><span class="line">zrank books <span class="string">"java concurrency"</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 根据分值区间遍历 zset</span></span><br><span class="line">zrangebyscore books 0 8.91</span><br><span class="line"></span><br><span class="line"><span class="comment"># 根据分值区间（(-=, 8.91]）遍历 zset，同时返回分值</span></span><br><span class="line">zrangebyscore books -inf 8.91 withscores</span><br><span class="line"></span><br><span class="line"><span class="comment"># 删除成员</span></span><br><span class="line">zrem books <span class="string">"java concurrency"</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="BitMap（位图）"><a href="#BitMap（位图）" class="headerlink" title="BitMap（位图）"></a>BitMap（位图）</h2><p>BitMap 就是通过一个 bit 位来表示某个元素对应的值或者状态, 其中的 key 就是对应元素本身，<strong>实际上底层也是通过对字符串的操作来实现</strong>。</p>
+<p>BitMap 是自动扩展，如果设置了某个偏移位置超出了现有的内容范围，就会自动将位数组进行零扩充。</p>
+<p>使用场景：</p>
+<ul>
+<li>用户签到</li>
+<li>统计活跃用户</li>
+<li>用户在线状态</li>
+</ul>
+<p>命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 零存零取</span></span><br><span class="line">setbit w 1 1</span><br><span class="line">getbit w 1</span><br><span class="line"></span><br><span class="line"><span class="comment"># 整存零取</span></span><br><span class="line"><span class="built_in">set</span> w hello</span><br><span class="line">getbit w 1</span><br><span class="line"></span><br><span class="line"><span class="comment"># 统计指定范围内 1 的个数</span></span><br><span class="line">bitcount w 0 -1</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查找第一个 1 位</span></span><br><span class="line">bitpos w 1</span><br><span class="line"></span><br><span class="line"><span class="comment"># ...</span></span><br><span class="line">bitfield w ...</span><br></pre></td></tr></table></figure>
+
+<h2 id="HyperLogLog（基数统计）"><a href="#HyperLogLog（基数统计）" class="headerlink" title="HyperLogLog（基数统计）"></a>HyperLogLog（基数统计）</h2><p>Redis HyperLogLog 是用来做基数统计的算法。HyperLogLog 的优点是，在输入元素的数量或者体积非常非常大时，计算基数所需的空间总是固定的、并且是很小的。<br>在 Redis 里面，每个 HyperLogLog 键只需要花费 12 KB 内存，就可以计算接近 2^64 个不同元素的基数。这和计算基数时，元素越多耗费内存就越多的集合形成鲜明对比。<br>但是，因为 <strong>HyperLogLog 只会根据输入元素来计算基数，而不会储存输入元素本身</strong>，所以 HyperLogLog 不能像集合那样，返回输入的各个元素。<br>另外，<strong>HyperLogLog 提供的去重计数方案是不精确的</strong>，虽然不精确但是也不是非常不精确，标准误差是 0.81%，这样的精确度已经可以满足上面的 UV 统计需求了。</p>
+<p>使用场景：</p>
+<ul>
+<li>页面实时 UV</li>
+<li>不适合单个用户的数据统计</li>
+</ul>
+<p>命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 添加计数</span></span><br><span class="line">pfadd codehole user1</span><br><span class="line"></span><br><span class="line"><span class="comment"># 获取计数</span></span><br><span class="line">pfcount codehole</span><br><span class="line"></span><br><span class="line"><span class="comment"># 添加计数</span></span><br><span class="line">pfadd home user1</span><br><span class="line"></span><br><span class="line"><span class="comment"># 合并计数（并集计算）</span></span><br><span class="line">pfmerge xx codehole home</span><br></pre></td></tr></table></figure>
+
+<h2 id="GEO（地理位置）"><a href="#GEO（地理位置）" class="headerlink" title="GEO（地理位置）"></a>GEO（地理位置）</h2><p>用于存储用户给定的地理位置信息，并对这些信息进行操作。GEO 数据结构总共有 6 个命令：geoadd、geopos、geodist、georadius、georadiusbymember。</p>
+<h2 id="容器类型数据结构的通用规则"><a href="#容器类型数据结构的通用规则" class="headerlink" title="容器类型数据结构的通用规则"></a>容器类型数据结构的通用规则</h2><p>list/set/hash/zset 这四种数据结构是容器型数据结构，它们共享下面两条通用规则：</p>
+<ul>
+<li>create if not exists：如果容器不存在，那就创建一个，再进行操作</li>
+<li>drop if no elements：如果容器里元数没有了，那么立即删除元数，释放内存。</li>
+</ul>
+<h2 id="过期时间"><a href="#过期时间" class="headerlink" title="过期时间"></a>过期时间</h2><p>Redis 所有的数据结构都可以设置过期时间，时间到了，Redis 会自动删除相应的对象。</p>
+<p>需要注意的是<strong>过期是以对象为单位</strong>，比如一个 hash 结构的过期是整个 hash 对象的过期，而不是其中的某个子 key。</p>
+<p>还有一个需要特别注意的地方是<strong>如果一个字符串已经设置了过期时间，然后调用了 set 方法修改了它，它的过期时间就会消失</strong>。</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ol>
+<li><a href="https://blog.csdn.net/hudeyong926/article/details/99540705" target="_blank" rel="noopener">Redis的8种数据类型</a></li>
+<li><a href="https://blog.csdn.net/Butterfly_resting/article/details/89668661" target="_blank" rel="noopener">几率大的Redis面试题（含答案）</a></li>
+</ol>
+
+    </div>
+
+    
+    
+    
+        <div class="reward-container">
+  <div>小礼物走一走，来 Github 关注我</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/wechatpay.png" alt="晴天 微信支付">
+        <p>微信支付</p>
+      </div>
+      
+      <div style="display: inline-block;">
+        <img src="/images/alipay.png" alt="晴天 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Redis/" rel="tag"># Redis</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/02/12/ELasticsearch%E6%98%A0%E5%B0%84/" rel="prev" title="Elasticsearch 映射">
+      <i class="fa fa-chevron-left"></i> Elasticsearch 映射
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/02/17/%E5%9F%BA%E4%BA%8EDocker%E6%90%AD%E5%BB%BARedis%E9%9B%86%E7%BE%A4/" rel="next" title="基于 Docker 搭建 Redis 集群">
+      基于 Docker 搭建 Redis 集群 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#String（字符串）"><span class="nav-number">1.</span> <span class="nav-text">String（字符串）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#List（列表）"><span class="nav-number">2.</span> <span class="nav-text">List（列表）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Hash（字典）"><span class="nav-number">3.</span> <span class="nav-text">Hash（字典）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Set（集合）"><span class="nav-number">4.</span> <span class="nav-text">Set（集合）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#zset（有序集合）"><span class="nav-number">5.</span> <span class="nav-text">zset（有序集合）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#BitMap（位图）"><span class="nav-number">6.</span> <span class="nav-text">BitMap（位图）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#HyperLogLog（基数统计）"><span class="nav-number">7.</span> <span class="nav-text">HyperLogLog（基数统计）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#GEO（地理位置）"><span class="nav-number">8.</span> <span class="nav-text">GEO（地理位置）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#容器类型数据结构的通用规则"><span class="nav-number">9.</span> <span class="nav-text">容器类型数据结构的通用规则</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#过期时间"><span class="nav-number">10.</span> <span class="nav-text">过期时间</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考资料"><span class="nav-number">11.</span> <span class="nav-text">参考资料</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">晴天</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">198</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">58</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">晴天</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v4.2.1
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> v7.7.0
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: '5f0b1c1d42822204f803',
+      clientSecret: '56818d47fc75f1f4999acd7a3356879bbade310f',
+      repo: 'cdrcool.github.io',
+      owner: 'cdrcool',
+      admin: ['cdrcool'],
+      id: '329590ef3047fc99552a3c350b09bc62',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

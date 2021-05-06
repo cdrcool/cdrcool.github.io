@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('http://yoursite.com').hostname,
+    root: '/',
+    scheme: 'Muse',
+    version: '7.7.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="Maven 依赖1234&lt;dependency&gt;    &lt;groupId&gt;org.springframework.boot&lt;&#x2F;groupId&gt;    &lt;artifactId&gt;spring-boot-starter-security&lt;&#x2F;artifactId&gt;&lt;&#x2F;dependency&gt;  基本安全验证因为 spring-boot-">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Spring Security 开发实践">
+<meta property="og:url" content="http://yoursite.com/2020/03/04/Spring%20Security%E5%BC%80%E5%8F%91%E5%AE%9E%E8%B7%B5/index.html">
+<meta property="og:site_name" content="OnePiece">
+<meta property="og:description" content="Maven 依赖1234&lt;dependency&gt;    &lt;groupId&gt;org.springframework.boot&lt;&#x2F;groupId&gt;    &lt;artifactId&gt;spring-boot-starter-security&lt;&#x2F;artifactId&gt;&lt;&#x2F;dependency&gt;  基本安全验证因为 spring-boot-">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://yoursite.com/images/springsecurity/%E5%9F%BA%E6%9C%AC%E5%AE%89%E5%85%A8%E9%AA%8C%E8%AF%81.png">
+<meta property="og:image" content="http://yoursite.com/images/springsecurity/%E8%AE%B0%E4%BD%8F%E6%88%91-cookie%E7%A4%BA%E4%BE%8B.png">
+<meta property="og:image" content="http://yoursite.com/images/springsecurity/%E8%AE%B0%E4%BD%8F%E6%88%91-%E6%8C%81%E4%B9%85%E5%8C%96token%E7%A4%BA%E4%BE%8B.png">
+<meta property="og:image" content="http://yoursite.com/images/springsecurity/csrf%E7%A4%BA%E4%BE%8B.png">
+<meta property="article:published_time" content="2020-03-04T15:20:00.000Z">
+<meta property="article:modified_time" content="2021-05-06T07:11:29.203Z">
+<meta property="article:author" content="晴天">
+<meta property="article:tag" content="Spring Security">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/images/springsecurity/%E5%9F%BA%E6%9C%AC%E5%AE%89%E5%85%A8%E9%AA%8C%E8%AF%81.png">
+
+<link rel="canonical" href="http://yoursite.com/2020/03/04/Spring%20Security%E5%BC%80%E5%8F%91%E5%AE%9E%E8%B7%B5/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>Spring Security 开发实践 | OnePiece</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">OnePiece</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">人的知识就好比一个圆圈，圆圈里面是已知的，圆圈外面是未知的。你知道得越多，圆圈也就越大，你不知道的也就越多。</p>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+  </ul>
+
+</nav>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/03/04/Spring%20Security%E5%BC%80%E5%8F%91%E5%AE%9E%E8%B7%B5/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="晴天">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="OnePiece">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Spring Security 开发实践
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-03-04 23:20:00" itemprop="dateCreated datePublished" datetime="2020-03-04T23:20:00+08:00">2020-03-04</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-05-06 15:11:29" itemprop="dateModified" datetime="2021-05-06T15:11:29+08:00">2021-05-06</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Spring-Security/" itemprop="url" rel="index">
+                    <span itemprop="name">Spring Security</span>
+                  </a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="Maven-依赖"><a href="#Maven-依赖" class="headerlink" title="Maven 依赖"></a>Maven 依赖</h2><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-security<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="基本安全验证"><a href="#基本安全验证" class="headerlink" title="基本安全验证"></a>基本安全验证</h2><p>因为 spring-boot-starter-security 是开箱即用的，所以当项目中添加了该依赖之后，便具备了基本安全验证能力。示例：</p>
+<p><img src="/images/springsecurity/%E5%9F%BA%E6%9C%AC%E5%AE%89%E5%85%A8%E9%AA%8C%E8%AF%81.png" alt="基本安全验证"></p>
+<p>如上，未登录访问项目时，会自动跳转到一个简易的登录页面，用户名默认是 user，密码会在控制台输出。</p>
+<h2 id="配置用户"><a href="#配置用户" class="headerlink" title="配置用户"></a>配置用户</h2><h3 id="内存配置"><a href="#内存配置" class="headerlink" title="内存配置"></a>内存配置</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> UserDetailsService <span class="title">userDetailsService</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">// ensure the passwords are encoded properly</span></span><br><span class="line">    User.UserBuilder users = User.withDefaultPasswordEncoder();</span><br><span class="line">    InMemoryUserDetailsManager manager = <span class="keyword">new</span> InMemoryUserDetailsManager();</span><br><span class="line">    manager.createUser(users.username(<span class="string">"user"</span>).password(<span class="string">"password"</span>).roles(<span class="string">"USER"</span>).build());</span><br><span class="line">    manager.createUser(users.username(<span class="string">"admin"</span>).password(<span class="string">"password"</span>).roles(<span class="string">"USER"</span>,<span class="string">"ADMIN"</span>).build());</span><br><span class="line">    <span class="keyword">return</span> manager;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="数据库配置"><a href="#数据库配置" class="headerlink" title="数据库配置"></a>数据库配置</h3><h4 id="HSQLDB"><a href="#HSQLDB" class="headerlink" title="HSQLDB"></a>HSQLDB</h4><p><strong>Maven 依赖：</strong></p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.hsqldb<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>hsqldb<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">scope</span>&gt;</span>runtime<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>Java 代码：</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Autowired</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">configureGlobal</span><span class="params">(AuthenticationManagerBuilder auth)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">    <span class="comment">// ensure the passwords are encoded properly</span></span><br><span class="line">    User.UserBuilder users = User.withDefaultPasswordEncoder();</span><br><span class="line">    auth</span><br><span class="line">            .jdbcAuthentication()</span><br><span class="line">            .dataSource(dataSource)</span><br><span class="line">            <span class="comment">// 使用 "org/springframework/security/core/userdetails/jdbc/users.ddl" 自动建表</span></span><br><span class="line">            .withDefaultSchema()</span><br><span class="line">            <span class="comment">// 往 users 表中插入数据</span></span><br><span class="line">            .withUser(users.username(<span class="string">"user"</span>).password(<span class="string">"password"</span>).roles(<span class="string">"USER"</span>))</span><br><span class="line">            .withUser(users.username(<span class="string">"admin"</span>).password(<span class="string">"password"</span>).roles(<span class="string">"USER"</span>,<span class="string">"ADMIN"</span>));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="MySQL"><a href="#MySQL" class="headerlink" title="MySQL"></a>MySQL</h4><p><strong>Maven 依赖：</strong></p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>mysql<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>mysql-connector-java<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>配置属性：</strong></p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">spring:</span></span><br><span class="line">  <span class="attr">datasource:</span></span><br><span class="line">    <span class="comment"># always：始终执行初始化；embedded：内存数据库时才执行初始化；never：不执行初始化</span></span><br><span class="line">    <span class="attr">initialization-mode:</span> <span class="string">always</span></span><br><span class="line">    <span class="comment"># 表初始化，默认值 classpath:schema.sql</span></span><br><span class="line">    <span class="attr">schema:</span> <span class="string">classpath:schema.sql</span></span><br><span class="line">    <span class="comment"># 数据初始化，默认值 classpath:data.sql</span></span><br><span class="line">    <span class="attr">data:</span> <span class="string">classpath:data.sql</span></span><br><span class="line">    <span class="comment"># 默认加载 data.sql 或 data-$&#123;platform&#125;.sql，默认值 all</span></span><br><span class="line">    <span class="attr">platform:</span> <span class="string">all</span></span><br><span class="line">    <span class="attr">driverClassName:</span> <span class="string">com.mysql.cj.jdbc.Driver</span></span><br><span class="line">    <span class="attr">url:</span> <span class="string">jdbc:mysql://localhost:3306/demo?useUnicode=true&amp;characterEncoding=utf-8&amp;autoReconnect=true&amp;failOverReadOnly=false&amp;useSSL=true&amp;serverTimezone=Asia/Shanghai</span></span><br><span class="line">    <span class="attr">username:</span> <span class="string">root</span></span><br><span class="line">    <span class="attr">password:</span> <span class="string">admin123</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>注意：</strong></p>
+<ul>
+<li>schema.sql 中不能带有注释。</li>
+<li>如果表名/字段名为 MySQL 关键字，则需要添加 `` 符号。</li>
+<li>用户登录密码指定加密算法，如 bcrypt、PBKDF2、scrypt、Argon2 等。指定方式为在密码前添加 {${algorithm}} 前缀，${algorithm} 为加密算法的名称。如果确实要明文存储密码，也可以添加前缀 {noop}。</li>
+</ul>
+<p><strong>Java 配置：</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> UserDetailsService <span class="title">userDetailsService</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> JdbcUserDetailsManager(dataSource);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="密码加密"><a href="#密码加密" class="headerlink" title="密码加密"></a>密码加密</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> PasswordEncoder <span class="title">passwordEncoder</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 如果不考虑兼容 Spring Security 5.0 之前的版本，可以直接返回 new BCryptPasswordEncoder()</span></span><br><span class="line">    DelegatingPasswordEncoder passwordEncoder = (DelegatingPasswordEncoder) PasswordEncoderFactories</span><br><span class="line">            .createDelegatingPasswordEncoder();</span><br><span class="line">    passwordEncoder.setDefaultPasswordEncoderForMatches(<span class="keyword">new</span> BCryptPasswordEncoder());</span><br><span class="line">    <span class="keyword">return</span> passwordEncoder;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>注意：</strong> 在 passwordEncoder() 方法中，也可以直接 <code>return new BCryptPasswordEncoder()</code>，之所以这里要<strong>使用 DelegatingPasswordEncoder 并将 BCryptPasswordEncoder 作为默认值给其赋值</strong>，是为了兼容 Spring Security 5.0 之前的版本。（在 Spring Security 5.0 之前，密码是明文存储的，而现在要求密码前面都要带加密算法前缀。）</p>
+<h2 id="会话管理"><a href="#会话管理" class="headerlink" title="会话管理"></a>会话管理</h2><h3 id="检测超时"><a href="#检测超时" class="headerlink" title="检测超时"></a>检测超时</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SecurityConfiguration</span> <span class="keyword">extends</span> <span class="title">WebSecurityConfigurerAdapter</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">configure</span><span class="params">(HttpSecurity http)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        http.authorizeRequests()</span><br><span class="line">                .antMatchers(<span class="string">"/invalidSession"</span>).permitAll()</span><br><span class="line">                .anyRequest().authenticated().and()</span><br><span class="line">                .formLogin().and()</span><br><span class="line">                <span class="comment">// session 超时后，跳转到 /invalidSession</span></span><br><span class="line">                .sessionManagement().invalidSessionUrl(<span class="string">"/invalidSession"</span>)</span><br><span class="line">                .and()</span><br><span class="line">                <span class="comment">// 由于配置了 session 超时检测，因此需要保证用户退出时清理掉 JSESSIONID cookie，</span></span><br><span class="line">                <span class="comment">// 不然在用户注销后重新登录时可能会错误地报告错误（测试并未出现该问题）</span></span><br><span class="line">                .logout().deleteCookies(<span class="string">"JSESSIONID"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>session 默认超时时间为 30m，可以通过配置 server.servlet.session.timeout 属性来修改超时时间。</p>
+<p><strong>注意：</strong> 这不能保证与每个 servlet 容器一起工作，所以需要在环境中测试它。</p>
+<h3 id="并发会话控制"><a href="#并发会话控制" class="headerlink" title="并发会话控制"></a>并发会话控制</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SecurityConfiguration</span> <span class="keyword">extends</span> <span class="title">WebSecurityConfigurerAdapter</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">configure</span><span class="params">(HttpSecurity http)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        http.authorizeRequests()</span><br><span class="line">                .antMatchers(<span class="string">"/invalidSession"</span>).permitAll()</span><br><span class="line">                .anyRequest().authenticated().and()</span><br><span class="line">                .formLogin().and()</span><br><span class="line">                .sessionManagement()</span><br><span class="line">                <span class="comment">// 一个用户只能同时在一处登陆。如果存在用户在多处重复登录，前面登录的用户再访问系统时会被重定向到 /invalidSession</span></span><br><span class="line">                .maximumSessions(<span class="number">1</span>).expiredUrl(<span class="string">"/invalidSession"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>当用户在另一处重复登录后，之前登录的用户再访问系统时，默认会收到 “This session has been expired (possibly due to multiple concurrent logins being attempted as the same user).” 错误提示。在上例中，我们是通过设置 expiredSessionStrategy 来将用户重定向到 /invalidSession。</p>
+<p>我们也可以通过设置 sessionManagement().maxSessionsPreventsLogin(true) 来阻止用户重复登录。</p>
+<h3 id="会话固定攻击保护"><a href="#会话固定攻击保护" class="headerlink" title="会话固定攻击保护"></a>会话固定攻击保护</h3><p>会话固定攻击是一种潜在的风险，恶意攻击者可能通过访问站点来创建会话，然后说服另一个用户使用相同的会话进行登录(例如，通过将包含会话标识符的链接作为参数发送给他们)。</p>
+<p>Spring Security 通过创建一个新会话或在用户登录时更改会话 ID 来自动防止这种情况。</p>
+<p>默认情况下，Spring Security 启用了此保护，我们可以通过设置 sessionManagement().sessionFixation().xx 来禁用此保护或调整相关行为。</p>
+<ul>
+<li>sessionFixation().none() 什么都不要做，将保留原来的会议。</li>
+<li>sessionFixation().newSession() 创建一个新的“干净”的会话，而不复制现有的会话数据（Spring 安全相关的属性仍然会被复制）。</li>
+<li>sessionFixation().migrateSession()  创建一个新会话，并将所有现有的会话属性复制到新会话中。这是 Servlet 3.0 或更旧的容器中的默认值。</li>
+<li>sessionFixation().changeSessionId() 不创建新会话。相反，使用 Servlet 容器提供的会话固定保护（HttpServletRequest#changeSessionId()）。此选项仅在 Servlet 3.1 (Java EE 7) 和更新的容器中可用。在旧的容器中指定它将导致异常。这是 Servlet 3.1 和更新的容器中的默认值。</li>
+</ul>
+<h2 id="Remember-me-身份验证"><a href="#Remember-me-身份验证" class="headerlink" title="Remember-me 身份验证"></a>Remember-me 身份验证</h2><p>Remember-me 或 persistent-login 身份验证是指 web 站点能够记住不同会话间的主体身份。这通常是通过向浏览器发送 cookie 来完成的，在以后的会话中检测到 cookie 并进行自动登录。</p>
+<p>Spring Security 提供了两种具体的 remember-me 实现：</p>
+<ul>
+<li>使用哈希来保持基于 cookie 的令牌的安全性</li>
+<li>使用数据库或其他持久存储机制来存储生成的令牌（同样需要使用 cookie）</li>
+</ul>
+<p><strong>注意：</strong> 以上两种实现都需要上下文中存在 UserDetailsService bean。</p>
+<h3 id="基于哈希的令牌"><a href="#基于哈希的令牌" class="headerlink" title="基于哈希的令牌"></a>基于哈希的令牌</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SecurityConfiguration</span> <span class="keyword">extends</span> <span class="title">WebSecurityConfigurerAdapter</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">configure</span><span class="params">(HttpSecurity http)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        http.authorizeRequests()</span><br><span class="line">                .anyRequest().authenticated().and()</span><br><span class="line">                .formLogin().and()</span><br><span class="line">                <span class="comment">// 使用哈希来保持基于 cookie 的令牌的安全性</span></span><br><span class="line">                .rememberMe().key(<span class="string">"secret"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>cookie 示例：<br><img src="/images/springsecurity/%E8%AE%B0%E4%BD%8F%E6%88%91-cookie%E7%A4%BA%E4%BE%8B.png" alt="cookie 示例"></p>
+<p>这种方式有个弊端，浏览器端要携带的这个 cookie 值在服务端是存放在内存中的，并没有进行持久化，所以如果服务重启后服务器端存储的这个值就会丢失，浏览器端的 remember-me 就会失效。为了解决这个问题就需要将服务器端生成的这个 cookie 值持久化到数据库中。</p>
+<p><strong>注意：</strong> Remember-me 令牌仅在指定的时间段内有效，前提是用户名、密码和密钥不变。值得注意的是，这有一个潜在的安全问题，即捕获的“记住我”令牌在令牌到期之前可以从任何用户代理使用。这与 digest 身份验证的问题相同。如果 principal 知道捕获了令牌，则可以轻松地更改其密码并立即使所有有关问题的“记住我”令牌无效。如果需要更重要的安全性，则应该使用下一节中描述的方法。或者，记住“我”服务根本不应该被使用。</p>
+<h3 id="持久化令牌"><a href="#持久化令牌" class="headerlink" title="持久化令牌"></a>持久化令牌</h3><h4 id="内存存储"><a href="#内存存储" class="headerlink" title="内存存储"></a>内存存储</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SecurityConfiguration</span> <span class="keyword">extends</span> <span class="title">WebSecurityConfigurerAdapter</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">configure</span><span class="params">(HttpSecurity http)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        http.authorizeRequests()</span><br><span class="line">                .anyRequest().authenticated().and()</span><br><span class="line">                .formLogin().and()</span><br><span class="line">                <span class="comment">// 使用内存数据库来存储生成的令牌</span></span><br><span class="line">                .rememberMe().tokenRepository(<span class="keyword">new</span> InMemoryTokenRepositoryImpl());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="数据库存储"><a href="#数据库存储" class="headerlink" title="数据库存储"></a>数据库存储</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SecurityConfiguration</span> <span class="keyword">extends</span> <span class="title">WebSecurityConfigurerAdapter</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> DataSource dataSource;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">SecurityConfiguration</span><span class="params">(DataSource dataSource)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.dataSource = dataSource;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">configure</span><span class="params">(HttpSecurity http)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        http.authorizeRequests()</span><br><span class="line">                .anyRequest().authenticated().and()</span><br><span class="line">                .formLogin().and()</span><br><span class="line">                <span class="comment">// 使用数据库来存储生成的令牌</span></span><br><span class="line">                .rememberMe().tokenRepository(tokenRepository());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> PersistentTokenRepository <span class="title">tokenRepository</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        JdbcTokenRepositoryImpl tokenRepository = <span class="keyword">new</span> JdbcTokenRepositoryImpl();</span><br><span class="line">        tokenRepository.setDataSource(dataSource);</span><br><span class="line">        <span class="comment">// 自动创建表，仅在首次启动时开启</span></span><br><span class="line">        tokenRepository.setCreateTableOnStartup(<span class="keyword">true</span>);</span><br><span class="line">        <span class="keyword">return</span> tokenRepository;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在上例中，我们采用了首次启动时自动建表的方式，也可以手动建表，sql 脚本如下：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> persistent_logins</span><br><span class="line">(</span><br><span class="line">    series    <span class="built_in">varchar</span>(<span class="number">64</span>) <span class="keyword">not</span> <span class="literal">null</span> <span class="keyword">comment</span> <span class="string">'主键'</span>,</span><br><span class="line">    username  <span class="built_in">varchar</span>(<span class="number">64</span>) <span class="keyword">not</span> <span class="literal">null</span> <span class="keyword">comment</span> <span class="string">'用户名'</span>,</span><br><span class="line">    token     <span class="built_in">varchar</span>(<span class="number">64</span>) <span class="keyword">not</span> <span class="literal">null</span> <span class="keyword">comment</span> <span class="string">'访问令牌'</span>,</span><br><span class="line">    last_used <span class="built_in">timestamp</span>   <span class="keyword">not</span> <span class="literal">null</span> <span class="keyword">comment</span> <span class="string">'最后使用时间'</span>,</span><br><span class="line">    PRIMARY <span class="keyword">KEY</span> (<span class="string">`series`</span>)</span><br><span class="line">) <span class="keyword">ENGINE</span> = <span class="keyword">InnoDB</span></span><br><span class="line">  <span class="keyword">DEFAULT</span> <span class="keyword">CHARSET</span> = utf8mb4</span><br><span class="line">  <span class="keyword">COLLATE</span> = utf8mb4_0900_ai_ci;</span><br></pre></td></tr></table></figure>
+
+<p>持久化 token 示例：<br><img src="/images/springsecurity/%E8%AE%B0%E4%BD%8F%E6%88%91-%E6%8C%81%E4%B9%85%E5%8C%96token%E7%A4%BA%E4%BE%8B.png" alt="持久化 token 示例"></p>
+<h2 id="CSRF-保护"><a href="#CSRF-保护" class="headerlink" title="CSRF 保护"></a>CSRF 保护</h2><p>CSRF 就是诱导已登录过的用户在不知情的情况下，使用自己的登录凭据来完成一些不可告人之事。比如利用 img 标签或者 script 标签的 src 属性自动访问一些敏感 api，或者是伪造一个 form 标签，action 写的是一些敏感 api，通过 js 自动提交表单等。</p>
+<p>CSRF 攻击之所以成为可能，是因为来自受害者网站的 HTTP 请求与来自攻击者网站的请求完全相同。这意味着无法拒绝来自邪恶网站的请求，也无法允许来自银行网站的请求。为了防止 CSRF 攻击，我们需要确保在请求中存在邪恶站点无法提供的内容，以便区分这两个请求。</p>
+<p>Spring 提供了两种机制来抵御 CSRF 攻击：</p>
+<ul>
+<li>同步器令牌模式（默认方式）</li>
+<li>SameSite 属性</li>
+</ul>
+<p><strong>注意：为了使任何一种针对 CSRF 的保护起作用，应用程序必须确保“安全的” HTTP 方法是幂等的。这意味着使用 HTTP 方法 GET、HEAD、OPTIONS 和 TRACE 的请求不应该改变应用程序的状态。</strong></p>
+<p>默认情况下，Spring Security 启用了此保护，我们可以通过设置  http.csrf().xx 来禁用此保护或调整相关行为。</p>
+<p><img src="/images/springsecurity/csrf%E7%A4%BA%E4%BE%8B.png" alt="csrf示例"></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SecurityConfiguration</span> <span class="keyword">extends</span> <span class="title">WebSecurityConfigurerAdapter</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">configure</span><span class="params">(HttpSecurity http)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        http.authorizeRequests()</span><br><span class="line">                .anyRequest().authenticated().and()</span><br><span class="line">                .formLogin().and()</span><br><span class="line">                <span class="comment">// 默认已启用 CSRF 保护，并将 csrf token 存储在 session 中</span></span><br><span class="line">                http.csrf().csrfTokenRepository(<span class="keyword">new</span> LazyCsrfTokenRepository(<span class="keyword">new</span> HttpSessionCsrfTokenRepository()));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="匿名登录"><a href="#匿名登录" class="headerlink" title="匿名登录"></a>匿名登录</h2><p>匿名登录，即用户尚未登录系统，系统会为所有未登录的用户分配一个匿名用户，这个用户也拥有自己的权限，不过他是不能访问任何被保护资源的。</p>
+<p>设置一个匿名用户的好处是，我们在进行权限判断时，可以保证 SecurityContext 中永远是存在着一个权限主体的，启用了匿名登录功能之后，我们所需要做的工作就是从 SecurityContext 中取出权限主体，然后对其拥有的权限进行校验，不需要每次去检验这个权限主体是否为空了。这样做的好处是我们永远认为请求的主体是拥有权限的，即便他没有登录，系统也会自动为他赋予未登录系统角色的权限，这样后面所有的安全组件都只需要在当前权限主体上进行处理，不用一次一次的判断当前权限主体是否存在。这就更容易保证系统中操作的一致性。</p>
+<p>默认情况下，匿名用户的用户名为 anonymousUser，拥有的权限是 ROLE_ANONYMOUS。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SecurityConfiguration</span> <span class="keyword">extends</span> <span class="title">WebSecurityConfigurerAdapter</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">configure</span><span class="params">(HttpSecurity http)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        http.authorizeRequests()</span><br><span class="line">                .anyRequest().authenticated().and()</span><br><span class="line">                .formLogin().and()</span><br><span class="line">                <span class="comment">// 配置匿名用户的用户名和权限</span></span><br><span class="line">                .anonymous().principal(<span class="string">"游客"</span>).authorities(<span class="string">"ROLE_VISITOR"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="表单登录"><a href="#表单登录" class="headerlink" title="表单登录"></a>表单登录</h2><p>Spring Security 默认就是表单登录，我们可以通过调用 http.formLogin().xx 方法来调整相关行为。</p>
+<ul>
+<li>formLogin().loginPage(loginPage) 登录页面地址，默认会自动创建。</li>
+<li>formLogin().loginProcessingUrl(loginProcessingUrl) 登录验证地址，默认为 /login。</li>
+<li>formLogin().usernameParameter(usernameParameter) 用户名参数名，默认为 username。</li>
+<li>formLogin().passwordParameter(passwordParameter) 密码参数名，默认为 password。</li>
+<li>formLogin().successForwardUrl(forwardUrl) 登录验证成功后 forward 地址，默认为 /。注意：自定义跳转地址请求方法需为 POST。</li>
+<li>formLogin().defaultSuccessUrl(defaultSuccessUrl,alwaysUse) 登录验证成功后 redirect 地址。如果在身份验证之前未访问受保护的页面，则跳转到登录页面，否则跳转到之前访问的受保护的页面。如果 alwaysUse 为 true（默认为 false），则始终跳转到登录页面。</li>
+<li>formLogin().successHandler(successHandler) 登录验证成功后处理器，默认重定向到 /。（前两个方法调用的都是该方法，只是处理器不同而已。）</li>
+<li>formLogin().failureForwardUrl(authenticationFailureUrl) 登录验证失败时 forward 地址，默认为 /login?error。</li>
+<li>formLogin().failureUrl(authenticationFailureUrl) 登录验证失败时 redirect 地址，默认重定向到 /login?error。</li>
+<li>formLogin().failureHandler(authenticationFailureHandler) 登录验证失败时处理器，默认重定向到 /login?error。（前两个方法调用的都是该方法，只是处理器不同而已。）</li>
+</ul>
+<h2 id="处理注销"><a href="#处理注销" class="headerlink" title="处理注销"></a>处理注销</h2><p>当使用 WebSecurityConfigurerAdapter 时，会自动应用注销功能。默认情况下，访问 URL /logout 将通过以下方式将用户注销：</p>
+<ul>
+<li>使 HTTP 会话无效</li>
+<li>清除任何已配置的 RememberMe 身份验证</li>
+<li>清理 SecurityContextHolder</li>
+<li>重定向到 /login?logout</li>
+</ul>
+<p>与表单登录功能类似，我们也可以通过各种选项来进一步定制注销要求。</p>
+<ul>
+<li>logout().logoutUrl(logoutUrl) 触发注销操作的 URL，默认为 /logout。（测试不生效 &gt;_&lt;）</li>
+<li>logout().logoutSuccessUrl(logoutUrl) 注销成功后 redirect 地址，默认为 /login?logout。</li>
+<li>logout().logoutSuccessHandler(logoutUrl) 注销成功后处理器，如果设置了该选项，logoutSuccessUrl 就会失效。</li>
+<li>logout().defaultLogoutSuccessHandlerFor(handler,preferredMatcher) 配置 logout ur 与 LogoutSuccessHandler 的映射，</li>
+<li>logout().addLogoutHandler(logoutUrl) 添加注销处理器，通常用于清理一些会话相关的。默认 SecurityContextLogoutHandler 会被添加为最后一个 logoutHandler。</li>
+<li>logout().invalidateHttpSession(invalidateHttpSession) 注销时让 HttpSession 无效，默认为 true。</li>
+<li>logout().deleteCookies(cookieNamesToClear) 注销成功后要移除的 cookies。</li>
+</ul>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ol>
+<li><a href="https://blog.csdn.net/song_java/article/details/86309907" target="_blank" rel="noopener">Spring-Security的Password Encoding</a></li>
+<li><a href="https://blog.csdn.net/chemmuxin1993/article/details/53019919" target="_blank" rel="noopener">spring security 4.0 教程 步步深入 6</a></li>
+<li><a href="https://www.cnblogs.com/wenjieyatou/p/6118563.html" target="_blank" rel="noopener">spring security 匿名登录</a></li>
+<li><a href="https://www.cnblogs.com/hyddd/archive/2009/04/09/1432744.html" target="_blank" rel="noopener">浅谈CSRF攻击方式</a></li>
+</ol>
+
+    </div>
+
+    
+    
+    
+        <div class="reward-container">
+  <div>小礼物走一走，来 Github 关注我</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/wechatpay.png" alt="晴天 微信支付">
+        <p>微信支付</p>
+      </div>
+      
+      <div style="display: inline-block;">
+        <img src="/images/alipay.png" alt="晴天 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Spring-Security/" rel="tag"># Spring Security</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/03/01/%E5%BE%AE%E6%9C%8D%E5%8A%A1-%E6%9C%8D%E5%8A%A1%E5%8F%91%E7%8E%B0/" rel="prev" title="微服务-服务发现">
+      <i class="fa fa-chevron-left"></i> 微服务-服务发现
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/03/06/Spring%20Security%E5%8F%82%E8%80%83%E6%96%87%E6%A1%A3-%E5%85%A8%E5%B1%80/" rel="next" title="Spring Security 参考文档-全局">
+      Spring Security 参考文档-全局 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Maven-依赖"><span class="nav-number">1.</span> <span class="nav-text">Maven 依赖</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#基本安全验证"><span class="nav-number">2.</span> <span class="nav-text">基本安全验证</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#配置用户"><span class="nav-number">3.</span> <span class="nav-text">配置用户</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#内存配置"><span class="nav-number">3.1.</span> <span class="nav-text">内存配置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#数据库配置"><span class="nav-number">3.2.</span> <span class="nav-text">数据库配置</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#HSQLDB"><span class="nav-number">3.2.1.</span> <span class="nav-text">HSQLDB</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#MySQL"><span class="nav-number">3.2.2.</span> <span class="nav-text">MySQL</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#密码加密"><span class="nav-number">3.3.</span> <span class="nav-text">密码加密</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#会话管理"><span class="nav-number">4.</span> <span class="nav-text">会话管理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#检测超时"><span class="nav-number">4.1.</span> <span class="nav-text">检测超时</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#并发会话控制"><span class="nav-number">4.2.</span> <span class="nav-text">并发会话控制</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#会话固定攻击保护"><span class="nav-number">4.3.</span> <span class="nav-text">会话固定攻击保护</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Remember-me-身份验证"><span class="nav-number">5.</span> <span class="nav-text">Remember-me 身份验证</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#基于哈希的令牌"><span class="nav-number">5.1.</span> <span class="nav-text">基于哈希的令牌</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#持久化令牌"><span class="nav-number">5.2.</span> <span class="nav-text">持久化令牌</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#内存存储"><span class="nav-number">5.2.1.</span> <span class="nav-text">内存存储</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#数据库存储"><span class="nav-number">5.2.2.</span> <span class="nav-text">数据库存储</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CSRF-保护"><span class="nav-number">6.</span> <span class="nav-text">CSRF 保护</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#匿名登录"><span class="nav-number">7.</span> <span class="nav-text">匿名登录</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#表单登录"><span class="nav-number">8.</span> <span class="nav-text">表单登录</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#处理注销"><span class="nav-number">9.</span> <span class="nav-text">处理注销</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考资料"><span class="nav-number">10.</span> <span class="nav-text">参考资料</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">晴天</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">198</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">58</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">晴天</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v4.2.1
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> v7.7.0
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: '5f0b1c1d42822204f803',
+      clientSecret: '56818d47fc75f1f4999acd7a3356879bbade310f',
+      repo: 'cdrcool.github.io',
+      owner: 'cdrcool',
+      admin: ['cdrcool'],
+      id: 'cd1c6dd5e71fe1940ddfefb70352bba2',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

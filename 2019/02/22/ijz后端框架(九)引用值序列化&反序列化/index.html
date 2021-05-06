@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('http://yoursite.com').hostname,
+    root: '/',
+    scheme: 'Muse',
+    version: '7.7.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="当存在实体引用时，我们会在前后端数据传递过程中做对引用字段做序列化与反序列化，也会在审批流弃审时做引用校验，本文主要是谈谈我对引用值序列化&amp;反序列化的理解，弃审校验将在文章审批扩展中再分析。 反序列化我认为反序列化是可以不要的，因为它就是把前端传递的值（字符串|json对象|json数组）解析成字符串，前端同样可以完成，无非是在表单保存的时候多一行赋值代码（封装到前端组件后，一样不必每处手">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ijz后端框架(九)引用值序列化&amp;反序列化">
+<meta property="og:url" content="http://yoursite.com/2019/02/22/ijz%E5%90%8E%E7%AB%AF%E6%A1%86%E6%9E%B6(%E4%B9%9D)%E5%BC%95%E7%94%A8%E5%80%BC%E5%BA%8F%E5%88%97%E5%8C%96&%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/index.html">
+<meta property="og:site_name" content="OnePiece">
+<meta property="og:description" content="当存在实体引用时，我们会在前后端数据传递过程中做对引用字段做序列化与反序列化，也会在审批流弃审时做引用校验，本文主要是谈谈我对引用值序列化&amp;反序列化的理解，弃审校验将在文章审批扩展中再分析。 反序列化我认为反序列化是可以不要的，因为它就是把前端传递的值（字符串|json对象|json数组）解析成字符串，前端同样可以完成，无非是在表单保存的时候多一行赋值代码（封装到前端组件后，一样不必每处手">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2019-02-22T06:41:34.000Z">
+<meta property="article:modified_time" content="2021-05-06T07:11:29.207Z">
+<meta property="article:author" content="晴天">
+<meta property="article:tag" content="jackson">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://yoursite.com/2019/02/22/ijz%E5%90%8E%E7%AB%AF%E6%A1%86%E6%9E%B6(%E4%B9%9D)%E5%BC%95%E7%94%A8%E5%80%BC%E5%BA%8F%E5%88%97%E5%8C%96&%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>ijz后端框架(九)引用值序列化&反序列化 | OnePiece</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">OnePiece</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">人的知识就好比一个圆圈，圆圈里面是已知的，圆圈外面是未知的。你知道得越多，圆圈也就越大，你不知道的也就越多。</p>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+  </ul>
+
+</nav>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/02/22/ijz%E5%90%8E%E7%AB%AF%E6%A1%86%E6%9E%B6(%E4%B9%9D)%E5%BC%95%E7%94%A8%E5%80%BC%E5%BA%8F%E5%88%97%E5%8C%96&%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="晴天">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="OnePiece">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          ijz后端框架(九)引用值序列化&反序列化
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-02-22 14:41:34" itemprop="dateCreated datePublished" datetime="2019-02-22T14:41:34+08:00">2019-02-22</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-05-06 15:11:29" itemprop="dateModified" datetime="2021-05-06T15:11:29+08:00">2021-05-06</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/ijz%E5%90%8E%E7%AB%AF%E6%A1%86%E6%9E%B6/" itemprop="url" rel="index">
+                    <span itemprop="name">ijz后端框架</span>
+                  </a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>当存在实体引用时，我们会在前后端数据传递过程中做对引用字段做序列化与反序列化，也会在审批流弃审时做引用校验，本文主要是谈谈我对引用值序列化&amp;反序列化的理解，弃审校验将在文章<a href="https://cdrcool.github.io/2019/02/22/ijz后端框架%28十%29审批扩展/" target="_blank" rel="noopener">审批扩展</a>中再分析。</p>
+<h2 id="反序列化"><a href="#反序列化" class="headerlink" title="反序列化"></a>反序列化</h2><p>我认为反序列化是可以不要的，因为它就是把前端传递的值（字符串|json对象|json数组）解析成字符串，前端同样可以完成，无非是在表单保存的时候多一行赋值代码（封装到前端组件后，一样不必每处手动赋值）。<br>现在有点奇怪的是，假如我想保存冗余字段名称或编码，尽管前端已经传递了对象<code>{&quot;id&quot;: &quot;xx&quot;, &quot;code&quot;: &quot;xx&quot;, &quot;name&quot;: &quot;xx&quot;}</code>，但由于反序列化后后端只会接收到id，这样前端还得另外传递名称或编码。</p>
+<h2 id="序列化"><a href="#序列化" class="headerlink" title="序列化"></a>序列化</h2><p>同样，我认为序列化也可以不要，或者可以换一种实现方式。虽然它给开发者提供了便利，但如果服务调用者只是看我们API文档，他并不清楚某个外键字段到底是返回String、JSON Object还是JSON Array，JSON对象里面除了id、code、name外又包含哪些额外的字段。<br>我认为vo返回哪些字段应该明确在类里面定义，所以如果一定要做序列化，我会采用下面的方式：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@JsonSerialize</span>(using = ReferSerializer<span class="class">.<span class="keyword">class</span>)</span></span><br><span class="line"><span class="class"><span class="title">public</span> <span class="title">static</span> <span class="title">class</span> <span class="title">ExampleVO</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Refer</span>(billTypes = <span class="string">"company"</span>, foreignKey = <span class="string">"id"</span>)</span><br><span class="line">    <span class="keyword">private</span> String companyId;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@ByRefer</span>(referField = <span class="string">"companyId"</span>, fieldName = <span class="string">"name"</span>)</span><br><span class="line">    <span class="keyword">private</span> String companyName;</span><br><span class="line">    <span class="meta">@ByRefer</span>(referField = <span class="string">"companyId"</span>, fieldName = <span class="string">"code"</span>)</span><br><span class="line">    <span class="keyword">private</span> String companyCode;</span><br><span class="line">    <span class="meta">@ByRefer</span>(referField = <span class="string">"companyId"</span>, fieldName = <span class="string">"type"</span>)</span><br><span class="line">    <span class="keyword">private</span> String companyType;</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>@Refer注解指定哪个字段是外键，从哪些单据类型对应的实体中去查找，以及外键字段在原实体中的属性名。@ByRefer注解则指定要返回哪些字段，及两个实体间字段的对应关系。</p>
+<h2 id="缓存使用方式"><a href="#缓存使用方式" class="headerlink" title="缓存使用方式"></a>缓存使用方式</h2><p>由于序列化时首先会去缓存中查，缓存中没有再去查数据库，所以目前我们保存数据时会同步保存到redis中。<br>我认为缓存应该只缓存热点数据，而不是所有的数据都存里面，且我们应该考虑缓存过期策略。<br>有人会说只是同步缓存了id、code和name，影响不大，且不考虑是否真影响不大，其实我们并不只是同步缓存了id、code和name。比如在上面的ExampleVO类中,除了id、code和name外，我们还用到了companyType。按目前实现方式，要想序列化时得到companyType的值，我们会在注解@ReferSerialTransfer中设置extraFileds属性，这时有3种可能情况：</p>
+<ul>
+<li>缓存中没有数据，companyType有值</li>
+<li>缓存中有数据，但只有id、code和name，companyType没值</li>
+<li>缓存中有数据，但除id、code和name外，只有companyLevel（其他实体写入缓存的），companyType没值</li>
+</ul>
+<p>由此可见，除非我们分析每个实体，把其可能被用的字段都写入缓存，否则很可能序列化中某个想要的字段查不到值，但是这样一是麻烦，二是会浪费大量内存。<br>我的实现里是在查数据之后再把数据写入缓存，并设置一个过期时限。</p>
+<h2 id="兼容性"><a href="#兼容性" class="headerlink" title="兼容性"></a>兼容性</h2><p>在公有云合约系统中，像contractName、contractCode等字段都是在公共表里，但现在更新状态都是直接去更新合同表，所以我在各类合同表里也存了份字段。不过如果升级Hibernate到最新版本，又有新的问题：hibernate不会再自动同步更新公共表和实体表，<br>所以在改造后的实现中，我会依据属性<code>ijz.bill.persistenceType</code>的值（jpa|jdbc）来决定是使用<code>EntityManager</code>还是<code>JdbcTemplate</code>更新表字段。</p>
+
+    </div>
+
+    
+    
+    
+        <div class="reward-container">
+  <div>小礼物走一走，来 Github 关注我</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/wechatpay.png" alt="晴天 微信支付">
+        <p>微信支付</p>
+      </div>
+      
+      <div style="display: inline-block;">
+        <img src="/images/alipay.png" alt="晴天 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/jackson/" rel="tag"># jackson</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/02/18/ijz%E5%90%8E%E7%AB%AF%E6%A1%86%E6%9E%B6(%E5%8D%81%E4%BA%8C)%E9%9B%86%E6%88%90dubbox/" rel="prev" title="ijz后端框架(十二)集成dubbox">
+      <i class="fa fa-chevron-left"></i> ijz后端框架(十二)集成dubbox
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/02/22/ijz%E5%90%8E%E7%AB%AF%E6%A1%86%E6%9E%B6(%E5%8D%81)%E5%AE%A1%E6%89%B9%E6%89%A9%E5%B1%95/" rel="next" title="ijz后端框架(十)审批扩展">
+      ijz后端框架(十)审批扩展 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#反序列化"><span class="nav-number">1.</span> <span class="nav-text">反序列化</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#序列化"><span class="nav-number">2.</span> <span class="nav-text">序列化</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#缓存使用方式"><span class="nav-number">3.</span> <span class="nav-text">缓存使用方式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#兼容性"><span class="nav-number">4.</span> <span class="nav-text">兼容性</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">晴天</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">198</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">58</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">晴天</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v4.2.1
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> v7.7.0
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: '5f0b1c1d42822204f803',
+      clientSecret: '56818d47fc75f1f4999acd7a3356879bbade310f',
+      repo: 'cdrcool.github.io',
+      owner: 'cdrcool',
+      admin: ['cdrcool'],
+      id: '84ef680692f4a5c1a38aa0da5a0966d0',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

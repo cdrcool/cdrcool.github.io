@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('http://yoursite.com').hostname,
+    root: '/',
+    scheme: 'Muse',
+    version: '7.7.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="概述微服务架构下服务实例具有动态分配的网络地址，随着服务的自动扩展、故障和发布升级，导致服务实例的网络地址发生动态变更。因此，需要一种机制，支持服务消费者在服务提供者实例地址发生变更时，能够及时感知获取实例最新的地址，即服务发现机制。 服务发现的概念是随着计算机体系结构的发展而演变的旧概念。网络时代初期，不同的计算机需要相互定位，这是通过一个全球文本文件 HOSTS.TXT 完成的。因为不经常添加">
+<meta property="og:type" content="article">
+<meta property="og:title" content="微服务-服务发现">
+<meta property="og:url" content="http://yoursite.com/2020/03/01/%E5%BE%AE%E6%9C%8D%E5%8A%A1-%E6%9C%8D%E5%8A%A1%E5%8F%91%E7%8E%B0/index.html">
+<meta property="og:site_name" content="OnePiece">
+<meta property="og:description" content="概述微服务架构下服务实例具有动态分配的网络地址，随着服务的自动扩展、故障和发布升级，导致服务实例的网络地址发生动态变更。因此，需要一种机制，支持服务消费者在服务提供者实例地址发生变更时，能够及时感知获取实例最新的地址，即服务发现机制。 服务发现的概念是随着计算机体系结构的发展而演变的旧概念。网络时代初期，不同的计算机需要相互定位，这是通过一个全球文本文件 HOSTS.TXT 完成的。因为不经常添加">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://yoursite.com/images/microservice/%E6%9C%8D%E5%8A%A1%E5%9C%B0%E5%9D%80%E5%8A%A8%E6%80%81%E5%8F%98%E5%8C%96%E7%A4%BA%E4%BE%8B.jpg">
+<meta property="og:image" content="http://yoursite.com/images/microservice/%E6%9C%8D%E5%8A%A1%E5%8F%91%E7%8E%B0%E8%A7%92%E8%89%B2.jpg">
+<meta property="og:image" content="http://yoursite.com/images/microservice/%E5%AE%A2%E6%88%B7%E7%AB%AF%E6%9C%8D%E5%8A%A1%E5%8F%91%E7%8E%B0%E6%A8%A1%E5%BC%8F.jpg">
+<meta property="og:image" content="http://yoursite.com/images/microservice/%E6%9C%8D%E5%8A%A1%E7%AB%AF%E6%9C%8D%E5%8A%A1%E5%8F%91%E7%8E%B0%E6%A8%A1%E5%BC%8F.jpg">
+<meta property="og:image" content="http://yoursite.com/images/microservice/Service%20Mesh%E6%9C%8D%E5%8A%A1%E5%8F%91%E7%8E%B0.jpg">
+<meta property="og:image" content="http://yoursite.com/images/microservice/Service%20Mesh%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%8F%91%E7%8E%B0%E6%A8%A1%E5%BC%8F.jpg">
+<meta property="article:published_time" content="2020-03-01T01:42:00.000Z">
+<meta property="article:modified_time" content="2021-05-06T07:11:29.219Z">
+<meta property="article:author" content="晴天">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/images/microservice/%E6%9C%8D%E5%8A%A1%E5%9C%B0%E5%9D%80%E5%8A%A8%E6%80%81%E5%8F%98%E5%8C%96%E7%A4%BA%E4%BE%8B.jpg">
+
+<link rel="canonical" href="http://yoursite.com/2020/03/01/%E5%BE%AE%E6%9C%8D%E5%8A%A1-%E6%9C%8D%E5%8A%A1%E5%8F%91%E7%8E%B0/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>微服务-服务发现 | OnePiece</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">OnePiece</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">人的知识就好比一个圆圈，圆圈里面是已知的，圆圈外面是未知的。你知道得越多，圆圈也就越大，你不知道的也就越多。</p>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+  </ul>
+
+</nav>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/03/01/%E5%BE%AE%E6%9C%8D%E5%8A%A1-%E6%9C%8D%E5%8A%A1%E5%8F%91%E7%8E%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="晴天">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="OnePiece">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          微服务-服务发现
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-03-01 09:42:00" itemprop="dateCreated datePublished" datetime="2020-03-01T09:42:00+08:00">2020-03-01</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-05-06 15:11:29" itemprop="dateModified" datetime="2021-05-06T15:11:29+08:00">2021-05-06</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%BE%AE%E6%9C%8D%E5%8A%A1/" itemprop="url" rel="index">
+                    <span itemprop="name">微服务</span>
+                  </a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>微服务架构下服务实例具有动态分配的网络地址，随着服务的自动扩展、故障和发布升级，导致服务实例的网络地址发生动态变更。因此，需要一种机制，<strong>支持服务消费者在服务提供者实例地址发生变更时，能够及时感知获取实例最新的地址，即服务发现机制</strong>。</p>
+<p>服务发现的概念是随着计算机体系结构的发展而演变的旧概念。网络时代初期，不同的计算机需要相互定位，这是通过一个全球文本文件 HOSTS.TXT 完成的。因为不经常添加新主机，所以手动维护文件的地址列表。随着互联网的发展，主机的增加速度越来越快，需要一个自动化，可扩展性的更强系统，从而导致了 DNS 的发明和广泛采用。</p>
+<p>现在，微服务架构正在推动服务发现的不断发展。随着容器化平台或云平台的不断普及，基于平台的微服务架构部署，服务的生命周期以秒和分钟来衡量。同时，因为微服务的自动扩展、故障和发布升级，导致微服务具有动态变化的地址列表，微服务的灵活性再次推动了服务发现技术的发展。现代基于容器化平台或云平台的微服务应用程序，需要解决服务地址动态变化的问题。</p>
+<p><img src="/images/microservice/%E6%9C%8D%E5%8A%A1%E5%9C%B0%E5%9D%80%E5%8A%A8%E6%80%81%E5%8F%98%E5%8C%96%E7%A4%BA%E4%BE%8B.jpg" alt="服务地址动态变化示例"></p>
+<p>如上图所示，服务实例的地址动态变化，对于客户端而言，手工维护服务实例地址列表的方式已经不能满足需求，而使用服务发现模式动态更新维护服务实例地址列表是目前微服务架构下使用的必备技术。</p>
+<h2 id="服务发现机制角色"><a href="#服务发现机制角色" class="headerlink" title="服务发现机制角色"></a>服务发现机制角色</h2><p>目前微服务的服务发现机制主要包含三个角色：服务提供者、服务消费者和服务注册表。</p>
+<ul>
+<li><p><strong>服务提供者（Service Provider）：</strong> 服务启动时将服务信息注册到服务注册表，服务退出时将服务注册表的服务信息删除掉。</p>
+</li>
+<li><p><strong>服务消费者（Service Consumer）：</strong> 从服务注册表获取服务提供者的最新网络位置等服务信息，维护与服务提供者之间的通信。</p>
+</li>
+<li><p><strong>服务注册表（Service Registry）：</strong> 联系服务提供者和服务消费者的桥梁，维护服务提供者的最新网络位置等服务信息。</p>
+</li>
+</ul>
+<p><img src="/images/microservice/%E6%9C%8D%E5%8A%A1%E5%8F%91%E7%8E%B0%E8%A7%92%E8%89%B2.jpg" alt="服务发现角色"></p>
+<p>服务发现机制的关键部分是服务注册表（Service Registry）。服务注册表提供管理和查询服务注册信息的 API。当服务提供者的实例发生变更时（新增/删除服务），服务注册表需要通知服务消费者同步最新的服务实例地址列表。目前大多数的微服务框架使用 Netflix Eureka、Etcd、Consul 或 Apache Zookeeper 等作为服务注册表。 </p>
+<h2 id="服务发现模式"><a href="#服务发现模式" class="headerlink" title="服务发现模式"></a>服务发现模式</h2><p>为了说明服务发现模式是如何解决微服务实例地址动态变化的问题，下面介绍两种主要的服务发现模式：客户端发现模式和服务端发现模式。</p>
+<h3 id="客户端发现模式"><a href="#客户端发现模式" class="headerlink" title="客户端发现模式"></a>客户端发现模式</h3><p>使用客户端发现模式，客户端负责确定服务提供者的可用实例地址列表和负载均衡策略。客户端访问服务注册表，定时同步目标服务的实例地址列表，然后基于负载均衡算法选择目标服务的一个可用实例地址发送请求。</p>
+<p><img src="/images/microservice/%E5%AE%A2%E6%88%B7%E7%AB%AF%E6%9C%8D%E5%8A%A1%E5%8F%91%E7%8E%B0%E6%A8%A1%E5%BC%8F.jpg" alt="客户端服务发现模式"></p>
+<p>上图所示客户端服务发现包含自注册和客户端发现两个部分：</p>
+<ul>
+<li><p><strong>自注册：</strong> 服务实例调用服务注册表的注册接口进行实例地址注册。服务实例还可以提供服务运行状况检查接口，服务注册表定期访问接口检查服务实例是否健康和处理请求。服务注册表可能要求服务实例定期调用“心跳” API 以防止服务实例注册过期。</p>
+</li>
+<li><p><strong>客户端发现：</strong> 当服务客户端调用目标服务时，它会查询服务注册表以获取服务实例地址列表。为了提高性能，客户端缓存服务实例地址列表。然后，服务客户端使用负载均衡算法（如循环或随机）来选择服务实例发送请求。</p>
+</li>
+</ul>
+<p>微保的第 2 代微服务框架（MSF）的服务发现实现就是客户端发现模式的一个例子。其中 Etcd 是一个服务注册表，它是一个强一致性键值数据存储的分布式系统，它提供了 REST APIs，用于管理服务实例注册和查询服务实例地址列表。MSF SDK 是一个微服务 SDK，它提供了服务注册功能，支持定期续租服务注册信息。它提供了服务发现功能，访问服务注册表同步并缓存目标服务的实例地址列表，支持基于负载均衡策略选择可用的目标服务并发送请求。 </p>
+<p><strong>优点：</strong></p>
+<ul>
+<li><p>通常是服务客户端查询目标服务的实例地址列表之后，执行负载均衡算法选择可用的目标服务。优点是服务客户端可以灵活、智能地制定负载均衡策略，包括轮询、加权轮询、一致性哈希等策略。</p>
+</li>
+<li><p>可以实现点对点的网状通讯，即去中心化的通讯。可以有效避开单点造成的性能瓶颈和可靠性下降等问题。</p>
+</li>
+<li><p>服务客户端通常以 SDK 的方式直接引入到项目，这种方式语言的整合程度最佳，程序执行性能最佳，程序错误排查更加容易。</p>
+</li>
+</ul>
+<p><strong>缺点：</strong></p>
+<ul>
+<li><p>服务客户端与服务注册表耦合。需要为服务客户端使用的每种编程语言和框架实现客户端服务发现逻辑。</p>
+</li>
+<li><p>服务客户端通常以 SDK 方式使用服务发现功能。这种侵入式方案存在于应用程序的所有客户端，如果客户端服务发现功能需要进行更新，要求所有的应用程序重新编译，部署服务。微服务的规模越大，服务更新越困难，这在一定程度上违背了微服务架构提倡的技术独立性。</p>
+</li>
+</ul>
+<h3 id="服务端发现模式"><a href="#服务端发现模式" class="headerlink" title="服务端发现模式"></a>服务端发现模式</h3><p>使用服务端发现模式，服务客户端通过路由器（或者负载均衡器）访问目标服务。路由器负责查询服务注册表，获取目标服务实例的地址列表转发请求。</p>
+<p><img src="/images/microservice/%E6%9C%8D%E5%8A%A1%E7%AB%AF%E6%9C%8D%E5%8A%A1%E5%8F%91%E7%8E%B0%E6%A8%A1%E5%BC%8F.jpg" alt="服务端服务发现模式"></p>
+<p>上图所示服务端服务发现包含第三方注册和服务端发现两个部分：</p>
+<ul>
+<li><p><strong>第三方注册：</strong> 这种方式不是服务客户端向服务注册表注册服务，而是通过一个注册处理器处理服务注册（通常是部署平台的一部分）。</p>
+</li>
+<li><p><strong>服务端发现：</strong> 这种方式不是服务客户端查询服务注册表，而是发送请求给路由器（或者负载均衡器），路由器查询服务注册表获取目标服务的实例地址列表，使用负载均衡算法（如循环或随机）选择可用的服务实例转发请求。</p>
+</li>
+</ul>
+<p>现代容器化部署平台（如 Docker 和 Kubernetes）就是服务端服务发现模式的一个例子，这些部署平台都具有内置的服务注册表和服务发现机制。容器化部署平台为每个服务提供路由请求的能力。服务客户端向路由器（或者负载均衡器）发出请求，容器化部署平台自动将请求路由到目标服务一个可用的服务实例。因此，服务注册，服务发现和请求路由完全由容器化部署平台处理。</p>
+<p><strong>优点：</strong></p>
+<ul>
+<li><p>部署平台提供服务发现功能，负责处理服务发现的所有方面。因此，无论使用任何语言，所有的服务提供者和消费者都可以轻松地使用服务发现机制。</p>
+</li>
+<li><p>服务发现功能对于服务客户端而言是透明的，因此，服务发现功能的相关更新对于服务客户端是无感知的。</p>
+</li>
+</ul>
+<p><strong>缺点：</strong></p>
+<ul>
+<li><p>部署平台的服务发现功能仅支持发现使用该平台部署的服务。例如，基于 Kubernetes 的服务发现仅适应于在 Kubernetes 上部署运行的服务。</p>
+</li>
+<li><p>服务的架构增加了一次转发，延迟时间会增加。整个系统增加了一个故障点，系统的运维难度增加。最关键的是负责转发请求的路由器或者负载均衡器可能变成性能的瓶颈。</p>
+</li>
+<li><p>微服务的一个目标是故障隔离，将整个系统切割为多个服务共同运行，如果某服务无法正常运行，只会影响到整个系统的相关部分功能，其它功能能够正常运行，即去中心化。然而，服务端发现模式实际上是集中式的做法，如果路由器或者负载均衡器无法提供服务，那么将导致整个系统瘫痪。</p>
+</li>
+</ul>
+<h2 id="Service-Mesh-服务发现"><a href="#Service-Mesh-服务发现" class="headerlink" title="Service Mesh 服务发现"></a>Service Mesh 服务发现</h2><h3 id="Service-Mesh-介绍"><a href="#Service-Mesh-介绍" class="headerlink" title="Service Mesh 介绍"></a>Service Mesh 介绍</h3><p>Service Mesh 服务网格是服务于微服务应用程序的可配置基础设施层，旨在处理服务之间的大量基于网络的进程间通信。服务网络确保服务之间的通信灵活、可靠、快速和安全。服务网格提供的关键功能包括服务发现、负载平衡、加密、可观察性、可追溯性、熔断、身份验证和授权等。</p>
+<p>服务网格通过为每个服务实例提供称为 sidecar 的代理实例来实现。Sidecars 负责处理服务间通信、监控和安全相关等所有从各个服务抽象出来的功能。这样，开发人员负责业务服务的开发、支持和维护，运营团队负责维护服务网格并运行业务服务。</p>
+<p><img src="/images/microservice/Service%20Mesh%E6%9C%8D%E5%8A%A1%E5%8F%91%E7%8E%B0.jpg" alt="Service Mesh服务发现"></p>
+<h3 id="客户端发现模式-1"><a href="#客户端发现模式-1" class="headerlink" title="客户端发现模式"></a>客户端发现模式</h3><p>服务网格提供的服务发现功能是客户端服务发现模式的一种升级实现，该功能基于 sidecar 和 pilot 实现。Sidecars，即数据面板（Data Plane），负责发现目标服务实例地址列表并转发请求。Pilots，即控制面板（Control Plane），负责管理服务注册表的所有服务注册信息。</p>
+<p><img src="/images/microservice/Service%20Mesh%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%8F%91%E7%8E%B0%E6%A8%A1%E5%BC%8F.jpg" alt="Service Mesh客户端发现模式"></p>
+<p>上图所示客户端服务发现包含自注册和客户端发现两个部分：</p>
+<ul>
+<li><p><strong>自注册：</strong> Sidecar 实例，而不是服务本身，负责调用服务注册表的注册接口进行实例地址注册；负责定期调用“心跳” API 以续租服务实例注册信息。</p>
+</li>
+<li><p><strong>客户端发现：</strong> Sidecar 实例负责与控制面板之间基于双向流式实时同步服务数据。当服务客户端发送请求时，负责转发请求的 Sidecar 实例查询本地缓存的目标服务实例地址列表，基于负载均衡算法选择一个可用的实例地址转发请求。</p>
+</li>
+</ul>
+<p>微保的第 3 代微服务框架的服务发现实现就是 Service Mesh 微服务架构下服务发现模式的一个例子。其中 Pilots 负责对接服务注册表，缓存所有注册的服务信息，实时感知服务注册信息的变更，更新本地缓存，实时推送变更数据给所有订阅的 Sidecars。Sidecars 负责对接服务注册表提供服务注册功能，负责对接 Pilots 提供服务发现功能。</p>
+<p>Service Mesh微服务架构下服务发现模式是客户端发现模式的一种升级模式，它保持了常规客户端发现模式的优点，解决了客户端发现模式的缺点:</p>
+<ul>
+<li><p>Sidecars 可以灵活、智能地制定负载均衡策略，包括轮询、加权轮询、一致性哈希等策略。实现点对点的去中心化的通讯，可以有效避开单点造成的性能瓶颈和可靠性下降问题。</p>
+</li>
+<li><p>通过 Sidecars，业务服务不需要关注服务注册、服务发现功能，不需要关注服务之间的通讯以及微服务治理等基本能力。通过 Pilots，服务消费者的客户端与服务注册表解耦，支持对接不同的服务注册表。两者的组合真正意义上实现了跨语言能力，解耦了业务代码和微服务基础框架，而且能够实现业务无感知的情况下升级微服务新特性。</p>
+</li>
+</ul>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>微服务架构模式下，服务实例具有动态分配的网络地址，为了满足服务客户端向服务提供者发送请求，必须使用服务发现机制。</p>
+<p>服务发现的关键部分是服务注册表。服务注册表提供管理和查询服务注册信息的 API。可以使用 Netflix Eureka、Etcd、Consul 或 Apache Zookeeper 等服务注册表搭建服务发现基础设施。</p>
+<p>微服务架构主要包括两种服务发现模式：客户端发现和服务端发现。客户端发现模式，客户端负责查询服务注册表，选择可用的实例地址转发请求。服务端发现模式，客户端通过路由器或者负载均衡器转发请求，路由器负责查询服务注册表，选择可用的实例地址转发请求。基于 Service Mesh 架构的服务发现模式是客户端发现模式的一种升级，它解决了客户端发现模式的缺点。</p>
+<p>这个世界没有完美的架构和模式，不同的场景都有适合的解决方案。我们在调研决策的时候，一定要根据实际情况去权衡对比，选择最适合当前阶段的方案，然后通过渐进迭代的方式不断完善优化方案。</p>
+<h2 id="主流开源服务发现概览"><a href="#主流开源服务发现概览" class="headerlink" title="主流开源服务发现概览"></a>主流开源服务发现概览</h2><table>
+<thead>
+<tr>
+<th align="center"></th>
+<th align="center">Nacos</th>
+<th align="center">Eureka</th>
+<th align="center">Consul</th>
+<th align="center">CoreDNS</th>
+<th align="center">Zookeeper</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">一致性协议</td>
+<td align="center">CP + AP</td>
+<td align="center">AP</td>
+<td align="center">CP</td>
+<td align="center">—</td>
+<td align="center">CP</td>
+</tr>
+<tr>
+<td align="center">健康检查</td>
+<td align="center">TCP/HTTP/MYSQL/Client Beat</td>
+<td align="center">Client Beat</td>
+<td align="center">TCP/HTTP/gRPC/Cmd</td>
+<td align="center">—</td>
+<td align="center">Keep Alive</td>
+</tr>
+<tr>
+<td align="center">负载均衡策略</td>
+<td align="center">权重/metadata/Selector</td>
+<td align="center">Ribbon</td>
+<td align="center">Fabio</td>
+<td align="center">RoundRobin</td>
+<td align="center">—</td>
+</tr>
+<tr>
+<td align="center">雪崩保护</td>
+<td align="center">有</td>
+<td align="center">有</td>
+<td align="center">无</td>
+<td align="center">无</td>
+<td align="center">无</td>
+</tr>
+<tr>
+<td align="center">自动注销实例</td>
+<td align="center">支持</td>
+<td align="center">支持</td>
+<td align="center">不支持</td>
+<td align="center">不支持</td>
+<td align="center">支持</td>
+</tr>
+<tr>
+<td align="center">访问协议</td>
+<td align="center">HTTP/DNS</td>
+<td align="center">HTTP</td>
+<td align="center">HTTP/DNS</td>
+<td align="center">DNS</td>
+<td align="center">TCP</td>
+</tr>
+<tr>
+<td align="center">监听支持</td>
+<td align="center">支持</td>
+<td align="center">支持</td>
+<td align="center">支持</td>
+<td align="center">不支持</td>
+<td align="center">支持</td>
+</tr>
+<tr>
+<td align="center">多数据中心</td>
+<td align="center">支持</td>
+<td align="center">支持</td>
+<td align="center">支持</td>
+<td align="center">不支持</td>
+<td align="center">不支持</td>
+</tr>
+<tr>
+<td align="center">跨注册中心同步</td>
+<td align="center">支持</td>
+<td align="center">不支持</td>
+<td align="center">支持</td>
+<td align="center">不支持</td>
+<td align="center">不支持</td>
+</tr>
+<tr>
+<td align="center">Spring Cloud 集成</td>
+<td align="center">支持</td>
+<td align="center">支持</td>
+<td align="center">支持</td>
+<td align="center">不支持</td>
+<td align="center">支持</td>
+</tr>
+<tr>
+<td align="center">Dubbo 集成</td>
+<td align="center">支持</td>
+<td align="center">不支持</td>
+<td align="center">不支持</td>
+<td align="center">不支持</td>
+<td align="center">支持</td>
+</tr>
+<tr>
+<td align="center">K8S 集成</td>
+<td align="center">支持</td>
+<td align="center">不支持</td>
+<td align="center">支持</td>
+<td align="center">支持</td>
+<td align="center">不支持</td>
+</tr>
+</tbody></table>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ol>
+<li><a href="https://mp.weixin.qq.com/s/RImcOeDI5QRQIRwD0Fd8qw" target="_blank" rel="noopener">聊一聊微服务架构下的服务发现模式</a></li>
+<li><a href="https://blog.csdn.net/qq_37939251/article/details/82976599" target="_blank" rel="noopener">微服务体系结构中的服务发现</a></li>
+<li><a href="https://blog.csdn.net/fly910905/article/details/100023415" target="_blank" rel="noopener">微服务：注册中心ZooKeeper、Eureka、Consul 、Nacos对比</a></li>
+</ol>
+
+    </div>
+
+    
+    
+    
+        <div class="reward-container">
+  <div>小礼物走一走，来 Github 关注我</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/wechatpay.png" alt="晴天 微信支付">
+        <p>微信支付</p>
+      </div>
+      
+      <div style="display: inline-block;">
+        <img src="/images/alipay.png" alt="晴天 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/02/29/%E5%BE%AE%E6%9C%8D%E5%8A%A1-%E9%85%8D%E7%BD%AE%E4%B8%AD%E5%BF%83/" rel="prev" title="微服务-配置中心">
+      <i class="fa fa-chevron-left"></i> 微服务-配置中心
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/03/04/Spring%20Security%E5%BC%80%E5%8F%91%E5%AE%9E%E8%B7%B5/" rel="next" title="Spring Security 开发实践">
+      Spring Security 开发实践 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#概述"><span class="nav-number">1.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#服务发现机制角色"><span class="nav-number">2.</span> <span class="nav-text">服务发现机制角色</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#服务发现模式"><span class="nav-number">3.</span> <span class="nav-text">服务发现模式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#客户端发现模式"><span class="nav-number">3.1.</span> <span class="nav-text">客户端发现模式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#服务端发现模式"><span class="nav-number">3.2.</span> <span class="nav-text">服务端发现模式</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Service-Mesh-服务发现"><span class="nav-number">4.</span> <span class="nav-text">Service Mesh 服务发现</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Service-Mesh-介绍"><span class="nav-number">4.1.</span> <span class="nav-text">Service Mesh 介绍</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#客户端发现模式-1"><span class="nav-number">4.2.</span> <span class="nav-text">客户端发现模式</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">5.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#主流开源服务发现概览"><span class="nav-number">6.</span> <span class="nav-text">主流开源服务发现概览</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考资料"><span class="nav-number">7.</span> <span class="nav-text">参考资料</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">晴天</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">198</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">58</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">晴天</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v4.2.1
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> v7.7.0
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: '5f0b1c1d42822204f803',
+      clientSecret: '56818d47fc75f1f4999acd7a3356879bbade310f',
+      repo: 'cdrcool.github.io',
+      owner: 'cdrcool',
+      admin: ['cdrcool'],
+      id: '5ac532bca1c759ec2b07f8761a9722cd',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

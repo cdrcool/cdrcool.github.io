@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('http://yoursite.com').hostname,
+    root: '/',
+    scheme: 'Muse',
+    version: '7.7.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="Elasticsearch 是一 个基于 Lucene 构建的开源、分布式、RESTful 接口的全文搜索引擎。 LucenseLucene 是 Apache 软件基金会中一个开放源代码的全文搜索引擎工具包，是一个全文搜索引擎的架构，提供了完整的查询引擎和索引引擎，部分文本分析引擎。Lucene 的目的是为软件开发人员提供一个简单易用的工具包，以方便在目标系统中实现全文检索的功能，或者是以此为基础">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Elasticsearch 基本概念">
+<meta property="og:url" content="http://yoursite.com/2020/02/11/Elasticsearch%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5/index.html">
+<meta property="og:site_name" content="OnePiece">
+<meta property="og:description" content="Elasticsearch 是一 个基于 Lucene 构建的开源、分布式、RESTful 接口的全文搜索引擎。 LucenseLucene 是 Apache 软件基金会中一个开放源代码的全文搜索引擎工具包，是一个全文搜索引擎的架构，提供了完整的查询引擎和索引引擎，部分文本分析引擎。Lucene 的目的是为软件开发人员提供一个简单易用的工具包，以方便在目标系统中实现全文检索的功能，或者是以此为基础">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-02-11T03:34:00.000Z">
+<meta property="article:modified_time" content="2021-05-06T07:11:29.180Z">
+<meta property="article:author" content="晴天">
+<meta property="article:tag" content="Elasticsearch">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://yoursite.com/2020/02/11/Elasticsearch%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>Elasticsearch 基本概念 | OnePiece</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">OnePiece</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">人的知识就好比一个圆圈，圆圈里面是已知的，圆圈外面是未知的。你知道得越多，圆圈也就越大，你不知道的也就越多。</p>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+  </ul>
+
+</nav>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/02/11/Elasticsearch%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="晴天">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="OnePiece">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Elasticsearch 基本概念
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-02-11 11:34:00" itemprop="dateCreated datePublished" datetime="2020-02-11T11:34:00+08:00">2020-02-11</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-05-06 15:11:29" itemprop="dateModified" datetime="2021-05-06T15:11:29+08:00">2021-05-06</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Elasticsearch/" itemprop="url" rel="index">
+                    <span itemprop="name">Elasticsearch</span>
+                  </a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>Elasticsearch 是一 个基于 Lucene 构建的开源、分布式、RESTful 接口的全文搜索引擎。</p>
+<h2 id="Lucense"><a href="#Lucense" class="headerlink" title="Lucense"></a>Lucense</h2><p>Lucene 是 Apache 软件基金会中一个开放源代码的全文搜索引擎工具包，是一个全文搜索引擎的架构，提供了完整的查询引擎和索引引擎，部分文本分析引擎。Lucene 的目的是为软件开发人员提供一个简单易用的工具包，以方便在目标系统中实现全文检索的功能，或者是以此为基础建立起完整的全文搜索引擎。</p>
+<h2 id="全文搜索（Full-Text-Search）"><a href="#全文搜索（Full-Text-Search）" class="headerlink" title="全文搜索（Full Text Search）"></a>全文搜索（Full Text Search）</h2><p>全文搜索是指计算机搜索程序通过扫描文章中的每一个词，对每一个词建立一个索引，指明该词在文章中出现的次数和位置，当用户查询时，搜索程序就根据事先建立的索引进行查找，并将查找的结果反馈给用户。这个过程类似于通过字典中的搜索字表查字的过程。</p>
+<h2 id="倒排索引（Inverted-Index）"><a href="#倒排索引（Inverted-Index）" class="headerlink" title="倒排索引（Inverted Index）"></a>倒排索引（Inverted Index）</h2><p>倒排索引源于实际应用中需要根据属性的值来查找记录。这种索引表中的每一项都包括一个属性值和具有该属性值的各记录的地址。<strong>由于不是由记录来确定属性值，而是由属性值来确定记录的位置，因而称为倒排索引（invertedindex）</strong>。带有倒排索引的文件我们称为倒排索引文件，简称倒排文件（invertedfile）。</p>
+<p>倒排索引包含两个部分：</p>
+<ul>
+<li>单词字典（Term Dictionary）：记录所有文档的单词，记录单词到倒排列表的关联关系。（单词字典一般比较大，可以通过 B+ 树或哈希链表法实现，以满足高性能的插入与查询）</li>
+<li>倒排列表（Posting List）：记录了单词对应的文档结合，由倒排索引项组成：<ul>
+<li>文档 ID</li>
+<li>词频 TF：该词在文档中出现的次数，用于相关性评分。</li>
+<li>位置（Position）：单词在文档中分词的位置。用于语句搜索（phrase query）。</li>
+<li>偏移（Offset）：记录单词的开始结束位置，实现高亮显示。</li>
+</ul>
+</li>
+</ul>
+<h2 id="文档（Document）"><a href="#文档（Document）" class="headerlink" title="文档（Document）"></a>文档（Document）</h2><p>Elasticsearch 是面向文档的，文档是所有可搜索数据的最小单位；文档会被序列化成 JSON 格式，其中每个字段都有对应的字段类型（字符串/数值/布尔/日期/二进制/范围类型）；每个文档都有一个 Unique ID，我们可以自己指定 ID，也可以通过 Elasticsearch 自动生成。</p>
+<p><strong>文档元数据：</strong></p>
+<ul>
+<li>_index：文档所属的索引名</li>
+<li>_type：文档所属的类型名</li>
+<li>_id：文档唯一 ID</li>
+<li>_source：文档的原始 Json 数据</li>
+<li>_all：整合所有字段内容到该字段，已被废除</li>
+<li>_version：文档的版本信息</li>
+<li>_score：相关性打分</li>
+</ul>
+<h2 id="索引（Index）"><a href="#索引（Index）" class="headerlink" title="索引（Index）"></a>索引（Index）</h2><p>索引是具有相同结构的文档集合。它体现了逻辑空间的概念：每个索引都有自己的 Mapping 定义，用于定义包含的文档的字段名和字段类型。我们可以在 Index 上定义 Mapping（文档字段的类型）和 Setting（不同的数据分布）。</p>
+<h2 id="类型（Type）"><a href="#类型（Type）" class="headerlink" title="类型（Type）"></a>类型（Type）</h2><p>类型是索引的逻辑分区。在 7.0 之前，一个 Index 可以设置多个 Types。<strong>从 7.0 开始，每个索引做能创建一个类型：_doc。</strong></p>
+<h2 id="映射（Mapping）"><a href="#映射（Mapping）" class="headerlink" title="映射（Mapping）"></a>映射（Mapping）</h2><p>映射定义了索引中的每一个字段类型，以及一个索引范围内的设置。一个映射可以事先被定义，或者在第一次存储文档的时候自动识别。</p>
+<h2 id="集群（Cluster）"><a href="#集群（Cluster）" class="headerlink" title="集群（Cluster）"></a>集群（Cluster）</h2><p>集群由一个或多个节点组成，对外提供服务。<strong>一个集群有一个唯一的名称默认为 Elasticsearch</strong>。此名称是很重要的，因为每个节点只能是集群的一部分，<strong>当该节点被设置为相同的集群名称时，就会自动加入集群</strong>。当需要有多个集群的时候，要确保每个集群的名称不能重复，否则，节点可能会加入错误的集群。请注意，<strong>一个节点只能加入一个集群</strong>。此外，我们还可以拥有多个独立的集群，每个集群都有其不同的集群名称。</p>
+<h2 id="节点（Node）"><a href="#节点（Node）" class="headerlink" title="节点（Node）"></a>节点（Node）</h2><p>单个的 ElasticSearch 服务实例称为节点（node）。很多时候部署一个 ElasticSearch 节点就足以应付大多数简单的应用，但是考虑到容错性或在数据膨胀到单机无法应付这些状况时，我们会更倾向于使用多节点的 ElasticSearch 集群。</p>
+<p><strong>节点类型：</strong></p>
+<table>
+<thead>
+<tr>
+<th align="center">节点类型</th>
+<th align="center">说明</th>
+<th align="center">配置参数</th>
+<th align="center">默认值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">master eligible</td>
+<td align="center">可以参加选主流程，成为 Master 节点</td>
+<td align="center">node.master</td>
+<td align="center">true</td>
+</tr>
+<tr>
+<td align="center">data</td>
+<td align="center">保存分片数据</td>
+<td align="center">node.data</td>
+<td align="center">true</td>
+</tr>
+<tr>
+<td align="center">ingest</td>
+<td align="center">执行预处理管道，不负责数据也不负责集群相关的事务</td>
+<td align="center">node.ingest</td>
+<td align="center">true</td>
+</tr>
+<tr>
+<td align="center">coordination only</td>
+<td align="center">接受 Client 请求，将请求分发到合适的节点，最终把结果汇集到一起</td>
+<td align="center">无</td>
+<td align="center">每个节点默认都是 coordination 节点。设置其它类型全部为 false。</td>
+</tr>
+<tr>
+<td align="center">machine learning</td>
+<td align="center">执行机器学习的 Job，用来做异常检测</td>
+<td align="center">node.ml</td>
+<td align="center">true （需 enable x-pack）</td>
+</tr>
+</tbody></table>
+<p>在开发环境中，一个节点可以承担多种角色；在生产环境中，应该设置单一的角色节点（dedicated node）。</p>
+<h2 id="主分片（Primary-Shard）"><a href="#主分片（Primary-Shard）" class="headerlink" title="主分片（Primary Shard）"></a>主分片（Primary Shard）</h2><p>用以解决数据水平扩展的问题。通过主分片，可以将数据分布到集群内的所有节点之上。主分片数在索引创建时指定，后续不允许修改，除非 Reindex。</p>
+<p><strong>对于生产环境中分片的设定，需要提前做好容量规划：</strong></p>
+<ul>
+<li>分片数设置过小：导致后续无法增加节点实现水平扩展；单个分片的数据量太大，导致重新分配耗时。</li>
+<li>分片数设置过大：影响搜索结果的相关性打分，影响统计结果的准确性；单个节点上过多的分片，会导致资源浪费，同时也会影响性能。</li>
+</ul>
+<h2 id="副本分片（Replica-Shard）"><a href="#副本分片（Replica-Shard）" class="headerlink" title="副本分片（Replica Shard）"></a>副本分片（Replica Shard）</h2><p>用以解决数据高可用的问题。副本分片是主分片的拷贝。副本分片数可以动态地调整。</p>
+
+    </div>
+
+    
+    
+    
+        <div class="reward-container">
+  <div>小礼物走一走，来 Github 关注我</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/wechatpay.png" alt="晴天 微信支付">
+        <p>微信支付</p>
+      </div>
+      
+      <div style="display: inline-block;">
+        <img src="/images/alipay.png" alt="晴天 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Elasticsearch/" rel="tag"># Elasticsearch</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/02/11/%E5%9F%BA%E4%BA%8EDocker%E6%90%AD%E5%BB%BAElasticsearch%E9%9B%86%E7%BE%A4/" rel="prev" title="基于 Docker 搭建 Elasticsearch 集群">
+      <i class="fa fa-chevron-left"></i> 基于 Docker 搭建 Elasticsearch 集群
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/02/11/Elasticsearch%E9%9B%86%E7%BE%A4%E6%9E%B6%E6%9E%84/" rel="next" title="Elasticsearch 集群架构">
+      Elasticsearch 集群架构 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Lucense"><span class="nav-number">1.</span> <span class="nav-text">Lucense</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#全文搜索（Full-Text-Search）"><span class="nav-number">2.</span> <span class="nav-text">全文搜索（Full Text Search）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#倒排索引（Inverted-Index）"><span class="nav-number">3.</span> <span class="nav-text">倒排索引（Inverted Index）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#文档（Document）"><span class="nav-number">4.</span> <span class="nav-text">文档（Document）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#索引（Index）"><span class="nav-number">5.</span> <span class="nav-text">索引（Index）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#类型（Type）"><span class="nav-number">6.</span> <span class="nav-text">类型（Type）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#映射（Mapping）"><span class="nav-number">7.</span> <span class="nav-text">映射（Mapping）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#集群（Cluster）"><span class="nav-number">8.</span> <span class="nav-text">集群（Cluster）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#节点（Node）"><span class="nav-number">9.</span> <span class="nav-text">节点（Node）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#主分片（Primary-Shard）"><span class="nav-number">10.</span> <span class="nav-text">主分片（Primary Shard）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#副本分片（Replica-Shard）"><span class="nav-number">11.</span> <span class="nav-text">副本分片（Replica Shard）</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">晴天</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">198</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">58</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">晴天</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v4.2.1
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> v7.7.0
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: '5f0b1c1d42822204f803',
+      clientSecret: '56818d47fc75f1f4999acd7a3356879bbade310f',
+      repo: 'cdrcool.github.io',
+      owner: 'cdrcool',
+      admin: ['cdrcool'],
+      id: '212556dac4e67f49939728f7bcddef3b',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

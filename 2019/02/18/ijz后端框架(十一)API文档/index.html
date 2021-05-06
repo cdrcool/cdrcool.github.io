@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('http://yoursite.com').hostname,
+    root: '/',
+    scheme: 'Muse',
+    version: '7.7.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="Swagger是一个规范和完整的框架，用于生成、描述、调用和可视化RESTful风格的Web服务。利用SpringFox我们可以很快的将Swagger集成到Spring Boot项目中：  添加依赖123456789&lt;!-- api doc --&gt;&lt;dependency&gt;    &lt;groupId&gt;io.springfox&lt;&#x2F;groupId&gt;    &amp;">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ijz后端框架(十一)API文档">
+<meta property="og:url" content="http://yoursite.com/2019/02/18/ijz%E5%90%8E%E7%AB%AF%E6%A1%86%E6%9E%B6(%E5%8D%81%E4%B8%80)API%E6%96%87%E6%A1%A3/index.html">
+<meta property="og:site_name" content="OnePiece">
+<meta property="og:description" content="Swagger是一个规范和完整的框架，用于生成、描述、调用和可视化RESTful风格的Web服务。利用SpringFox我们可以很快的将Swagger集成到Spring Boot项目中：  添加依赖123456789&lt;!-- api doc --&gt;&lt;dependency&gt;    &lt;groupId&gt;io.springfox&lt;&#x2F;groupId&gt;    &amp;">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://yoursite.com/images/API%E6%96%87%E6%A1%A3%E7%A4%BA%E4%BE%8B-%E5%85%AC%E6%9C%89%E4%BA%91%E6%88%90%E6%9C%AC.png">
+<meta property="article:published_time" content="2019-02-18T13:44:52.000Z">
+<meta property="article:modified_time" content="2021-05-06T07:11:29.209Z">
+<meta property="article:author" content="晴天">
+<meta property="article:tag" content="Swagger">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/images/API%E6%96%87%E6%A1%A3%E7%A4%BA%E4%BE%8B-%E5%85%AC%E6%9C%89%E4%BA%91%E6%88%90%E6%9C%AC.png">
+
+<link rel="canonical" href="http://yoursite.com/2019/02/18/ijz%E5%90%8E%E7%AB%AF%E6%A1%86%E6%9E%B6(%E5%8D%81%E4%B8%80)API%E6%96%87%E6%A1%A3/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>ijz后端框架(十一)API文档 | OnePiece</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">OnePiece</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">人的知识就好比一个圆圈，圆圈里面是已知的，圆圈外面是未知的。你知道得越多，圆圈也就越大，你不知道的也就越多。</p>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+  </ul>
+
+</nav>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/02/18/ijz%E5%90%8E%E7%AB%AF%E6%A1%86%E6%9E%B6(%E5%8D%81%E4%B8%80)API%E6%96%87%E6%A1%A3/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="晴天">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="OnePiece">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          ijz后端框架(十一)API文档
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-02-18 21:44:52" itemprop="dateCreated datePublished" datetime="2019-02-18T21:44:52+08:00">2019-02-18</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-05-06 15:11:29" itemprop="dateModified" datetime="2021-05-06T15:11:29+08:00">2021-05-06</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/ijz%E5%90%8E%E7%AB%AF%E6%A1%86%E6%9E%B6/" itemprop="url" rel="index">
+                    <span itemprop="name">ijz后端框架</span>
+                  </a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><a href="https://swagger.io/" target="_blank" rel="noopener">Swagger</a>是一个规范和完整的框架，用于生成、描述、调用和可视化RESTful风格的Web服务。<br>利用<a href="https://springfox.github.io/springfox/" target="_blank" rel="noopener">SpringFox</a>我们可以很快的将Swagger集成到Spring Boot项目中：</p>
+<ol>
+<li>添加依赖<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!-- api doc --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>io.springfox<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>springfox-swagger2<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>io.springfox<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>springfox-swagger-ui<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure></li>
+<li>在Spring Boot应用启动类上添加注解@@EnableSwagger2<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@EnableSwagger</span>2</span><br><span class="line"><span class="meta">@SpringBootApplication</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CostApplication</span> <span class="keyword">extends</span> <span class="title">SpringBootServletInitializer</span> </span>&#123;</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li>Controller类上添加相关文档注解<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Api</span>(description = <span class="string">"其他费用"</span>)</span><br><span class="line"><span class="meta">@UnifyReturn</span></span><br><span class="line"><span class="meta">@RequestMapping</span>(<span class="string">"otherCost"</span>)</span><br><span class="line"><span class="meta">@RestController</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">OtherCostController</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="keyword">private</span> OtherCostService service;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@ApiOperation</span>(httpMethod = <span class="string">"POST"</span>, value = <span class="string">"保存其他费用"</span>)</span><br><span class="line">    <span class="meta">@PostMapping</span>(<span class="string">"save"</span>)</span><br><span class="line">    <span class="function"><span class="keyword">public</span> OtherCostVO <span class="title">save</span><span class="params">(@Valid @RequestBody OtherCostVO vo)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> StringUtils.isEmpty(vo.getId()) ? service.create(vo) : service.update(vo);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@ApiOperation</span>(httpMethod = <span class="string">"POST"</span>, value = <span class="string">"删除其他费用"</span>)</span><br><span class="line">    <span class="meta">@PostMapping</span>(<span class="string">"delete"</span>)</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">delete</span><span class="params">(@RequestBody List&lt;OtherCostVO&gt; voList)</span> </span>&#123;</span><br><span class="line">        service.delete(voList);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@ApiOperation</span>(httpMethod = <span class="string">"GET"</span>, value = <span class="string">"查找其他费用"</span>)</span><br><span class="line">    <span class="meta">@GetMapping</span>(<span class="string">"queryDetail"</span>)</span><br><span class="line">    <span class="function"><span class="keyword">public</span> OtherCostVO <span class="title">findOne</span><span class="params">(String id)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> service.findById(id);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@ApiOperation</span>(httpMethod = <span class="string">"POST"</span>, value = <span class="string">"分页查询其他费用"</span>)</span><br><span class="line">    <span class="meta">@PostMapping</span>(<span class="string">"queryList"</span>)</span><br><span class="line">    <span class="function"><span class="keyword">public</span> Page&lt;OtherCostVO&gt; <span class="title">queryList</span><span class="params">(@RequestBody QueryCondition condition)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> service.queryForPage(condition.getSearchText(), condition.getFilter(), condition.getPageable());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@ApiOperation</span>(httpMethod = <span class="string">"GET"</span>, value = <span class="string">"生成单据编号"</span>)</span><br><span class="line">    <span class="meta">@GetMapping</span>(<span class="string">"generateCode"</span>)</span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">generateBillCode</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> service.generateBillCode();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@ApiOperation</span>(httpMethod = <span class="string">"GET"</span>, value = <span class="string">"获取成本费用类别档案"</span>)</span><br><span class="line">    <span class="meta">@RequestMapping</span>(value = <span class="string">"getCostTypes"</span>)</span><br><span class="line">    <span class="function"><span class="keyword">public</span> List&lt;DefdocAPIBO&gt; <span class="title">getCostTypes</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> service.getCostTypes();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@UnifyReturn</span>(unify = <span class="keyword">false</span>)</span><br><span class="line">    <span class="meta">@ApiOperation</span>(httpMethod = <span class="string">"GET"</span>, value = <span class="string">"导出其他费用"</span>)</span><br><span class="line">    <span class="meta">@PostMapping</span>(<span class="string">"/export"</span>)</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">exportExcel</span><span class="params">(HttpServletResponse response, @RequestBody ExportParams&lt;OtherCostVO&gt; params)</span> </span>&#123;</span><br><span class="line">        List&lt;OtherCostVO&gt; dataList;</span><br><span class="line">        <span class="keyword">if</span> (ExportDataScope.ALL.name().equalsIgnoreCase(params.getScope())) &#123;</span><br><span class="line">            QueryCondition condition = params.getCondition();</span><br><span class="line">            Page&lt;OtherCostVO&gt; page = service.queryForPage(condition.getSearchText(), condition.getFilter(),</span><br><span class="line">                    PageRequest.of(<span class="number">0</span>, <span class="number">10000</span>, condition.getSort()));</span><br><span class="line">            dataList = page.getContent();</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            dataList = params.getData();</span><br><span class="line">        &#125;</span><br><span class="line">        ExportUtils.<span class="keyword">exports</span>(response, params.getFileName(), dataList, <span class="keyword">new</span> ExportDefinitionBuilder&lt;OtherCostVO&gt;()</span><br><span class="line">                .model(OtherCostVO<span class="class">.<span class="keyword">class</span>)</span></span><br><span class="line">                .simpleLabels(Arrays.asList("单据编号", "项目名称", "登记月份", "创建人", "合计金额"))</span><br><span class="line">                .simpleProperties(Arrays.asList(<span class="string">"billCode"</span>, <span class="string">"projectName"</span>, <span class="string">"period"</span>, <span class="string">"creator"</span>, <span class="string">"totalAmount"</span>))</span><br><span class="line">                .build());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@UnifyReturn</span>(unify = <span class="keyword">false</span>)</span><br><span class="line">    <span class="meta">@ApiOperation</span>(httpMethod = <span class="string">"GET"</span>, value = <span class="string">"打印其他费用"</span>)</span><br><span class="line">    <span class="meta">@PostMapping</span>(<span class="string">"print"</span>)</span><br><span class="line">    <span class="function"><span class="keyword">public</span> JSONObject <span class="title">queryList</span><span class="params">(String id)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> PrintUtil.convertPrintData(service.findById(id), <span class="keyword">new</span> PrintAttributeConvert() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">convert</span><span class="params">(JSONObject jsonObject)</span> </span>&#123;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li>在vo类上添加相关注解<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">@ApiModel(description &#x3D; &quot;其他费用&quot;)</span><br><span class="line">public class OtherCostVO extends BillVO &#123;</span><br><span class="line">    @ApiModelProperty(&quot;项目id&quot;)</span><br><span class="line">    @NotNull(message &#x3D; &quot;项目不能为空&quot;)</span><br><span class="line">    private String projectId; &#x2F;&#x2F; 项目id</span><br><span class="line">    @ApiModelProperty(&quot;项目id&quot;)</span><br><span class="line">    private String projectName; &#x2F;&#x2F; 项目名称</span><br><span class="line">    @ApiModelProperty(&quot;登记月份id&quot;)</span><br><span class="line">    @NotNull(message &#x3D; &quot;登记月份不能为空&quot;)</span><br><span class="line">    private String periodId; &#x2F;&#x2F; 登记月份</span><br><span class="line">    @ApiModelProperty(&quot;登记月份&quot;)</span><br><span class="line">    private String period; &#x2F;&#x2F; 登记月份</span><br><span class="line">    @NotNull(message &#x3D; &quot;合计金额不能为空&quot;)</span><br><span class="line">    @ApiModelProperty(&quot;合计金额&quot;)</span><br><span class="line">    private BigDecimal totalAmount; &#x2F;&#x2F; 合计金额</span><br><span class="line">    @ApiModelProperty(&quot;费用明细&quot;)</span><br><span class="line">    @SublistNotEmpty(message &#x3D; &quot;费用明细不能为空&quot;)</span><br><span class="line">    @Valid</span><br><span class="line">    private List&lt;OtherCostDetailVO&gt; costDetails; &#x2F;&#x2F; 费用明细</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+大功告成！启动项目后，访问地址http://{ip}:{port}/{projectname}/swagger-ui.html即可看到自动生成的API文档。<br>下面以公有云成本)示例：<br><img src="/images/API%E6%96%87%E6%A1%A3%E7%A4%BA%E4%BE%8B-%E5%85%AC%E6%9C%89%E4%BA%91%E6%88%90%E6%9C%AC.png" alt="API文档示例-公有云成本"><br>大家可以访问地址：<a href="https://cc.yonyouccs.com/ijz-cost-web/swagger-ui.html" target="_blank" rel="noopener">https://cc.yonyouccs.com/ijz-cost-web/swagger-ui.html</a>查看详细。</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+        <div class="reward-container">
+  <div>小礼物走一走，来 Github 关注我</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/wechatpay.png" alt="晴天 微信支付">
+        <p>微信支付</p>
+      </div>
+      
+      <div style="display: inline-block;">
+        <img src="/images/alipay.png" alt="晴天 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Swagger/" rel="tag"># Swagger</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/02/17/ijz%E5%90%8E%E7%AB%AF%E6%A1%86%E6%9E%B6(%E4%B8%83)%E6%95%B0%E6%8D%AE%E6%A0%A1%E9%AA%8C/" rel="prev" title="ijz后端框架(七)数据校验">
+      <i class="fa fa-chevron-left"></i> ijz后端框架(七)数据校验
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/02/18/ijz%E5%90%8E%E7%AB%AF%E6%A1%86%E6%9E%B6(%E5%8D%81%E4%BA%8C)%E9%9B%86%E6%88%90dubbox/" rel="next" title="ijz后端框架(十二)集成dubbox">
+      ijz后端框架(十二)集成dubbox <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">晴天</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">198</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">58</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">晴天</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v4.2.1
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> v7.7.0
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: '5f0b1c1d42822204f803',
+      clientSecret: '56818d47fc75f1f4999acd7a3356879bbade310f',
+      repo: 'cdrcool.github.io',
+      owner: 'cdrcool',
+      admin: ['cdrcool'],
+      id: '7bd4b768929deeecc02395dedb342fa0',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

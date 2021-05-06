@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('http://yoursite.com').hostname,
+    root: '/',
+    scheme: 'Muse',
+    version: '7.7.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="架构原则数据量尽量少数据在网络上传输需要时间，且不管是请求数据还是返回数据都需要服务器做处理，而服务器在写网络时通常都要做压缩和字符编码，这些都非常消耗 CPU，所以减少传输的数据量可以显著减少 CPU 的使用。  简化秒杀页面的大小，去掉不必要的页面装修效果 JS&#x2F;CSS压缩，减少流量  请求数要尽量少浏览器每发出一个请求都多少会有一些消耗，例如建立连接要做三次握手，有的时候有页面依赖或者连接数">
+<meta property="og:type" content="article">
+<meta property="og:title" content="悠悠商城--web安全">
+<meta property="og:url" content="http://yoursite.com/2019/07/28/%E6%82%A0%E6%82%A0%E5%95%86%E5%9F%8E--%E5%95%86%E5%93%81%E7%A7%92%E6%9D%80/index.html">
+<meta property="og:site_name" content="OnePiece">
+<meta property="og:description" content="架构原则数据量尽量少数据在网络上传输需要时间，且不管是请求数据还是返回数据都需要服务器做处理，而服务器在写网络时通常都要做压缩和字符编码，这些都非常消耗 CPU，所以减少传输的数据量可以显著减少 CPU 的使用。  简化秒杀页面的大小，去掉不必要的页面装修效果 JS&#x2F;CSS压缩，减少流量  请求数要尽量少浏览器每发出一个请求都多少会有一些消耗，例如建立连接要做三次握手，有的时候有页面依赖或者连接数">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2019-07-28T02:59:34.000Z">
+<meta property="article:modified_time" content="2021-05-06T07:11:29.220Z">
+<meta property="article:author" content="晴天">
+<meta property="article:tag" content="RabbitMQ">
+<meta property="article:tag" content="Redis">
+<meta property="article:tag" content="Mysql">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://yoursite.com/2019/07/28/%E6%82%A0%E6%82%A0%E5%95%86%E5%9F%8E--%E5%95%86%E5%93%81%E7%A7%92%E6%9D%80/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>悠悠商城--web安全 | OnePiece</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">OnePiece</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">人的知识就好比一个圆圈，圆圈里面是已知的，圆圈外面是未知的。你知道得越多，圆圈也就越大，你不知道的也就越多。</p>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+  </ul>
+
+</nav>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/07/28/%E6%82%A0%E6%82%A0%E5%95%86%E5%9F%8E--%E5%95%86%E5%93%81%E7%A7%92%E6%9D%80/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="晴天">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="OnePiece">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          悠悠商城--web安全
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-07-28 10:59:34" itemprop="dateCreated datePublished" datetime="2019-07-28T10:59:34+08:00">2019-07-28</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-05-06 15:11:29" itemprop="dateModified" datetime="2021-05-06T15:11:29+08:00">2021-05-06</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%82%A0%E6%82%A0%E5%95%86%E5%9F%8E/" itemprop="url" rel="index">
+                    <span itemprop="name">悠悠商城</span>
+                  </a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="架构原则"><a href="#架构原则" class="headerlink" title="架构原则"></a>架构原则</h2><h3 id="数据量尽量少"><a href="#数据量尽量少" class="headerlink" title="数据量尽量少"></a>数据量尽量少</h3><p>数据在网络上传输需要时间，且不管是请求数据还是返回数据都需要服务器做处理，而服务器在写网络时通常都要做压缩和字符编码，这些都非常消耗 CPU，所以减少传输的数据量可以显著减少 CPU 的使用。</p>
+<ul>
+<li>简化秒杀页面的大小，去掉不必要的页面装修效果</li>
+<li>JS/CSS压缩，减少流量</li>
+</ul>
+<h3 id="请求数要尽量少"><a href="#请求数要尽量少" class="headerlink" title="请求数要尽量少"></a>请求数要尽量少</h3><p>浏览器每发出一个请求都多少会有一些消耗，例如建立连接要做三次握手，有的时候有页面依赖或者连接数限制，一些请求（例如 JavaScript）还需要串行加载等。另外，如果不同请求的域名不一样的话，还涉及这些域名的 DNS 解析，可能会耗时更久。因此减少请求数可以显著减少以上这些因素导致的资源消耗。</p>
+<ul>
+<li>合并 CSS 和 JavaScript 文件，以减少请求数</li>
+</ul>
+<h3 id="路径要尽量短"><a href="#路径要尽量短" class="headerlink" title="路径要尽量短"></a>路径要尽量短</h3><p>所谓“路径”，就是用户发出请求到返回数据这个过程中，需求经过的中间的节点数。<br>每增加一个连接都会增加新的不确定性。从概率统计上来说，假如一次请求经过 5 个节点，每个节点的可用性是 99.9% 的的话，那么整个请求的可用性是：99.9% 的 5 次方，约等99.5%。<br>所以缩短请求路径不仅可以增加可用性，同样可以有效提升性能（减少中间节点可以减少数据的序列化与反序列化），并减少延时（可以减少网络传输耗时）。</p>
+<ul>
+<li>将多个相互强依赖的应用合并部署在一起，把远程过程调用（RPC）变成 JVM 内部之间的方法调用。</li>
+</ul>
+<h3 id="依赖要尽量少"><a href="#依赖要尽量少" class="headerlink" title="依赖要尽量少"></a>依赖要尽量少</h3><p>所谓依赖，指的是要完成一次用户请求必须依赖的系统或者服务，这里的依赖指的是强依赖。<br>要减少依赖，我们可以给系统进行分级，比如 0 级系统、1 级级系统、2 级系统、3 级系统，0 级系统如果是最重要的系统，以此类推。<br>注意，0 级系统要尽量减少对 1 级系统的强依赖，防止重要的系统被不重要的系统拖垮。例如支付系统是 0 级系统，而优惠券是 1 级系统的话，在极端情况下可以把优惠券给降级，防止支付系统被优惠券这个 1 级系统给拖垮。</p>
+<ul>
+<li>次级系统服务降级</li>
+</ul>
+<h3 id="不要有单点"><a href="#不要有单点" class="headerlink" title="不要有单点"></a>不要有单点</h3><p>单点意味着没有备份，风险不可控，我们设计分布式系统最重要的原则就是“消除单点”。<br>要避免单点，关键点是避免将服务的状态和机器绑定，即把服务无状态化，这样服务就可以在机器中随意移动。</p>
+<ul>
+<li>部署配置中心，实现配置动态化</li>
+</ul>
+<h2 id="动静分离"><a href="#动静分离" class="headerlink" title="动静分离"></a>动静分离</h2><p>所谓“动静分离”，其实就是把用户请求的数据（如 HTML 页面）划分为“动态数据”和“静态数据”。<br>简单来说，“动态数据”和“静态数据”的主要区别就是看页面中输出的数据是否和 URL、浏览者、时间、地域相关，以及是否含有Cookie 等私密数据。<br>强调一下，我们所说的静态数据，不能仅仅理解为传统意义上完全存在磁盘上的 HTML 页面，它也可能是经过 Java 系统产生的页面，但是它输出的页面本身不包含上面所说的那些因素。也就是所谓“动态”还是“静态”，并不是说数据本身是否动静，而是数据中是否含有和访问者相关的个性化数据。</p>
+<ol>
+<li>把静态数据缓存到离用户最近的地方</li>
+</ol>
+<ul>
+<li>用户浏览器</li>
+<li>服务器缓存</li>
+<li>CDN</li>
+</ul>
+<ol start="2">
+<li><p>静态化改造就是要直接缓存 HTTP 连接<br>Web 代理服务器根据请求 URL，直接取出对应的 HTTP 连接而不是仅仅缓存数据。Web 代理服务器根据请求 URL，直接取出对应的 HTTP 响应头和响应体然后直接返回，这个响应过程简单得连 HTTP 协议都不用重新组装，甚至连 HTTP 请求头也不需要解析。</p>
+</li>
+<li><p>选择合适的缓存框架</p>
+</li>
+</ol>
+<ul>
+<li>Java</li>
+<li>Nginx</li>
+<li>Apache</li>
+<li>Varnish</li>
+</ul>
+<h2 id="流量削峰"><a href="#流量削峰" class="headerlink" title="流量削峰"></a>流量削峰</h2><p>削峰的存在，一是可以让服务端处理变得更加平稳，二是可以节省服务器的资源成本。</p>
+<ul>
+<li>排队</li>
+<li>答题</li>
+<li>分层过滤</li>
+</ul>
+<h2 id="减库存"><a href="#减库存" class="headerlink" title="减库存"></a>减库存</h2><ol>
+<li><p>基于数据库行锁</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">update</span> goods <span class="keyword">set</span> inventory = inventory<span class="number">-1</span> <span class="keyword">where</span> <span class="keyword">id</span> = <span class="comment">#&#123;goodsId&#125; and inventory &gt; 0</span></span><br></pre></td></tr></table></figure>
+<p>问题：大量锁竞争时，会影响数据库性能。</p>
+</li>
+<li><p>使用数据库乐观锁</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">update</span> goods <span class="keyword">set</span> inventory = inventory<span class="number">-1</span> <span class="keyword">where</span> <span class="keyword">id</span> = <span class="comment">#&#123;goodsId&#125; and inventory &gt; 0 and version = #&#123;version&#125;</span></span><br></pre></td></tr></table></figure>
+<p>问题：库存100，且同时只有100人抢购商品时，实际卖出的商品可能少于100。</p>
+</li>
+<li><p>使用redis令牌桶<br>预先创建n个令牌桶，n等于商品的个数。请求到来时，先获取令牌桶，只有获取了令牌桶的请求才能实际购买商品。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 创建令牌桶</span></span><br><span class="line">List&lt;String&gt; tokens = LongStream.range(<span class="number">0</span>, number)</span><br><span class="line">        .mapToObj(index -&gt; <span class="string">"spike_"</span> + UUID.randomUUID().toString().replace(<span class="string">"-"</span>, <span class="string">""</span>))</span><br><span class="line">        .collect(Collectors.toList());</span><br><span class="line">redisTemplate.opsForList().leftPushAll(String.valueOf(goodsId), tokens);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 获取令牌桶</span></span><br><span class="line">String token = redisTemplate.opsForList().leftPop(String.valueOf(goodsId));</span><br><span class="line"><span class="keyword">if</span> (StringUtils.isEmpty(token)) &#123;</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(String.format(<span class="string">"商品：%s已经售空"</span>, goodsId));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>问题：实际卖出的商品可能少于100。</p>
+</li>
+<li><p>使用redis预减库存</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; 判断redis中库存是否小于0</span><br><span class="line">Long stock &#x3D; redisTemplate.opsForValue().decrement(&quot;spike_&quot; + goodsId);</span><br><span class="line">if (stock &#x3D;&#x3D; null || stock &lt; 0) &#123;</span><br><span class="line">    &#x2F;&#x2F; 内存标记商品已售空</span><br><span class="line">    goodsOverMap.put(goodsId, true);</span><br><span class="line">    throw new RuntimeException(String.format(&quot;商品已经售空，商品id：%s&quot;, goodsId));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>异步减库存/创建订单</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">String token &#x3D; redisTemplate.opsForList().leftPop(String.valueOf(goodsId));</span><br><span class="line">if (StringUtils.isEmpty(token)) &#123;</span><br><span class="line">    throw new RuntimeException(String.format(&quot;商品：%s已经售空&quot;, goodsId));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; 异步发送秒杀消息</span><br><span class="line">sendSpikeMsg(goodsId, userId);</span><br></pre></td></tr></table></figure>
+
+</li>
+</ol>
+<h2 id="兜底方案"><a href="#兜底方案" class="headerlink" title="兜底方案"></a>兜底方案</h2><h3 id="降级"><a href="#降级" class="headerlink" title="降级"></a>降级</h3><p>所谓“降级”，就是当系统的容量达到一定程度时，限制或者关闭系统的某些非核心功能，从而把有限的资源保留给更核心的业务。</p>
+<h3 id="限流"><a href="#限流" class="headerlink" title="限流"></a>限流</h3><p>限流就是当系统容量达到瓶颈时，我们需要通过限制一部分流量来保护系统，并做到既可以人工执行开关，也支持自动化保护的措施。</p>
+<h3 id="拒绝服务"><a href="#拒绝服务" class="headerlink" title="拒绝服务"></a>拒绝服务</h3><p>当系统负载达到一定阈值时，例如 CPU 使用率达到 90% 或者系统 load 值达到 2*CPU 核数时，系统直接拒绝所有请求，这种方式是最暴力但也最有效的保护方式。</p>
+<h2 id="优化"><a href="#优化" class="headerlink" title="优化"></a>优化</h2><h3 id="静态资源优化"><a href="#静态资源优化" class="headerlink" title="静态资源优化"></a>静态资源优化</h3><ul>
+<li>JS/CSS压缩，减少流量</li>
+<li>CDN就近访问</li>
+</ul>
+<h3 id="缓存"><a href="#缓存" class="headerlink" title="缓存"></a>缓存</h3><ul>
+<li>页面缓存</li>
+<li>对象缓存</li>
+</ul>
+<h3 id="其它"><a href="#其它" class="headerlink" title="其它"></a>其它</h3><ul>
+<li>隐藏秒杀地址</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+        <div class="reward-container">
+  <div>小礼物走一走，来 Github 关注我</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/wechatpay.png" alt="晴天 微信支付">
+        <p>微信支付</p>
+      </div>
+      
+      <div style="display: inline-block;">
+        <img src="/images/alipay.png" alt="晴天 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/RabbitMQ/" rel="tag"># RabbitMQ</a>
+              <a href="/tags/Redis/" rel="tag"># Redis</a>
+              <a href="/tags/Mysql/" rel="tag"># Mysql</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/07/19/%E6%82%A0%E6%82%A0%E5%95%86%E5%9F%8E--web%E5%AE%89%E5%85%A8/" rel="prev" title="悠悠商城--web安全">
+      <i class="fa fa-chevron-left"></i> 悠悠商城--web安全
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/08/30/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F--%E5%8D%95%E4%BE%8B%E6%A8%A1%E5%BC%8F/" rel="next" title="设计模式--单例模式">
+      设计模式--单例模式 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#架构原则"><span class="nav-number">1.</span> <span class="nav-text">架构原则</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#数据量尽量少"><span class="nav-number">1.1.</span> <span class="nav-text">数据量尽量少</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#请求数要尽量少"><span class="nav-number">1.2.</span> <span class="nav-text">请求数要尽量少</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#路径要尽量短"><span class="nav-number">1.3.</span> <span class="nav-text">路径要尽量短</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#依赖要尽量少"><span class="nav-number">1.4.</span> <span class="nav-text">依赖要尽量少</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#不要有单点"><span class="nav-number">1.5.</span> <span class="nav-text">不要有单点</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#动静分离"><span class="nav-number">2.</span> <span class="nav-text">动静分离</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#流量削峰"><span class="nav-number">3.</span> <span class="nav-text">流量削峰</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#减库存"><span class="nav-number">4.</span> <span class="nav-text">减库存</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#兜底方案"><span class="nav-number">5.</span> <span class="nav-text">兜底方案</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#降级"><span class="nav-number">5.1.</span> <span class="nav-text">降级</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#限流"><span class="nav-number">5.2.</span> <span class="nav-text">限流</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#拒绝服务"><span class="nav-number">5.3.</span> <span class="nav-text">拒绝服务</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#优化"><span class="nav-number">6.</span> <span class="nav-text">优化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#静态资源优化"><span class="nav-number">6.1.</span> <span class="nav-text">静态资源优化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#缓存"><span class="nav-number">6.2.</span> <span class="nav-text">缓存</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#其它"><span class="nav-number">6.3.</span> <span class="nav-text">其它</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">晴天</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">198</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">58</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">晴天</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v4.2.1
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> v7.7.0
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: '5f0b1c1d42822204f803',
+      clientSecret: '56818d47fc75f1f4999acd7a3356879bbade310f',
+      repo: 'cdrcool.github.io',
+      owner: 'cdrcool',
+      admin: ['cdrcool'],
+      id: '168016eb0070f2ef1e88573625621e99',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('http://yoursite.com').hostname,
+    root: '/',
+    scheme: 'Muse',
+    version: '7.7.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="在[Spring Boot–启动流程分析](https:&#x2F;&#x2F;cdrcool.github.io&#x2F;2019&#x2F;09&#x2F;12&#x2F;Spring Boot–启动流程分析&#x2F;)文中提到，在Spring Boot应用启动过程中，会经历某些固定的阶段，这些阶段中都会组播相应的事件，那么这些事件是如何发送，又是如何被接收处理的呢？本文将为大家详细介绍。 监听器模式在介绍Spring Boot事件监听机制之前，我们有必要先">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Spring Boot--事件监听机制">
+<meta property="og:url" content="http://yoursite.com/2019/09/15/Spring%20Boot--%E4%BA%8B%E4%BB%B6%E7%9B%91%E5%90%AC%E6%9C%BA%E5%88%B6/index.html">
+<meta property="og:site_name" content="OnePiece">
+<meta property="og:description" content="在[Spring Boot–启动流程分析](https:&#x2F;&#x2F;cdrcool.github.io&#x2F;2019&#x2F;09&#x2F;12&#x2F;Spring Boot–启动流程分析&#x2F;)文中提到，在Spring Boot应用启动过程中，会经历某些固定的阶段，这些阶段中都会组播相应的事件，那么这些事件是如何发送，又是如何被接收处理的呢？本文将为大家详细介绍。 监听器模式在介绍Spring Boot事件监听机制之前，我们有必要先">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://yoursite.com/images/springboot/%E4%BA%8B%E4%BB%B6%E7%9B%91%E5%90%AC%E5%99%A8%E6%A8%A1%E5%BC%8F-%E7%AE%80%E5%8D%95.png">
+<meta property="og:image" content="http://yoursite.com/images/springboot/%E4%BA%8B%E4%BB%B6%E7%9B%91%E5%90%AC%E5%99%A8%E6%A8%A1%E5%BC%8F-%E6%B3%9B%E5%9E%8B.png">
+<meta property="og:image" content="http://yoursite.com/images/springboot/%E4%BA%8B%E4%BB%B6%E7%BB%84%E6%92%AD.png">
+<meta property="og:image" content="http://yoursite.com/images/springboot/SpringApplicationEvent.png">
+<meta property="og:image" content="http://yoursite.com/images/springboot/ApplicationListener.png">
+<meta property="og:image" content="http://yoursite.com/images/springboot/SpringApplicationRunListener.png">
+<meta property="og:image" content="http://yoursite.com/images/springboot/ApplicationEventMulticaster.png">
+<meta property="og:image" content="http://yoursite.com/images/springboot/SpringBoot%E5%BA%94%E7%94%A8%E5%90%AF%E5%8A%A8-%E4%BA%8B%E4%BB%B6%E7%9B%91%E5%90%AC%E6%9C%BA%E5%88%B6.png">
+<meta property="article:published_time" content="2019-09-15T13:37:06.000Z">
+<meta property="article:modified_time" content="2021-05-06T07:11:29.196Z">
+<meta property="article:author" content="晴天">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/images/springboot/%E4%BA%8B%E4%BB%B6%E7%9B%91%E5%90%AC%E5%99%A8%E6%A8%A1%E5%BC%8F-%E7%AE%80%E5%8D%95.png">
+
+<link rel="canonical" href="http://yoursite.com/2019/09/15/Spring%20Boot--%E4%BA%8B%E4%BB%B6%E7%9B%91%E5%90%AC%E6%9C%BA%E5%88%B6/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>Spring Boot--事件监听机制 | OnePiece</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">OnePiece</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">人的知识就好比一个圆圈，圆圈里面是已知的，圆圈外面是未知的。你知道得越多，圆圈也就越大，你不知道的也就越多。</p>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+  </ul>
+
+</nav>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/15/Spring%20Boot--%E4%BA%8B%E4%BB%B6%E7%9B%91%E5%90%AC%E6%9C%BA%E5%88%B6/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="晴天">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="OnePiece">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Spring Boot--事件监听机制
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-09-15 21:37:06" itemprop="dateCreated datePublished" datetime="2019-09-15T21:37:06+08:00">2019-09-15</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-05-06 15:11:29" itemprop="dateModified" datetime="2021-05-06T15:11:29+08:00">2021-05-06</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Spring-Boot/" itemprop="url" rel="index">
+                    <span itemprop="name">Spring Boot</span>
+                  </a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>在[Spring Boot–启动流程分析](<a href="https://cdrcool.github.io/2019/09/12/Spring" target="_blank" rel="noopener">https://cdrcool.github.io/2019/09/12/Spring</a> Boot–启动流程分析/)文中提到，在Spring Boot应用启动过程中，会经历某些固定的阶段，这些阶段中都会组播相应的事件，那么这些事件是如何发送，又是如何被接收处理的呢？本文将为大家详细介绍。</p>
+<h2 id="监听器模式"><a href="#监听器模式" class="headerlink" title="监听器模式"></a>监听器模式</h2><p>在介绍Spring Boot事件监听机制之前，我们有必要先了解事件监听器模式，事件监听器模式是观察者模式的另一种形态，同样基于事件驱动模型，事件监听器模式更加灵活，可以对不同事件作相应处理。其UML类图如下：<br><img src="/images/springboot/%E4%BA%8B%E4%BB%B6%E7%9B%91%E5%90%AC%E5%99%A8%E6%A8%A1%E5%BC%8F-%E7%AE%80%E5%8D%95.png" alt="事件监听器模式-简单类图"><br>由类图可知，事件监听器模式包含3中角色：</p>
+<ul>
+<li>事件对象：java提供了标准事件对象类EventObject，它有一个属性source，source指数据源，表示是在哪个对象上发生的该事件。这里我们定义了CustomEvent子类,该类只接受指定的数据源对象EventSource。</li>
+<li>事件监听类：同样，java提供了标准事件监听接口EventListener，它是一个空的接口。这里我们定义了CustomEventListener实现类，该类有一个方法onEvent，接受事件对象参数，表示对该事件进行处理。</li>
+<li>事件源：可以是任意Object，通常会包含一个监听类集合，具有添加、删除事件监听类的行为，这里action操作会触发事件监听。</li>
+</ul>
+<h2 id="扩展：支持泛型"><a href="#扩展：支持泛型" class="headerlink" title="扩展：支持泛型"></a>扩展：支持泛型</h2><p>上面类图中，事件监听器只能监听某个具体事件，要使其能监听某类多个具体事件，可以采用泛型：<br><img src="/images/springboot/%E4%BA%8B%E4%BB%B6%E7%9B%91%E5%90%AC%E5%99%A8%E6%A8%A1%E5%BC%8F-%E6%B3%9B%E5%9E%8B.png" alt="事件监听器模式-泛型类图"></p>
+<h2 id="扩展：组播类"><a href="#扩展：组播类" class="headerlink" title="扩展：组播类"></a>扩展：组播类</h2><p>像addEventListener、removeEventListener等操作，我们可以在单独的类中封装，然后当事件源中需要执行某方法时，将方法委托给该封装类处理，这样可以保证接口的一致性：<br><img src="/images/springboot/%E4%BA%8B%E4%BB%B6%E7%BB%84%E6%92%AD.png" alt="事件组播"></p>
+<h2 id="ApplicationListener"><a href="#ApplicationListener" class="headerlink" title="ApplicationListener"></a>ApplicationListener</h2><p>介绍完事件监听器模式之后，现在可以开始介绍Spring Boot事件监听机制啦（它可是采用标准的事件监听器模式实现的）。前文提到，Spring Boot应用启动过程中，会组播一系列的事件，这些事件继承于<strong>SpringApplicationEvent</strong>类：<br><img src="/images/springboot/SpringApplicationEvent.png" alt="SpringApplicationEvent"><br>不难发现，这里的事件源对象正是SpringApplication类。有event，自然也有event listener：<br><img src="/images/springboot/ApplicationListener.png" alt="ApplicationListener"><br>ApplicationListener有好多实现类，就不一一列举了，注意Spring Boot没有相应的定义SpringApplicationListener，我想是这是因为listener既会监听ApplicationEvent，也会监听SpringApplicationEvent。</p>
+<h2 id="SpringApplicationRunListener"><a href="#SpringApplicationRunListener" class="headerlink" title="SpringApplicationRunListener"></a>SpringApplicationRunListener</h2><p>现在事件源、事件对象、事件对象监听类都清楚了，那么事件源是怎么触发事件监听的呢？下面贴出<strong>SpringApplication.run</strong>方法中的部分代码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; 获取SpringApplicationRunListener实现类集合</span><br><span class="line">SpringApplicationRunListeners listeners &#x3D; getRunListeners(args);</span><br><span class="line">&#x2F;&#x2F; 组播starting事件</span><br><span class="line">listeners.starting();</span><br><span class="line">...</span><br><span class="line">&#x2F;&#x2F; 组播started事件</span><br><span class="line">listeners.started(context);</span><br><span class="line">...</span><br><span class="line">&#x2F;&#x2F; 组播running事件</span><br><span class="line">listeners.running(context);</span><br></pre></td></tr></table></figure>
+<p>可以看到，事件的组播都是通过<strong>SpringApplicationRunListeners</strong>类实现的，之所以要创建该类是因为starting等操作都会触发一系列事件监听，所以它的构造函数接受<strong>SpringApplicationRunListener</strong>集合，看源码可知，除了failed方法，其他都是简单的循环调用单个listener的相应方法。<br><img src="/images/springboot/SpringApplicationRunListener.png" alt="SpringApplicationRunListener"><br>再看<strong>SpringApplicationRunListener</strong>实现类，它有一个application属性，这就是事件源，然后还有一个initialMulticaster属性，还记得“扩展：组播类”吗，没错，<strong>SimpleApplicationEventMulticaster</strong>就是Spring Boot封装的组播类：<br><img src="/images/springboot/ApplicationEventMulticaster.png" alt="ApplicationEventMulticaster"><br>其中，<strong>ApplicationEventMulticaster</strong>简单定义了增加、删除、组播等操作，<strong>AbstractApplicationEventMulticaster</strong>实现了增加、删除操作（组播操作留给子类实现），同时增加了两个supportsEvent重载方法，这两个方法是用于判断某listener是否支持相应指定的事件类型。<br><strong>SimpleApplicationEventMulticaster</strong>主要实现组播了操作，它只会通知支持某指定事件类型的监听类，同时支持异常处理和异步操作。</p>
+<p>总体UML类图（主要部分）：<br><img src="/images/springboot/SpringBoot%E5%BA%94%E7%94%A8%E5%90%AF%E5%8A%A8-%E4%BA%8B%E4%BB%B6%E7%9B%91%E5%90%AC%E6%9C%BA%E5%88%B6.png" alt="SpringBoot应用启动-事件监听机制"></p>
+
+    </div>
+
+    
+    
+    
+        <div class="reward-container">
+  <div>小礼物走一走，来 Github 关注我</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/wechatpay.png" alt="晴天 微信支付">
+        <p>微信支付</p>
+      </div>
+      
+      <div style="display: inline-block;">
+        <img src="/images/alipay.png" alt="晴天 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/09/13/Spring%20IoC--Bean%E7%9A%84%E5%88%9D%E5%A7%8B%E5%8C%96/" rel="prev" title="Spring IoC--Bean的初始化">
+      <i class="fa fa-chevron-left"></i> Spring IoC--Bean的初始化
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/09/16/Spring%20MVC--%E8%BF%90%E8%A1%8C%E6%9C%BA%E5%88%B6/" rel="next" title="Spring MVC--运行机制">
+      Spring MVC--运行机制 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#监听器模式"><span class="nav-number">1.</span> <span class="nav-text">监听器模式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#扩展：支持泛型"><span class="nav-number">2.</span> <span class="nav-text">扩展：支持泛型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#扩展：组播类"><span class="nav-number">3.</span> <span class="nav-text">扩展：组播类</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ApplicationListener"><span class="nav-number">4.</span> <span class="nav-text">ApplicationListener</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#SpringApplicationRunListener"><span class="nav-number">5.</span> <span class="nav-text">SpringApplicationRunListener</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">晴天</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">198</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">58</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">晴天</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v4.2.1
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> v7.7.0
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: '5f0b1c1d42822204f803',
+      clientSecret: '56818d47fc75f1f4999acd7a3356879bbade310f',
+      repo: 'cdrcool.github.io',
+      owner: 'cdrcool',
+      admin: ['cdrcool'],
+      id: 'd84b1adcc598bd94bd0cfdf72def5258',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

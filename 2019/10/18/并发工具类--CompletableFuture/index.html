@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('http://yoursite.com').hostname,
+    root: '/',
+    scheme: 'Muse',
+    version: '7.7.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="在Java8中，CompletableFuture提供了非常强大的Future的扩展功能，可以帮助我们简化异步编程的复杂性，并且提供了函数式编程的能力，可以通过回调的方式处理计算结果，也提供了转换和组合CompletableFuture的方法。 使用示例为了领略CompletableFuture异步编程的优势，这里我们用CompletableFuture来模拟烧水泡茶程序。在下面的程序中，我们分了">
+<meta property="og:type" content="article">
+<meta property="og:title" content="并发工具类--CompletableFuture">
+<meta property="og:url" content="http://yoursite.com/2019/10/18/%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB--CompletableFuture/index.html">
+<meta property="og:site_name" content="OnePiece">
+<meta property="og:description" content="在Java8中，CompletableFuture提供了非常强大的Future的扩展功能，可以帮助我们简化异步编程的复杂性，并且提供了函数式编程的能力，可以通过回调的方式处理计算结果，也提供了转换和组合CompletableFuture的方法。 使用示例为了领略CompletableFuture异步编程的优势，这里我们用CompletableFuture来模拟烧水泡茶程序。在下面的程序中，我们分了">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://yoursite.com/images/java/%E7%83%A7%E6%B0%B4%E6%B3%A1%E8%8C%B6%E5%88%86%E5%B7%A5%E6%96%B9%E6%A1%88.png">
+<meta property="og:image" content="http://yoursite.com/images/java/CompletableFuture%20UML.png">
+<meta property="og:image" content="http://yoursite.com/images/java/%E7%83%A7%E6%B0%B4%E6%B3%A1%E8%8C%B6%E4%BB%BB%E5%8A%A1%E9%97%B4%E5%85%B3%E7%B3%BB.png">
+<meta property="article:published_time" content="2019-10-18T01:14:02.000Z">
+<meta property="article:modified_time" content="2021-05-06T07:11:29.213Z">
+<meta property="article:author" content="晴天">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/images/java/%E7%83%A7%E6%B0%B4%E6%B3%A1%E8%8C%B6%E5%88%86%E5%B7%A5%E6%96%B9%E6%A1%88.png">
+
+<link rel="canonical" href="http://yoursite.com/2019/10/18/%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB--CompletableFuture/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>并发工具类--CompletableFuture | OnePiece</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">OnePiece</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">人的知识就好比一个圆圈，圆圈里面是已知的，圆圈外面是未知的。你知道得越多，圆圈也就越大，你不知道的也就越多。</p>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+  </ul>
+
+</nav>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/10/18/%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB--CompletableFuture/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="晴天">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="OnePiece">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          并发工具类--CompletableFuture
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-10-18 09:14:02" itemprop="dateCreated datePublished" datetime="2019-10-18T09:14:02+08:00">2019-10-18</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-05-06 15:11:29" itemprop="dateModified" datetime="2021-05-06T15:11:29+08:00">2021-05-06</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java%E5%B9%B6%E5%8F%91/" itemprop="url" rel="index">
+                    <span itemprop="name">Java并发</span>
+                  </a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>在Java8中，<code>CompletableFuture</code>提供了非常强大的<code>Future</code>的扩展功能，可以帮助我们简化异步编程的复杂性，并且提供了函数式编程的能力，可以通过回调的方式处理计算结果，也提供了转换和组合<code>CompletableFuture</code>的方法。</p>
+<h2 id="使用示例"><a href="#使用示例" class="headerlink" title="使用示例"></a>使用示例</h2><p>为了领略<code>CompletableFuture</code>异步编程的优势，这里我们用<code>CompletableFuture</code>来模拟烧水泡茶程序。在下面的程序中，我们分了3个任务：任务1负责洗水壶、烧开水，任务2负责洗茶壶、洗茶杯和拿茶叶，任务3负责泡茶。其中任务3要等待任务1和任务2都完成后才能开始。这个分工如下图所示：<br><img src="/images/java/%E7%83%A7%E6%B0%B4%E6%B3%A1%E8%8C%B6%E5%88%86%E5%B7%A5%E6%96%B9%E6%A1%88.png" alt="烧水泡茶分工方案"></p>
+<p>下面是实现代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 模拟烧开水泡茶</span></span><br><span class="line"><span class="comment"> * 任务1：洗⽔壶 -&gt; 烧开⽔</span></span><br><span class="line"><span class="comment"> * 任务2：洗茶壶 -&gt; 洗茶杯 -&gt; 拿茶叶</span></span><br><span class="line"><span class="comment"> * 任务3：任务1和任务2完成后执⾏：泡茶</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">makeTea</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 任务1：洗⽔壶 -&gt; 烧开⽔</span></span><br><span class="line">    CompletableFuture&lt;Void&gt; future1 =</span><br><span class="line">            CompletableFuture.runAsync(() -&gt; &#123;</span><br><span class="line">                System.out.println(<span class="string">"T1:洗⽔壶..."</span>);</span><br><span class="line">                sleep(<span class="number">1</span>, TimeUnit.SECONDS);</span><br><span class="line">                System.out.println(<span class="string">"T1:烧开⽔..."</span>);</span><br><span class="line">                sleep(<span class="number">15</span>, TimeUnit.SECONDS);</span><br><span class="line">            &#125;);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 任务2：洗茶壶 -&gt; 洗茶杯 -&gt; 拿茶叶</span></span><br><span class="line">    CompletableFuture&lt;String&gt; future2 =</span><br><span class="line">            CompletableFuture.supplyAsync(() -&gt; &#123;</span><br><span class="line">                System.out.println(<span class="string">"T2:洗茶壶..."</span>);</span><br><span class="line">                sleep(<span class="number">1</span>, TimeUnit.SECONDS);</span><br><span class="line">                System.out.println(<span class="string">"T2:洗茶杯..."</span>);</span><br><span class="line">                sleep(<span class="number">2</span>, TimeUnit.SECONDS);</span><br><span class="line">                System.out.println(<span class="string">"T2:拿茶叶..."</span>);</span><br><span class="line">                sleep(<span class="number">1</span>, TimeUnit.SECONDS);</span><br><span class="line">                <span class="keyword">return</span> <span class="string">"⻰井"</span>;</span><br><span class="line">            &#125;);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 任务3：任务1和任务2完成后执⾏：泡茶</span></span><br><span class="line">    CompletableFuture&lt;String&gt; future3 =</span><br><span class="line">            future1.thenCombine(future2, (result1, result2) -&gt; &#123;</span><br><span class="line">                System.out.println(<span class="string">"T1:拿到茶叶:"</span> + result2);</span><br><span class="line">                System.out.println(<span class="string">"T1:泡茶..."</span>);</span><br><span class="line">                <span class="keyword">return</span> <span class="string">"上茶:"</span> + result2;</span><br><span class="line">            &#125;);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 等待任务3执⾏结果</span></span><br><span class="line">    System.out.println(future3.join());</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">sleep</span><span class="params">(<span class="keyword">int</span> t, TimeUnit unit)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        unit.sleep(t);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>观察代码不难发现：</p>
+<ul>
+<li>无需手工维护线程，没有繁琐的手工维护线程的工作，给任务分配线程的工作也不需要我们关注；</li>
+<li>语义更清晰，例如<code>future3 = future1.thenCombine(future2, (result1, result2) -&gt; {})</code>能够清晰地表述“任务3要等待任务1和任务2都完成后才能开始”；</li>
+<li>代码更简练并且专注于业务逻辑，几乎所有代码都是业务逻辑相关的。</li>
+</ul>
+<h2 id="UML"><a href="#UML" class="headerlink" title="UML"></a>UML</h2><p><img src="/images/java/CompletableFuture%20UML.png" alt="CompletableFuture UML"></p>
+<p><code>CompletableFuture</code>同时实现了<code>Future</code>接口和<code>CompletionStage</code>接口。<code>Future</code>接口比较好理解，它代表一个异步计算的结果，并且提供了一些方法来让调用者检测异步过程是否完成，或者取得异步计算的结果，或者取消正在执行的异步任务。<code>CompletionStage</code>接口则有点复杂（里面定义了38个方法），在后面会单独介绍。</p>
+<h2 id="创建"><a href="#创建" class="headerlink" title="创建"></a>创建</h2><p>创建<code>CompletableFuture</code>对象主要是通过调用以下4个静态方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> CompletableFuture&lt;Void&gt; <span class="title">runAsync</span><span class="params">(Runnable runnable)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">static</span> &lt;U&gt; <span class="function">CompletableFuture&lt;U&gt; <span class="title">supplyAsync</span><span class="params">(Supplier&lt;U&gt; supplier)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> CompletableFuture&lt;Void&gt; <span class="title">runAsync</span><span class="params">(Runnable runnable, Executor executor)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">static</span> &lt;U&gt; <span class="function">CompletableFuture&lt;U&gt; <span class="title">supplyAsync</span><span class="params">(Supplier&lt;U&gt; supplier, Executor executor)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p><code>runAsync</code>与<code>supplyAsync</code>之间的区别是：<code>Runnable</code>接口的<code>run()</code>方法没有返回值，而<code>Supplier</code>接口的<code>get()</code>方法是有返回值的；前两个方法和后两个方法的区别在于：后两个方法可以指定线程池参数。</p>
+<p>默认情况下，<code>CompletableFuture</code>会使用公共的<code>ForkJoinPool</code>线程池，这个线程池默认创建的线程数是CPU的核数（可以通过JVM option:<code>-Djava.util.concurrent.ForkJoinPool.common.parallelism</code>来设置<code>ForkJoinPool</code>线程池的线程数）。如果所有CompletableFuture共享一个线程池，那么一旦有任务执行一些很慢的I/O操作，就会导致线程池中所有线程都阻塞在I/O操作上，从而造成线程饥饿，进而影响整个系统的性能。所以，强烈建议大家要根据不同的业务类型创建不同的线程池，以避免互相干扰。</p>
+<p>创建完<code>CompletableFuture</code>对象之后，会自动地异步执行<code>runnable.run()</code>方法或者<code>supplier.get()</code>方法，对于一个异步操作，我们需要关注两个问题：一个是异步操作什么时候结束，另一个是如何获取异步操作的执行结果。因为<code>CompletableFuture</code>类实现了<code>Future</code>接口，所以这两个问题我们为都可以通过<code>Future</code>接口来解决。另外，<code>CompletableFuture</code>类还实现了<code>CompletionStage</code>接口，这个接口内容实在是太丰富了，接口里的方法我们该如何理解呢？</p>
+<h2 id="CompletionStage"><a href="#CompletionStage" class="headerlink" title="CompletionStage"></a>CompletionStage</h2><p>我们可以站在分工的角度类比一下工作流。任务是有时序关系的，比如有<strong>串行关系</strong>、<strong>并行关系</strong>、<strong>汇聚关系</strong>等。以前面烧水泡茶的例子来说明，其中洗水壶和烧开水就是串行关系，洗水壶、烧开水和洗茶壶、洗茶杯这两组任务之间就是并行关系，而烧开水、拿茶叶和泡茶就是汇聚关系。<br><img src="/images/java/%E7%83%A7%E6%B0%B4%E6%B3%A1%E8%8C%B6%E4%BB%BB%E5%8A%A1%E9%97%B4%E5%85%B3%E7%B3%BB.png" alt="烧水泡茶任务间关系"></p>
+<p><code>CompletionStage</code>接口可以清晰地描述任务之间的这种时序关系，例如前面提到的<code>future3 = future1.thenCombine(future2, (result1, result2) -&gt; {})</code>描述的就是一种汇聚关系。烧水泡茶程序中的汇聚关系是一种<code>AND</code>聚合关系，这里的AND指的是所有依赖的任务（烧开水和拿茶叶）都完成后才开始执行当前任务（泡茶）。既然有AND聚合关系，那就一定还有OR聚合关系，所谓OR指的是依赖的任务只要有一个完成就可以执行当前任务。<br>在编程领域，还有一个绕不过去的山头，那就是异常处理，CompletionStage接口也可以方便地描述异常处理。<br>下面我们就来一一介绍，<code>CompletionStage</code>接口如何描述串行关系、AND聚合关系、OR聚合关系以及异常处理。</p>
+<h3 id="串行关系"><a href="#串行关系" class="headerlink" title="串行关系"></a>串行关系</h3><p><code>CompletionStage</code>接口里面描述串行关系，主要是<code>thenApply</code>、<code>thenAccept</code>、<code>thenRun</code>和<code>thenCompose</code>系列的接口。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">&lt;U&gt; <span class="function">CompletionStage&lt;U&gt; <span class="title">thenApply</span><span class="params">(Function&lt;? <span class="keyword">super</span> T,? extends U&gt; fn)</span></span>;</span><br><span class="line"></span><br><span class="line">&lt;U&gt; <span class="function">CompletionStage&lt;U&gt; <span class="title">thenApplyAsync</span><span class="params">(Function&lt;? <span class="keyword">super</span> T,? extends U&gt; fn)</span></span>;</span><br><span class="line"></span><br><span class="line">&lt;U&gt; <span class="function">CompletionStage&lt;U&gt; <span class="title">thenApplyAsync</span><span class="params">(Function&lt;? <span class="keyword">super</span> T,? extends U&gt; fn, Executor executor)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function">CompletionStage&lt;Void&gt; <span class="title">thenAccept</span><span class="params">(Consumer&lt;? <span class="keyword">super</span> T&gt; action)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function">CompletionStage&lt;Void&gt; <span class="title">thenAcceptAsync</span><span class="params">(Consumer&lt;? <span class="keyword">super</span> T&gt; action)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function">CompletionStage&lt;Void&gt; <span class="title">thenAcceptAsync</span><span class="params">(Consumer&lt;? <span class="keyword">super</span> T&gt; action, Executor executor)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function">CompletionStage&lt;Void&gt; <span class="title">thenRun</span><span class="params">(Runnable action)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function">CompletionStage&lt;Void&gt; <span class="title">thenRunAsync</span><span class="params">(Runnable action)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function">CompletionStage&lt;Void&gt; <span class="title">thenRunAsync</span><span class="params">(Runnable action, Executor executor)</span></span>;</span><br><span class="line"></span><br><span class="line">&lt;U&gt; <span class="function">CompletionStage&lt;U&gt; <span class="title">thenCompose</span><span class="params">(Function&lt;? <span class="keyword">super</span> T, ? extends CompletionStage&lt;U&gt;&gt; fn)</span></span>;</span><br><span class="line"></span><br><span class="line">&lt;U&gt; <span class="function">CompletionStage&lt;U&gt; <span class="title">thenComposeAsync</span><span class="params">(Function&lt;? <span class="keyword">super</span> T, ? extends CompletionStage&lt;U&gt;&gt; fn)</span></span>;</span><br><span class="line"></span><br><span class="line">&lt;U&gt; <span class="function">CompletionStage&lt;U&gt; <span class="title">thenComposeAsync</span><span class="params">(Function&lt;? <span class="keyword">super</span> T, ? extends CompletionStage&lt;U&gt;&gt; fn, Executor executor)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>需要注意的是<code>thenCompose</code>系列方法，这个系列的方法会新创建出一个子流程，最终结果和<code>thenApply</code>系列是相同的。</p>
+<h3 id="AND汇聚关系"><a href="#AND汇聚关系" class="headerlink" title="AND汇聚关系"></a>AND汇聚关系</h3><p><code>CompletionStage</code>接口里面描述AND汇聚关系，主要是<code>thenCombine</code>、<code>thenAcceptBoth</code>和<code>runAfterBoth</code>系列的接口。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">&lt;U,V&gt; <span class="function">CompletionStage&lt;V&gt; <span class="title">thenCombine</span><span class="params">(CompletionStage&lt;? extends U&gt; other, BiFunction&lt;? <span class="keyword">super</span> T,? <span class="keyword">super</span> U,? extends V&gt; fn)</span></span>;</span><br><span class="line"></span><br><span class="line">&lt;U,V&gt; <span class="function">CompletionStage&lt;V&gt; <span class="title">thenCombineAsync</span><span class="params">(CompletionStage&lt;? extends U&gt; other, BiFunction&lt;? <span class="keyword">super</span> T,? <span class="keyword">super</span> U,? extends V&gt; fn)</span></span>;</span><br><span class="line"></span><br><span class="line">&lt;U,V&gt; <span class="function">CompletionStage&lt;V&gt; <span class="title">thenCombineAsync</span><span class="params">(CompletionStage&lt;? extends U&gt; other, BiFunction&lt;? <span class="keyword">super</span> T,? <span class="keyword">super</span> U,? extends V&gt; fn, Executor executor)</span></span>;</span><br><span class="line"></span><br><span class="line">&lt;U&gt; <span class="function">CompletionStage&lt;Void&gt; <span class="title">thenAcceptBoth</span><span class="params">(CompletionStage&lt;? extends U&gt; other, BiConsumer&lt;? <span class="keyword">super</span> T, ? <span class="keyword">super</span> U&gt; action)</span></span>;</span><br><span class="line"></span><br><span class="line">&lt;U&gt; <span class="function">CompletionStage&lt;Void&gt; <span class="title">thenAcceptBothAsync</span><span class="params">(CompletionStage&lt;? extends U&gt; other, BiConsumer&lt;? <span class="keyword">super</span> T, ? <span class="keyword">super</span> U&gt; action)</span></span>;</span><br><span class="line"></span><br><span class="line">&lt;U&gt; <span class="function">CompletionStage&lt;Void&gt; <span class="title">thenAcceptBothAsync</span><span class="params">(CompletionStage&lt;? extends U&gt; other, BiConsumer&lt;? <span class="keyword">super</span> T, ? <span class="keyword">super</span> U&gt; action, Executor executor)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function">CompletionStage&lt;Void&gt; <span class="title">runAfterBoth</span><span class="params">(CompletionStage&lt;?&gt; other, Runnable action)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function">CompletionStage&lt;Void&gt; <span class="title">runAfterBothAsync</span><span class="params">(CompletionStage&lt;?&gt; other, Runnable action)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function">CompletionStage&lt;Void&gt; <span class="title">runAfterBothAsync</span><span class="params">(CompletionStage&lt;?&gt; other, Runnable action, Executor executor)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<h3 id="OR汇聚关系"><a href="#OR汇聚关系" class="headerlink" title="OR汇聚关系"></a>OR汇聚关系</h3><p><code>CompletionStage</code>接口里面描述OR汇聚关系，主要是<code>applyToEither</code>、<code>acceptEither</code>和<code>runAfterEither</code>系列的接口。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">&lt;U&gt; <span class="function">CompletionStage&lt;U&gt; <span class="title">applyToEither</span><span class="params">(CompletionStage&lt;? extends T&gt; other, Function&lt;? <span class="keyword">super</span> T, U&gt; fn)</span></span>;</span><br><span class="line"></span><br><span class="line">&lt;U&gt; <span class="function">CompletionStage&lt;U&gt; <span class="title">applyToEitherAsync</span><span class="params">(CompletionStage&lt;? extends T&gt; other, Function&lt;? <span class="keyword">super</span> T, U&gt; fn)</span></span>;</span><br><span class="line"></span><br><span class="line">&lt;U&gt; <span class="function">CompletionStage&lt;U&gt; <span class="title">applyToEitherAsync</span><span class="params">(CompletionStage&lt;? extends T&gt; other, Function&lt;? <span class="keyword">super</span> T, U&gt; fn, Executor executor)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function">CompletionStage&lt;Void&gt; <span class="title">acceptEither</span><span class="params">(CompletionStage&lt;? extends T&gt; other, Consumer&lt;? <span class="keyword">super</span> T&gt; action)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function">CompletionStage&lt;Void&gt; <span class="title">acceptEitherAsync</span><span class="params">(CompletionStage&lt;? extends T&gt; other, Consumer&lt;? <span class="keyword">super</span> T&gt; action)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function">CompletionStage&lt;Void&gt; <span class="title">acceptEitherAsync</span><span class="params">(CompletionStage&lt;? extends T&gt; other, Consumer&lt;? <span class="keyword">super</span> T&gt; action, Executor executor)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function">CompletionStage&lt;Void&gt; <span class="title">runAfterEither</span><span class="params">(CompletionStage&lt;?&gt; other, Runnable action)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function">CompletionStage&lt;Void&gt; <span class="title">runAfterEitherAsync</span><span class="params">(CompletionStage&lt;?&gt; other, Runnable action)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function">CompletionStage&lt;Void&gt; <span class="title">runAfterEitherAsync</span><span class="params">(CompletionStage&lt;?&gt; other, Runnable action, Executor executor)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<h3 id="异常处理"><a href="#异常处理" class="headerlink" title="异常处理"></a>异常处理</h3><p><code>CompletionStage</code>接口给我们提供的方案非常简单，比<code>try{}catch{}</code>还要简单，下面是相关的方法，使用这些方法进行异常处理和串行操作是一样的，都支持链式编程方式。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">CompletionStage&lt;T&gt; <span class="title">exceptionally</span><span class="params">(Function&lt;Throwable, ? extends T&gt; fn)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function">CompletionStage&lt;T&gt; <span class="title">whenComplete</span><span class="params">(BiConsumer&lt;? <span class="keyword">super</span> T, ? <span class="keyword">super</span> Throwable&gt; action)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function">CompletionStage&lt;T&gt; <span class="title">whenCompleteAsync</span><span class="params">(BiConsumer&lt;? <span class="keyword">super</span> T, ? <span class="keyword">super</span> Throwable&gt; action)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function">CompletionStage&lt;T&gt; <span class="title">whenCompleteAsync</span><span class="params">(BiConsumer&lt;? <span class="keyword">super</span> T, ? <span class="keyword">super</span> Throwable&gt; action, Executor executor)</span></span>;</span><br><span class="line"></span><br><span class="line">&lt;U&gt; <span class="function">CompletionStage&lt;U&gt; <span class="title">handle</span><span class="params">(BiFunction&lt;? <span class="keyword">super</span> T, Throwable, ? extends U&gt; fn)</span></span>;</span><br><span class="line"></span><br><span class="line">&lt;U&gt; <span class="function">CompletionStage&lt;U&gt; <span class="title">handleAsync</span><span class="params">(BiFunction&lt;? <span class="keyword">super</span> T, Throwable, ? extends U&gt; fn)</span></span>;</span><br><span class="line"></span><br><span class="line">&lt;U&gt; <span class="function">CompletionStage&lt;U&gt; <span class="title">handleAsync</span><span class="params">(BiFunction&lt;? <span class="keyword">super</span> T, Throwable, ? extends U&gt; fn, Executor executor)</span></span>;</span><br></pre></td></tr></table></figure>
+
+    </div>
+
+    
+    
+    
+        <div class="reward-container">
+  <div>小礼物走一走，来 Github 关注我</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/wechatpay.png" alt="晴天 微信支付">
+        <p>微信支付</p>
+      </div>
+      
+      <div style="display: inline-block;">
+        <img src="/images/alipay.png" alt="晴天 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/10/10/MySQL%E5%85%A8%E5%B1%80%E9%94%81&%E8%A1%A8%E9%94%81&%E8%A1%8C%E9%94%81/" rel="prev" title="MySQL 全局锁、表锁与行锁">
+      <i class="fa fa-chevron-left"></i> MySQL 全局锁、表锁与行锁
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/10/21/%E5%B9%B6%E5%8F%91%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F--%E7%94%9F%E4%BA%A7%E8%80%85-%E6%B6%88%E8%B4%B9%E8%80%85%E6%A8%A1%E5%BC%8F/" rel="next" title="并发设计模式--生产者-消费者模式">
+      并发设计模式--生产者-消费者模式 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#使用示例"><span class="nav-number">1.</span> <span class="nav-text">使用示例</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#UML"><span class="nav-number">2.</span> <span class="nav-text">UML</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#创建"><span class="nav-number">3.</span> <span class="nav-text">创建</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CompletionStage"><span class="nav-number">4.</span> <span class="nav-text">CompletionStage</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#串行关系"><span class="nav-number">4.1.</span> <span class="nav-text">串行关系</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#AND汇聚关系"><span class="nav-number">4.2.</span> <span class="nav-text">AND汇聚关系</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#OR汇聚关系"><span class="nav-number">4.3.</span> <span class="nav-text">OR汇聚关系</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#异常处理"><span class="nav-number">4.4.</span> <span class="nav-text">异常处理</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">晴天</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">198</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">58</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">晴天</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v4.2.1
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> v7.7.0
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: '5f0b1c1d42822204f803',
+      clientSecret: '56818d47fc75f1f4999acd7a3356879bbade310f',
+      repo: 'cdrcool.github.io',
+      owner: 'cdrcool',
+      admin: ['cdrcool'],
+      id: '5e4ec608a5487a8c89a54e5df01c1f6b',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

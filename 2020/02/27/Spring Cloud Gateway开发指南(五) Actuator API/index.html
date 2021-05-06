@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('http://yoursite.com').hostname,
+    root: '/',
+    scheme: 'Muse',
+    version: '7.7.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="我们可以通过 &#x2F;gateway actuator 端点来监控 Spring Cloud Gateway 应用程序并与之交互。不过要进行远程访问，必须在应用程序配置属性中启用该端点并将其暴露在 HTTP 或 JMX 上。配置如下： 12345678910management:  endpoint:    gateway:      # 默认已开启      enabled: true  endpoi">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Spring Cloud Gateway 开发指南（五） Actuator API">
+<meta property="og:url" content="http://yoursite.com/2020/02/27/Spring%20Cloud%20Gateway%E5%BC%80%E5%8F%91%E6%8C%87%E5%8D%97(%E4%BA%94)%20Actuator%20API/index.html">
+<meta property="og:site_name" content="OnePiece">
+<meta property="og:description" content="我们可以通过 &#x2F;gateway actuator 端点来监控 Spring Cloud Gateway 应用程序并与之交互。不过要进行远程访问，必须在应用程序配置属性中启用该端点并将其暴露在 HTTP 或 JMX 上。配置如下： 12345678910management:  endpoint:    gateway:      # 默认已开启      enabled: true  endpoi">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-02-27T10:16:00.000Z">
+<meta property="article:modified_time" content="2021-05-06T07:11:29.200Z">
+<meta property="article:author" content="晴天">
+<meta property="article:tag" content="Spring Cloud Gateway">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://yoursite.com/2020/02/27/Spring%20Cloud%20Gateway%E5%BC%80%E5%8F%91%E6%8C%87%E5%8D%97(%E4%BA%94)%20Actuator%20API/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>Spring Cloud Gateway 开发指南（五） Actuator API | OnePiece</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">OnePiece</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">人的知识就好比一个圆圈，圆圈里面是已知的，圆圈外面是未知的。你知道得越多，圆圈也就越大，你不知道的也就越多。</p>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+  </ul>
+
+</nav>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/02/27/Spring%20Cloud%20Gateway%E5%BC%80%E5%8F%91%E6%8C%87%E5%8D%97(%E4%BA%94)%20Actuator%20API/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="晴天">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="OnePiece">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Spring Cloud Gateway 开发指南（五） Actuator API
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-02-27 18:16:00" itemprop="dateCreated datePublished" datetime="2020-02-27T18:16:00+08:00">2020-02-27</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-05-06 15:11:29" itemprop="dateModified" datetime="2021-05-06T15:11:29+08:00">2021-05-06</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Spring-Cloud/" itemprop="url" rel="index">
+                    <span itemprop="name">Spring Cloud</span>
+                  </a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>我们可以通过 /gateway actuator 端点来监控 Spring Cloud Gateway 应用程序并与之交互。不过要进行远程访问，必须在应用程序配置属性中启用该端点并将其暴露在 HTTP 或 JMX 上。配置如下：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">management:</span></span><br><span class="line">  <span class="attr">endpoint:</span></span><br><span class="line">    <span class="attr">gateway:</span></span><br><span class="line">      <span class="comment"># 默认已开启</span></span><br><span class="line">      <span class="attr">enabled:</span> <span class="literal">true</span></span><br><span class="line">  <span class="attr">endpoints:</span></span><br><span class="line">    <span class="attr">web:</span></span><br><span class="line">      <span class="comment"># 默认只暴露了 health/info 端点</span></span><br><span class="line">      <span class="attr">exposure:</span></span><br><span class="line">        <span class="attr">include:</span> <span class="string">health,info,gateway</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="详细的-Actuator-格式"><a href="#详细的-Actuator-格式" class="headerlink" title="详细的 Actuator 格式"></a>详细的 Actuator 格式</h2><p>Spring Cloud Gateway 增加了一种新的、更详细的格式。它为每个路由添加了更多的细节，允许我们查看与每个路由关联的谓词和过滤器，以及任何可用的配置。</p>
+<p>例如，当我们访问端点 <strong>/actuator/gateway/routes</strong> 时，会得到类似以下响应内容：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">[&#123;</span><br><span class="line">	<span class="attr">"predicate"</span>: <span class="string">"Paths: [/api-seckill/**], match trailing slash: true"</span>,</span><br><span class="line">	<span class="attr">"route_id"</span>: <span class="string">"seckill"</span>,</span><br><span class="line">	<span class="attr">"filters"</span>: [<span class="string">"[[StripPrefix parts = 1], order = 1]"</span>, <span class="string">"[org.springframework.cloud.gateway.filter.factory.RequestRateLimiterGatewayFilterFactory$$Lambda$775/831609821@27b48b61, order = 2]"</span>, <span class="string">"[[SpringCloudCircuitBreakerResilience4JFilterFactory name = 'circuitBreaker', fallback = forward:/fallback], order = 3]"</span>],</span><br><span class="line">	<span class="attr">"uri"</span>: <span class="string">"http://localhost:8081"</span>,</span><br><span class="line">	<span class="attr">"order"</span>: <span class="number">0</span></span><br><span class="line">&#125;, &#123;</span><br><span class="line">	<span class="attr">"predicate"</span>: <span class="string">"(Paths: [/api-account/**], match trailing slash: true &amp;&amp; gateway.routepredicatefactories.CustomRoutePredicateFactory$$Lambda$781/1730708228@7785ff79)"</span>,</span><br><span class="line">	<span class="attr">"route_id"</span>: <span class="string">"account"</span>,</span><br><span class="line">	<span class="attr">"filters"</span>: [<span class="string">"[[StripPrefix parts = 1], order = 1]"</span>, <span class="string">"[gateway.gatewayfilterfactories.CustomPreGatewayFilterFactory$$Lambda$783/509794966@14af153d, order = 1]"</span>, <span class="string">"[org.springframework.cloud.gateway.filter.factory.RequestRateLimiterGatewayFilterFactory$$Lambda$775/831609821@71ece0cb, order = 2]"</span>, <span class="string">"[gateway.gatewayfilterfactories.CustomPostGatewayFilterFactory$$Lambda$785/1358748845@72809214, order = 2]"</span>, <span class="string">"[[SpringCloudCircuitBreakerResilience4JFilterFactory name = 'circuitBreaker', fallback = forward:/fallback], order = 3]"</span>],</span><br><span class="line">	<span class="attr">"uri"</span>: <span class="string">"http://localhost:8082"</span>,</span><br><span class="line">	<span class="attr">"order"</span>: <span class="number">0</span></span><br><span class="line">&#125;]</span><br></pre></td></tr></table></figure>
+
+<p>默认情况下启用此功能。要禁用它，可以设置以下属性：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">spring.cloud.gateway.actuator.verbose.enabled:</span> <span class="literal">false</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="检索路由过滤器"><a href="#检索路由过滤器" class="headerlink" title="检索路由过滤器"></a>检索路由过滤器</h2><p>本节详细介绍如何检索路由过滤器，包括：</p>
+<ul>
+<li>全局过滤器</li>
+<li>路由过滤器</li>
+</ul>
+<h3 id="全局过滤器"><a href="#全局过滤器" class="headerlink" title="全局过滤器"></a>全局过滤器</h3><p>要检索应用于所有路由的全局过滤器，需向端点 <strong>/actuator/gateway/globalfilters</strong> 发送 GET 请求。得到的响应类似于以下内容：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">	<span class="attr">"org.springframework.cloud.gateway.filter.RemoveCachedBodyFilter@217235f5"</span>: <span class="number">-2147483648</span>,</span><br><span class="line">	<span class="attr">"org.springframework.cloud.gateway.filter.AdaptCachedBodyGlobalFilter@64502326"</span>: <span class="number">-2147482648</span>,</span><br><span class="line">	<span class="attr">"org.springframework.cloud.gateway.filter.GatewayMetricsFilter@697a0948"</span>: <span class="number">0</span>,</span><br><span class="line">	<span class="attr">"org.springframework.cloud.gateway.filter.NettyWriteResponseFilter@79957f11"</span>: <span class="number">-1</span>,</span><br><span class="line">	<span class="attr">"org.springframework.cloud.gateway.filter.WebsocketRoutingFilter@28393e82"</span>: <span class="number">2147483646</span>,</span><br><span class="line">	<span class="attr">"org.springframework.cloud.gateway.filter.ForwardPathFilter@18d47df0"</span>: <span class="number">0</span>,</span><br><span class="line">	<span class="attr">"gateway.globalfilters.ElapsedGlobalFilter@2dd1086"</span>: <span class="number">-2147483648</span>,</span><br><span class="line">	<span class="attr">"org.springframework.cloud.gateway.filter.RouteToRequestUrlFilter@4b41587d"</span>: <span class="number">10000</span>,</span><br><span class="line">	<span class="attr">"org.springframework.cloud.gateway.config.GatewayNoLoadBalancerClientAutoConfiguration$NoLoadBalancerClientFilter@7cf63b9a"</span>: <span class="number">10100</span>,</span><br><span class="line">	<span class="attr">"org.springframework.cloud.gateway.filter.ForwardRoutingFilter@4aebee4b"</span>: <span class="number">2147483647</span>,</span><br><span class="line">	<span class="attr">"org.springframework.cloud.gateway.filter.NettyRoutingFilter@6b8d54da"</span>: <span class="number">2147483647</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>响应包含已生效的全局过滤器的详细信息。对于每个全局过滤器，有一个过滤器对象的字符串表示（例如，org.springframework.cloud.gateway.filter.LoadBalancerClientFilter@7cf63b9a）和过滤器链中相应的顺序。</p>
+<h3 id="路由过滤器"><a href="#路由过滤器" class="headerlink" title="路由过滤器"></a>路由过滤器</h3><p>要检索应用于路由的 GatewayFilter 工厂，需向端点 /actuator/gateway/routefilters 发送 GET 请求。得到的响应类似于以下内容：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">	<span class="attr">"[SetPathGatewayFilterFactory@26c8b296 configClass = SetPathGatewayFilterFactory.Config]"</span>: <span class="literal">null</span>,</span><br><span class="line">	<span class="attr">"[PreserveHostHeaderGatewayFilterFactory@1edccfd4 configClass = Object]"</span>: <span class="literal">null</span>,</span><br><span class="line">	<span class="attr">"[RewriteLocationResponseHeaderGatewayFilterFactory@45801322 configClass = RewriteLocationResponseHeaderGatewayFilterFactory.Config]"</span>: <span class="literal">null</span>,</span><br><span class="line">	<span class="attr">"[RemoveRequestHeaderGatewayFilterFactory@1efac5b9 configClass = AbstractGatewayFilterFactory.NameConfig]"</span>: <span class="literal">null</span>,</span><br><span class="line">	<span class="attr">"[RequestSizeGatewayFilterFactory@5b1e88f configClass = RequestSizeGatewayFilterFactory.RequestSizeConfig]"</span>: <span class="literal">null</span>,</span><br><span class="line">	<span class="attr">"[DedupeResponseHeaderGatewayFilterFactory@1d2fb82 configClass = DedupeResponseHeaderGatewayFilterFactory.Config]"</span>: <span class="literal">null</span>,</span><br><span class="line">	<span class="attr">"[AddRequestParameterGatewayFilterFactory@76c86567 configClass = AbstractNameValueGatewayFilterFactory.NameValueConfig]"</span>: <span class="literal">null</span>,</span><br><span class="line">	<span class="attr">"[SaveSessionGatewayFilterFactory@3520958b configClass = Object]"</span>: <span class="literal">null</span>,</span><br><span class="line">	<span class="attr">"[RequestRateLimiterGatewayFilterFactory@40df6090 configClass = RequestRateLimiterGatewayFilterFactory.Config]"</span>: <span class="literal">null</span>,</span><br><span class="line">	<span class="attr">"[RedirectToGatewayFilterFactory@8c43966 configClass = RedirectToGatewayFilterFactory.Config]"</span>: <span class="literal">null</span>,</span><br><span class="line">	<span class="attr">"[RemoveRequestParameterGatewayFilterFactory@11a3a45f configClass = AbstractGatewayFilterFactory.NameConfig]"</span>: <span class="literal">null</span>,</span><br><span class="line">	<span class="attr">"[RequestHeaderToRequestUriGatewayFilterFactory@291a4791 configClass = AbstractGatewayFilterFactory.NameConfig]"</span>: <span class="literal">null</span>,</span><br><span class="line">	<span class="attr">"[CustomPostGatewayFilterFactory@5a05dd30 configClass = CustomPostGatewayFilterFactory.Config]"</span>: <span class="literal">null</span>,</span><br><span class="line">	<span class="attr">"[StripPrefixGatewayFilterFactory@6cc64028 configClass = StripPrefixGatewayFilterFactory.Config]"</span>: <span class="literal">null</span>,</span><br><span class="line">	<span class="attr">"[ModifyRequestBodyGatewayFilterFactory@5a4dda2 configClass = ModifyRequestBodyGatewayFilterFactory.Config]"</span>: <span class="literal">null</span>,</span><br><span class="line">	<span class="attr">"[RetryGatewayFilterFactory@44d7e24 configClass = RetryGatewayFilterFactory.RetryConfig]"</span>: <span class="literal">null</span>,</span><br><span class="line">	<span class="attr">"[ModifyResponseBodyGatewayFilterFactory@34045582 configClass = ModifyResponseBodyGatewayFilterFactory.Config]"</span>: <span class="literal">null</span>,</span><br><span class="line">	<span class="attr">"[RequestHeaderSizeGatewayFilterFactory@340cb97f configClass = RequestHeaderSizeGatewayFilterFactory.Config]"</span>: <span class="literal">null</span>,</span><br><span class="line">	<span class="attr">"[FallbackHeadersGatewayFilterFactory@11c88cca configClass = FallbackHeadersGatewayFilterFactory.Config]"</span>: <span class="literal">null</span>,</span><br><span class="line">	<span class="attr">"[SpringCloudCircuitBreakerResilience4JFilterFactory@6a1568d6 configClass = SpringCloudCircuitBreakerFilterFactory.Config]"</span>: <span class="literal">null</span>,</span><br><span class="line">	<span class="attr">"[SecureHeadersGatewayFilterFactory@1d289d3f configClass = Object]"</span>: <span class="literal">null</span>,</span><br><span class="line">	<span class="attr">"[SetResponseHeaderGatewayFilterFactory@7f27f59b configClass = AbstractNameValueGatewayFilterFactory.NameValueConfig]"</span>: <span class="literal">null</span>,</span><br><span class="line">	<span class="attr">"[PrefixPathGatewayFilterFactory@3db65c0d configClass = PrefixPathGatewayFilterFactory.Config]"</span>: <span class="literal">null</span>,</span><br><span class="line">	<span class="attr">"[RewritePathGatewayFilterFactory@8c0a23f configClass = RewritePathGatewayFilterFactory.Config]"</span>: <span class="literal">null</span>,</span><br><span class="line">	<span class="attr">"[RemoveResponseHeaderGatewayFilterFactory@69796bd0 configClass = AbstractGatewayFilterFactory.NameConfig]"</span>: <span class="literal">null</span>,</span><br><span class="line">	<span class="attr">"[MapRequestHeaderGatewayFilterFactory@250d440 configClass = MapRequestHeaderGatewayFilterFactory.Config]"</span>: <span class="literal">null</span>,</span><br><span class="line">	<span class="attr">"[AddRequestHeaderGatewayFilterFactory@dbed7fd configClass = AbstractNameValueGatewayFilterFactory.NameValueConfig]"</span>: <span class="literal">null</span>,</span><br><span class="line">	<span class="attr">"[AddResponseHeaderGatewayFilterFactory@7e5efcab configClass = AbstractNameValueGatewayFilterFactory.NameValueConfig]"</span>: <span class="literal">null</span>,</span><br><span class="line">	<span class="attr">"[CustomPreGatewayFilterFactory@1b52699c configClass = CustomPreGatewayFilterFactory.Config]"</span>: <span class="literal">null</span>,</span><br><span class="line">	<span class="attr">"[SetRequestHeaderGatewayFilterFactory@10f405ff configClass = AbstractNameValueGatewayFilterFactory.NameValueConfig]"</span>: <span class="literal">null</span>,</span><br><span class="line">	<span class="attr">"[RewriteResponseHeaderGatewayFilterFactory@1c98b4eb configClass = RewriteResponseHeaderGatewayFilterFactory.Config]"</span>: <span class="literal">null</span>,</span><br><span class="line">	<span class="attr">"[SetStatusGatewayFilterFactory@756b2d90 configClass = SetStatusGatewayFilterFactory.Config]"</span>: <span class="literal">null</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>响应包含应用于任何特定路由的 GatewayFilter 工厂的详细信息。每个工厂都有对应对象的字符串表示(例如，[SecureHeadersGatewayFilterFactory@1d289d3f configClass = object])。注意，null 值是由于端点控制器的实现不完整造成的，因为它试图在过滤器链中设置对象的顺序，而这并不适用于 GatewayFilter 工厂对象。</p>
+<h2 id="刷新路由缓存"><a href="#刷新路由缓存" class="headerlink" title="刷新路由缓存"></a>刷新路由缓存</h2><p>若要清除路由缓存，需向端点 <strong>/actuator/gateway/refresh</strong> 发送 POST 请求。请求返回一个没有响应体的 200。</p>
+<h2 id="检索网关中定义的路由"><a href="#检索网关中定义的路由" class="headerlink" title="检索网关中定义的路由"></a>检索网关中定义的路由</h2><p>要检索网关中定义的路由，需向端点 /actuator/gateway/routes 发送 GET 请求。得到的响应类似于以下内容：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">[&#123;</span><br><span class="line">	<span class="attr">"predicate"</span>: <span class="string">"Paths: [/api-seckill/**], match trailing slash: true"</span>,</span><br><span class="line">	<span class="attr">"route_id"</span>: <span class="string">"seckill"</span>,</span><br><span class="line">	<span class="attr">"filters"</span>: [<span class="string">"[[StripPrefix parts = 1], order = 1]"</span>, <span class="string">"[org.springframework.cloud.gateway.filter.factory.RequestRateLimiterGatewayFilterFactory$$Lambda$775/831609821@27b48b61, order = 2]"</span>, <span class="string">"[[SpringCloudCircuitBreakerResilience4JFilterFactory name = 'circuitBreaker', fallback = forward:/fallback], order = 3]"</span>],</span><br><span class="line">	<span class="attr">"uri"</span>: <span class="string">"http://localhost:8081"</span>,</span><br><span class="line">	<span class="attr">"order"</span>: <span class="number">0</span></span><br><span class="line">&#125;, &#123;</span><br><span class="line">	<span class="attr">"predicate"</span>: <span class="string">"(Paths: [/api-account/**], match trailing slash: true &amp;&amp; gateway.routepredicatefactories.CustomRoutePredicateFactory$$Lambda$781/1730708228@7785ff79)"</span>,</span><br><span class="line">	<span class="attr">"route_id"</span>: <span class="string">"account"</span>,</span><br><span class="line">	<span class="attr">"filters"</span>: [<span class="string">"[[StripPrefix parts = 1], order = 1]"</span>, <span class="string">"[gateway.gatewayfilterfactories.CustomPreGatewayFilterFactory$$Lambda$783/509794966@14af153d, order = 1]"</span>, <span class="string">"[org.springframework.cloud.gateway.filter.factory.RequestRateLimiterGatewayFilterFactory$$Lambda$775/831609821@71ece0cb, order = 2]"</span>, <span class="string">"[gateway.gatewayfilterfactories.CustomPostGatewayFilterFactory$$Lambda$785/1358748845@72809214, order = 2]"</span>, <span class="string">"[[SpringCloudCircuitBreakerResilience4JFilterFactory name = 'circuitBreaker', fallback = forward:/fallback], order = 3]"</span>],</span><br><span class="line">	<span class="attr">"uri"</span>: <span class="string">"http://localhost:8082"</span>,</span><br><span class="line">	<span class="attr">"order"</span>: <span class="number">0</span></span><br><span class="line">&#125;]</span><br></pre></td></tr></table></figure>
+
+<p>响应包含网关中定义的所有路由的详细信息。下表描述了响应的每个元素(每个都是一个路由)的结构：</p>
+<table>
+<thead>
+<tr>
+<th align="center">属性名</th>
+<th align="center">属性类型</th>
+<th align="center">属性描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">route_id</td>
+<td align="center">String</td>
+<td align="center">The route ID.</td>
+</tr>
+<tr>
+<td align="center">predicate</td>
+<td align="center">Object</td>
+<td align="center">The route predicate.</td>
+</tr>
+<tr>
+<td align="center">filters</td>
+<td align="center">Array</td>
+<td align="center">The GatewayFilter factories applied to the route.</td>
+</tr>
+<tr>
+<td align="center">uri</td>
+<td align="center">String</td>
+<td align="center">The destination URI of the route..</td>
+</tr>
+<tr>
+<td align="center">order</td>
+<td align="center">Number</td>
+<td align="center">The route order.</td>
+</tr>
+</tbody></table>
+<h2 id="检索指定定路由的信息"><a href="#检索指定定路由的信息" class="headerlink" title="检索指定定路由的信息"></a>检索指定定路由的信息</h2><p>要检索关于单个路由的信息，需向端点 /actuator/gateway/routes/{id} 发送 GET 请求（例如，/actuator/gateway/routes/account）。得到的响应类似于以下内容：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">	<span class="attr">"predicate"</span>: <span class="string">"(Paths: [/api-account/**], match trailing slash: true &amp;&amp; gateway.routepredicatefactories.CustomRoutePredicateFactory$$Lambda$781/1730708228@7785ff79)"</span>,</span><br><span class="line">	<span class="attr">"route_id"</span>: <span class="string">"account"</span>,</span><br><span class="line">	<span class="attr">"filters"</span>: [<span class="string">"[[StripPrefix parts = 1], order = 1]"</span>, <span class="string">"[gateway.gatewayfilterfactories.CustomPreGatewayFilterFactory$$Lambda$783/509794966@14af153d, order = 1]"</span>, <span class="string">"[org.springframework.cloud.gateway.filter.factory.RequestRateLimiterGatewayFilterFactory$$Lambda$775/831609821@71ece0cb, order = 2]"</span>, <span class="string">"[gateway.gatewayfilterfactories.CustomPostGatewayFilterFactory$$Lambda$785/1358748845@72809214, order = 2]"</span>, <span class="string">"[[SpringCloudCircuitBreakerResilience4JFilterFactory name = 'circuitBreaker', fallback = forward:/fallback], order = 3]"</span>],</span><br><span class="line">	<span class="attr">"uri"</span>: <span class="string">"http://localhost:8082"</span>,</span><br><span class="line">	<span class="attr">"order"</span>: <span class="number">0</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>下表描述了响应的结构：</p>
+<table>
+<thead>
+<tr>
+<th align="center">属性名</th>
+<th align="center">属性类型</th>
+<th align="center">属性描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">route_id</td>
+<td align="center">String</td>
+<td align="center">The route ID.</td>
+</tr>
+<tr>
+<td align="center">predicate</td>
+<td align="center">Object</td>
+<td align="center">The route predicate.</td>
+</tr>
+<tr>
+<td align="center">filters</td>
+<td align="center">Array</td>
+<td align="center">The GatewayFilter factories applied to the route.</td>
+</tr>
+<tr>
+<td align="center">uri</td>
+<td align="center">String</td>
+<td align="center">The destination URI of the route..</td>
+</tr>
+<tr>
+<td align="center">order</td>
+<td align="center">Number</td>
+<td align="center">The route order.</td>
+</tr>
+</tbody></table>
+<h2 id="创建和删除指定路由"><a href="#创建和删除指定路由" class="headerlink" title="创建和删除指定路由"></a>创建和删除指定路由</h2><p>要创建路由，需向端点 /gateway/routes/{id_route_to_create} 发送 POST 请求并携带 JSON body。JSON body 类似于以下内容：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">"id"</span>: <span class="string">"first_route"</span>,</span><br><span class="line">  <span class="attr">"predicates"</span>: [&#123;</span><br><span class="line">    <span class="attr">"name"</span>: <span class="string">"Path"</span>,</span><br><span class="line">    <span class="attr">"args"</span>: &#123;<span class="attr">"_genkey_0"</span>:<span class="string">"/first"</span>&#125;</span><br><span class="line">  &#125;],</span><br><span class="line">  <span class="attr">"filters"</span>: [],</span><br><span class="line">  <span class="attr">"uri"</span>: <span class="string">"https://www.uri-destination.org"</span>,</span><br><span class="line">  <span class="attr">"order"</span>: <span class="number">0</span></span><br><span class="line">&#125;]</span><br></pre></td></tr></table></figure>
+
+<p>要删除路由，需向端点 /gateway/routes/{id_route_to_delete} 发送 DELETE 请求。</p>
+<h2 id="重述：所有端点列表"><a href="#重述：所有端点列表" class="headerlink" title="重述：所有端点列表"></a>重述：所有端点列表</h2><p>下面的表格总结了 Spring Cloud Gateway actuator 的所有端点(注意每个端点都有 /actuator/gateway 作为基本路径)：</p>
+<table>
+<thead>
+<tr>
+<th align="center">ID</th>
+<th align="center">HTTP Method</th>
+<th align="center">Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">globalfilters</td>
+<td align="center">GET</td>
+<td align="center">Displays the list of global filters applied to the routes.</td>
+</tr>
+<tr>
+<td align="center">routefilters</td>
+<td align="center">GET</td>
+<td align="center">Displays the list of GatewayFilter factories applied to a particular route.</td>
+</tr>
+<tr>
+<td align="center">refresh</td>
+<td align="center">POST</td>
+<td align="center">Clears the routes cache.</td>
+</tr>
+<tr>
+<td align="center">routes</td>
+<td align="center">GET</td>
+<td align="center">Displays the list of routes defined in the gateway.</td>
+</tr>
+<tr>
+<td align="center">routes/{id}</td>
+<td align="center">GET</td>
+<td align="center">Displays information about a particular route.</td>
+</tr>
+<tr>
+<td align="center">routes/{id}</td>
+<td align="center">POST</td>
+<td align="center">Adds a new route to the gateway.</td>
+</tr>
+<tr>
+<td align="center">routes/{id}</td>
+<td align="center">DELETE</td>
+<td align="center">Removes an existing route from the gateway.</td>
+</tr>
+</tbody></table>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ol>
+<li><a href="https://cloud.spring.io/spring-cloud-static/spring-cloud-gateway/2.2.1.RELEASE/reference/html/" target="_blank" rel="noopener">Spring Cloud Gateway</a></li>
+</ol>
+
+    </div>
+
+    
+    
+    
+        <div class="reward-container">
+  <div>小礼物走一走，来 Github 关注我</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/wechatpay.png" alt="晴天 微信支付">
+        <p>微信支付</p>
+      </div>
+      
+      <div style="display: inline-block;">
+        <img src="/images/alipay.png" alt="晴天 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Spring-Cloud-Gateway/" rel="tag"># Spring Cloud Gateway</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/02/27/Spring%20Cloud%20Gateway%E5%BC%80%E5%8F%91%E6%8C%87%E5%8D%97(%E4%B8%89)%20Global%20Filters/" rel="prev" title="Spring Cloud Gateway 开发指南（三） Global Filters">
+      <i class="fa fa-chevron-left"></i> Spring Cloud Gateway 开发指南（三） Global Filters
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/02/27/Spring%20Cloud%20Gateway%E5%BC%80%E5%8F%91%E6%8C%87%E5%8D%97(%E5%9B%9B)%20Configuration/" rel="next" title="Spring Cloud Gateway 开发指南（四） Configuration">
+      Spring Cloud Gateway 开发指南（四） Configuration <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#详细的-Actuator-格式"><span class="nav-number">1.</span> <span class="nav-text">详细的 Actuator 格式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#检索路由过滤器"><span class="nav-number">2.</span> <span class="nav-text">检索路由过滤器</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#全局过滤器"><span class="nav-number">2.1.</span> <span class="nav-text">全局过滤器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#路由过滤器"><span class="nav-number">2.2.</span> <span class="nav-text">路由过滤器</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#刷新路由缓存"><span class="nav-number">3.</span> <span class="nav-text">刷新路由缓存</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#检索网关中定义的路由"><span class="nav-number">4.</span> <span class="nav-text">检索网关中定义的路由</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#检索指定定路由的信息"><span class="nav-number">5.</span> <span class="nav-text">检索指定定路由的信息</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#创建和删除指定路由"><span class="nav-number">6.</span> <span class="nav-text">创建和删除指定路由</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#重述：所有端点列表"><span class="nav-number">7.</span> <span class="nav-text">重述：所有端点列表</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考资料"><span class="nav-number">8.</span> <span class="nav-text">参考资料</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">晴天</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">198</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">58</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">晴天</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v4.2.1
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> v7.7.0
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: '5f0b1c1d42822204f803',
+      clientSecret: '56818d47fc75f1f4999acd7a3356879bbade310f',
+      repo: 'cdrcool.github.io',
+      owner: 'cdrcool',
+      admin: ['cdrcool'],
+      id: 'b07ede769e174b319e5203f7b9a55339',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

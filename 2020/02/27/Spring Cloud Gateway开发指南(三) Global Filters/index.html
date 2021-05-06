@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('http://yoursite.com').hostname,
+    root: '/',
+    scheme: 'Muse',
+    version: '7.7.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="GlobalFilter 接口具有与 GatewayFilter 接相同的签名。这些特殊的过滤器可以有条件的应用于所有的路由。（这些接口和用法在以后的版本中可能会被修改） Combined Global过滤器and GatewayFilter Ordering当请求与路由匹配时，filtering web handler 会加载所有的 GlobalFilter 实例以及这个路由上配置的所有的 Ga">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Spring Cloud Gateway 开发指南（三） Global Filters">
+<meta property="og:url" content="http://yoursite.com/2020/02/27/Spring%20Cloud%20Gateway%E5%BC%80%E5%8F%91%E6%8C%87%E5%8D%97(%E4%B8%89)%20Global%20Filters/index.html">
+<meta property="og:site_name" content="OnePiece">
+<meta property="og:description" content="GlobalFilter 接口具有与 GatewayFilter 接相同的签名。这些特殊的过滤器可以有条件的应用于所有的路由。（这些接口和用法在以后的版本中可能会被修改） Combined Global过滤器and GatewayFilter Ordering当请求与路由匹配时，filtering web handler 会加载所有的 GlobalFilter 实例以及这个路由上配置的所有的 Ga">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-02-27T03:44:00.000Z">
+<meta property="article:modified_time" content="2021-05-06T07:11:29.199Z">
+<meta property="article:author" content="晴天">
+<meta property="article:tag" content="Spring Cloud Gateway">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://yoursite.com/2020/02/27/Spring%20Cloud%20Gateway%E5%BC%80%E5%8F%91%E6%8C%87%E5%8D%97(%E4%B8%89)%20Global%20Filters/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>Spring Cloud Gateway 开发指南（三） Global Filters | OnePiece</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">OnePiece</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">人的知识就好比一个圆圈，圆圈里面是已知的，圆圈外面是未知的。你知道得越多，圆圈也就越大，你不知道的也就越多。</p>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+  </ul>
+
+</nav>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/02/27/Spring%20Cloud%20Gateway%E5%BC%80%E5%8F%91%E6%8C%87%E5%8D%97(%E4%B8%89)%20Global%20Filters/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="晴天">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="OnePiece">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Spring Cloud Gateway 开发指南（三） Global Filters
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-02-27 11:44:00" itemprop="dateCreated datePublished" datetime="2020-02-27T11:44:00+08:00">2020-02-27</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-05-06 15:11:29" itemprop="dateModified" datetime="2021-05-06T15:11:29+08:00">2021-05-06</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Spring-Cloud/" itemprop="url" rel="index">
+                    <span itemprop="name">Spring Cloud</span>
+                  </a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>GlobalFilter 接口具有与 GatewayFilter 接相同的签名。这些特殊的过滤器可以有条件的应用于所有的路由。（这些接口和用法在以后的版本中可能会被修改）</p>
+<h2 id="Combined-Global过滤器and-GatewayFilter-Ordering"><a href="#Combined-Global过滤器and-GatewayFilter-Ordering" class="headerlink" title="Combined Global过滤器and GatewayFilter Ordering"></a>Combined Global过滤器and GatewayFilter Ordering</h2><p>当请求与路由匹配时，filtering web handler 会加载所有的 GlobalFilter 实例以及这个路由上配置的所有的 GatewayFilter，然后组成一个完整的过滤器链。这个合并的过滤器链使用 org.springframework.core.Ordered 接口进行排序，可以通过实现 Ordered 接口中的 getOrder() 方法（或直接使用 @Order 注解）修改过滤器的顺序。</p>
+<p>由于 Spring Cloud Gateway 分开执行 “pre” 和 “post” 的过滤器，因此优先级最高的过滤器是 “pre” 阶段的第一个过滤器，是 “post” 阶段的最后一个过滤器。</p>
+<p>示例：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> GlobalFilter <span class="title">customFilter</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> CustomGlobalFilter();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CustomGlobalFilter</span> <span class="keyword">implements</span> <span class="title">GlobalFilter</span>, <span class="title">Ordered</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Mono&lt;Void&gt; <span class="title">filter</span><span class="params">(ServerWebExchange exchange, GatewayFilterChain chain)</span> </span>&#123;</span><br><span class="line">        log.info(<span class="string">"custom global filter"</span>);</span><br><span class="line">        <span class="keyword">return</span> chain.filter(exchange);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getOrder</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> -<span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="Forward-Routing-Filter"><a href="#Forward-Routing-Filter" class="headerlink" title="Forward Routing Filter"></a>Forward Routing Filter</h2><p>此过滤器在 exchange 的 ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR 属性中查找 URI。如果这个 URI 是 forward 模式（如 forward:///localendpoint），则使用 Spring DispatcherHandler 处理请求。请求 URL 的路径部分被转发 URL 中的路径覆盖。未修改的原始 URL 被附加到 ServerWebExchangeUtils.GATEWAY_ORIGINAL_REQUEST_URL_ATTR 属性中。</p>
+<p>示例：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">spring:</span></span><br><span class="line">  <span class="attr">cloud:</span></span><br><span class="line">    <span class="attr">gateway:</span></span><br><span class="line">      <span class="attr">routes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">id:</span> <span class="string">forward_routing_filter</span></span><br><span class="line">        <span class="attr">uri:</span> <span class="string">forward:///app</span></span><br><span class="line">        <span class="attr">predicates:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="string">Path=/forwardFilter</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="LoadBalancerClient-Filter"><a href="#LoadBalancerClient-Filter" class="headerlink" title="LoadBalancerClient Filter"></a>LoadBalancerClient Filter</h2><p>此过滤器在 exchange 的 ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR 属性中查找 URI。如果这个 URI 是 lb 模式（如 lb:///myservice），则使用 Spring Cloud LoadBalancerClient 将名称(本例中为 myservice)解析为实际的主机和端口，并替换相同属性中的 URI。未修改的原始 URL 被附加到 ServerWebExchangeUtils.GATEWAY_ORIGINAL_REQUEST_URL_ATTR 属性中。此过滤器也会查看 exchange 的 ServerWebExchangeUtils.GATEWAY_SCHEME_PREFIX_ATTR 属性值否等于 lb。如果是，则应用相同的规则。</p>
+<p>示例：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">spring:</span></span><br><span class="line">  <span class="attr">cloud:</span></span><br><span class="line">    <span class="attr">gateway:</span></span><br><span class="line">      <span class="attr">routes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">id:</span> <span class="string">myRoute</span></span><br><span class="line">        <span class="attr">uri:</span> <span class="string">lb://service</span></span><br><span class="line">        <span class="attr">predicates:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="string">Path=/service/**</span></span><br></pre></td></tr></table></figure>
+
+<p>默认情况下，当在 LoadBalancer 中找不到服务实例时，将返回一个 503。可以通过设置 spring.cloud.gateway.loadbalancer.use404=true 来配置网关以返回 404。</p>
+<p>从 LoadBalancer 返回的 ServiceInstance 的 isSecure 值，会覆盖向网关发出的请求中指定的 scheme。例如，如果请求通过 HTTPS 进入网关，但 ServiceInstance 表明它不安全，则下游请求通过 HTTP 发出。相反的情况也适用。但是，如果网关配置中为路由指定了 GATEWAY_SCHEME_PREFIX_ATTR 属性，则删除前缀，路由 URL 的结果方案将覆盖 ServiceInstance 配置。</p>
+<h2 id="ReactiveLoadBalancerClientFilter"><a href="#ReactiveLoadBalancerClientFilter" class="headerlink" title="ReactiveLoadBalancerClientFilter"></a>ReactiveLoadBalancerClientFilter</h2><p>此过滤器在 exchange 的 ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR 属性中查找 URI。如果这个 URI 是 lb 模式（如 lb:///myservice），则使用 Spring Cloud ReactorLoadBalancer 将名称(本例中为 myservice)解析为实际的主机和端口，并替换相同属性中的 URI。未修改的原始 URL 被附加到 ServerWebExchangeUtils.GATEWAY_ORIGINAL_REQUEST_URL_ATTR 属性中。此过滤器也会查看 exchange 的 ServerWebExchangeUtils.GATEWAY_SCHEME_PREFIX_ATTR 属性值否等于 lb。如果是，则应用相同的规则。</p>
+<p>示例：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">spring:</span></span><br><span class="line">  <span class="attr">cloud:</span></span><br><span class="line">    <span class="attr">gateway:</span></span><br><span class="line">      <span class="attr">routes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">id:</span> <span class="string">myRoute</span></span><br><span class="line">        <span class="attr">uri:</span> <span class="string">lb://service</span></span><br><span class="line">        <span class="attr">predicates:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="string">Path=/service/**</span></span><br></pre></td></tr></table></figure>
+
+<p>默认情况下，当在 ReactorLoadBalancer 中找不到服务实例时，将返回一个 503。可以通过设置 spring.cloud.gateway.loadbalancer.use404=true 来配置网关以返回 404。</p>
+<p>从 ReactiveLoadBalancerClientFilter 返回的 ServiceInstance 的 isSecure 值，会覆盖向网关发出的请求中指定的 scheme。例如，如果请求通过 HTTPS 进入网关，但 ServiceInstance 表明它不安全，则下游请求通过 HTTP 发出。相反的情况也适用。但是，如果网关配置中为路由指定了 GATEWAY_SCHEME_PREFIX_ATTR 属性，则删除前缀，路由 URL 的结果方案将覆盖 ServiceInstance 配置。</p>
+<h2 id="Netty-Routing-Filter"><a href="#Netty-Routing-Filter" class="headerlink" title="Netty Routing Filter"></a>Netty Routing Filter</h2><p>当从 exchange 的 ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR 属性中获取的 URL 的 scheme 是 https 或 http 时，此过滤器生效。它使用 Netty 的 HttpClient 发出下游代理请求，请求返回的结果将存储在 exchange 的 ServerWebExchangeUtils.CLIENT_RESPONSE_ATTR 属性中，过滤器链后面的过滤器可以从中获取返回的结果。（还有一个实验性的 filter:WebClientHttpRoutingFilter，它和 NettyRoutingFilter 的功能一样，但是不使用 netty。）</p>
+<h2 id="Netty-Write-Response-Filter"><a href="#Netty-Write-Response-Filter" class="headerlink" title="Netty Write Response Filter"></a>Netty Write Response Filter</h2><p>当 exchange 的 ServerWebExchangeUtils.CLIENT_RESPONSE_ATTR 属性中存在 HttpClientResponse 时，此过滤器生效。它在所有的其它的过滤器执行完成之后运行，将响应的数据发送给网关的客户端。 (还有一个实验性的 filter:WebClientWriteResponseFilter，它和 NettyWriteResponseFilter 的功能一样，但是不使用 netty。)</p>
+<h2 id="RouteToRequestUrl-Filter"><a href="#RouteToRequestUrl-Filter" class="headerlink" title="RouteToRequestUrl Filter"></a>RouteToRequestUrl Filter</h2><p>当 exchange 的 ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR 属性中有一个路由对象时，此过滤器生效。它根据请求的 URI 创建一个新的 URI，但使用路由对象的 URI 属性进行更新。新的 URI 存放在 exchange 的 ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR 属性中。</p>
+<p>如果 URI 有一个 scheme 前缀，例如 lb:ws://serviceid，则从 URI 中剥离 lb 模式并将其放入 ServerWebExchangeUtils.GATEWAY_SCHEME_PREFIX_ATTR 属性中，稍后在过滤器链中使用。</p>
+<h2 id="The-Websocket-Routing-Filter"><a href="#The-Websocket-Routing-Filter" class="headerlink" title="The Websocket Routing Filter"></a>The Websocket Routing Filter</h2><p>当位于 excahnge 的 ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATT 属性中的 URL 有一个 ws 或 wss scheme 时，此过滤器生效。它使用 Spring WebSocket 基础设施将 WebSocket 请求转发到下游。</p>
+<p>可以通过在 URI 前面加上 lb 来实现负载平衡，比如 lb:ws://serviceid。</p>
+<p>示例：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">spring:</span></span><br><span class="line">  <span class="attr">cloud:</span></span><br><span class="line">    <span class="attr">gateway:</span></span><br><span class="line">      <span class="attr">routes:</span></span><br><span class="line">      <span class="comment"># SockJS route</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">id:</span> <span class="string">websocket_sockjs_route</span></span><br><span class="line">        <span class="attr">uri:</span> <span class="string">http://localhost:3001</span></span><br><span class="line">        <span class="attr">predicates:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="string">Path=/websocket/info/**</span></span><br><span class="line">      <span class="comment"># Normal Websocket route</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">id:</span> <span class="string">websocket_route</span></span><br><span class="line">        <span class="attr">uri:</span> <span class="string">ws://localhost:3001</span></span><br><span class="line">        <span class="attr">predicates:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="string">Path=/websocket/**</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="The-Gateway-Metrics-Filter"><a href="#The-Gateway-Metrics-Filter" class="headerlink" title="The Gateway Metrics Filter"></a>The Gateway Metrics Filter</h2><p>要启用网关指标，添加 spring-boot-starter-actuator 作为项目依赖项。<br>在默认情况下，只有属性 spring.cloud.gateway.metrics.enabled 不是 false，此过滤器就会生效。此过滤器会添加一个名字为 gateway.requests 和 tags 为如下的 timer metric：</p>
+<ul>
+<li>routeId 路由的 ID</li>
+<li>routeUri 被路由的的 URI</li>
+<li>outcome 被 HttpStatus.Series 标记的结果</li>
+<li>status 返回给客户端的 HTTP 状态码</li>
+<li>httpStatusCode 返回给客户端的 HTTP 状态码</li>
+<li>httpMethod 请求使用的 HTTP 方法</li>
+</ul>
+<p>可以通过 /actuator/metrics/gateway.requests 提取这些指标，这些指标可以很容易地与 Prometheus 集成，以创建一个 Grafana dashboard。</p>
+<p>要启用 prometheus endpoint，添加 micrometer-registry-prometheus 作为项目依赖项。</p>
+<h2 id="Marking-An-Exchange-As-Routed"><a href="#Marking-An-Exchange-As-Routed" class="headerlink" title="Marking An Exchange As Routed"></a>Marking An Exchange As Routed</h2><p>如果网关已经路由过一个 ServerWebExchange，它将标记这个 exchange 已经被路由过，记录在 exchange 的 ServerWebExchangeUtils.GATEWAY_ALREADY_ROUTED_ATTR 属性中。一旦被标记完成了路由，其它的路由过滤器将不会再路由本次请求，直接跳过此过滤器。有两个方便的方法，可以使用它们标记已路由过或检测是否已路由过。</p>
+<ul>
+<li>ServerWebExchangeUtils.isAlreadyRouted takes a ServerWebExchange object and checks if it has been “routed”</li>
+<li>ServerWebExchangeUtils.setAlreadyRouted takes a ServerWebExchange object and marks it as “routed”</li>
+</ul>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ol>
+<li><a href="https://cloud.spring.io/spring-cloud-static/spring-cloud-gateway/2.2.1.RELEASE/reference/html/" target="_blank" rel="noopener">Spring Cloud Gateway</a></li>
+<li><a href="https://www.cnblogs.com/wgslucky/p/11632572.html" target="_blank" rel="noopener">Spring Gateway 全局过滤器 Global Filters</a></li>
+</ol>
+
+    </div>
+
+    
+    
+    
+        <div class="reward-container">
+  <div>小礼物走一走，来 Github 关注我</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/wechatpay.png" alt="晴天 微信支付">
+        <p>微信支付</p>
+      </div>
+      
+      <div style="display: inline-block;">
+        <img src="/images/alipay.png" alt="晴天 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Spring-Cloud-Gateway/" rel="tag"># Spring Cloud Gateway</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/02/27/Spring%20Cloud%20Gateway%E5%BC%80%E5%8F%91%E6%8C%87%E5%8D%97(%E4%BA%8C)%20GatewayFilter%20Factories/" rel="prev" title="Spring Cloud Gateway 开发指南（二） GatewayFilter Factories">
+      <i class="fa fa-chevron-left"></i> Spring Cloud Gateway 开发指南（二） GatewayFilter Factories
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/02/27/Spring%20Cloud%20Gateway%E5%BC%80%E5%8F%91%E6%8C%87%E5%8D%97(%E4%BA%94)%20Actuator%20API/" rel="next" title="Spring Cloud Gateway 开发指南（五） Actuator API">
+      Spring Cloud Gateway 开发指南（五） Actuator API <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Combined-Global过滤器and-GatewayFilter-Ordering"><span class="nav-number">1.</span> <span class="nav-text">Combined Global过滤器and GatewayFilter Ordering</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Forward-Routing-Filter"><span class="nav-number">2.</span> <span class="nav-text">Forward Routing Filter</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#LoadBalancerClient-Filter"><span class="nav-number">3.</span> <span class="nav-text">LoadBalancerClient Filter</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ReactiveLoadBalancerClientFilter"><span class="nav-number">4.</span> <span class="nav-text">ReactiveLoadBalancerClientFilter</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Netty-Routing-Filter"><span class="nav-number">5.</span> <span class="nav-text">Netty Routing Filter</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Netty-Write-Response-Filter"><span class="nav-number">6.</span> <span class="nav-text">Netty Write Response Filter</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#RouteToRequestUrl-Filter"><span class="nav-number">7.</span> <span class="nav-text">RouteToRequestUrl Filter</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#The-Websocket-Routing-Filter"><span class="nav-number">8.</span> <span class="nav-text">The Websocket Routing Filter</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#The-Gateway-Metrics-Filter"><span class="nav-number">9.</span> <span class="nav-text">The Gateway Metrics Filter</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Marking-An-Exchange-As-Routed"><span class="nav-number">10.</span> <span class="nav-text">Marking An Exchange As Routed</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考资料"><span class="nav-number">11.</span> <span class="nav-text">参考资料</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">晴天</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">198</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">58</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">晴天</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v4.2.1
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> v7.7.0
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: '5f0b1c1d42822204f803',
+      clientSecret: '56818d47fc75f1f4999acd7a3356879bbade310f',
+      repo: 'cdrcool.github.io',
+      owner: 'cdrcool',
+      admin: ['cdrcool'],
+      id: '623da0c23a60f0e98e5794f4bbd93751',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>
