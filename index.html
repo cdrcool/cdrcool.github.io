@@ -202,7 +202,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-05-06 21:46:32" itemprop="dateModified" datetime="2021-05-06T21:46:32+08:00">2021-05-06</time>
+                <time title="修改时间：2021-05-06 21:48:43" itemprop="dateModified" datetime="2021-05-06T21:48:43+08:00">2021-05-06</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -315,7 +315,7 @@
 <td align="left">苏宁账号名</td>
 </tr>
 </tbody></table>
-<h1 id="接口设计"><a href="#接口设计" class="headerlink" title="接口设计"></a>接口设计</h1><h2 id="请求第三方token"><a href="#请求第三方token" class="headerlink" title="请求第三方token"></a>请求第三方token</h2><p><strong>请求地址</strong>：POST /{accountType}-account/request-access-token</p>
+<h1 id="接口设计"><a href="#接口设计" class="headerlink" title="接口设计"></a>接口设计</h1><h2 id="请求第三方token"><a href="#请求第三方token" class="headerlink" title="请求第三方token"></a>请求第三方token</h2><p><strong>请求地址</strong>：POST /{account-type}-account/request-access-token</p>
 <p><strong>请求参数</strong>：</p>
 <table>
 <thead>
@@ -336,7 +336,7 @@
 <p>如果未传递 taxpayerId，则请求默认的第三方token；如果在指定时间内，第三方未返回token，则抛出错误提示：请求第三方token超时。</p>
 <p><strong>请求响应</strong>：token字符串</p>
 <h2 id="第三方回调地址"><a href="#第三方回调地址" class="headerlink" title="第三方回调地址"></a>第三方回调地址</h2><p>调用请求第三方token接口后，由第三方回调该接口。</p>
-<p><strong>请求地址</strong>：GET /{accountType}-account/callback-token</p>
+<p><strong>请求地址</strong>：GET /{account-type}-account/callback-token</p>
 <p><strong>请求参数</strong>：</p>
 <table>
 <thead>
@@ -355,7 +355,7 @@
 </tr>
 </tbody></table>
 <p><strong>请求响应</strong>：token字符串</p>
-<h2 id="刷新第三方token"><a href="#刷新第三方token" class="headerlink" title="刷新第三方token"></a>刷新第三方token</h2><p><strong>请求地址</strong>：POST /{accountType}-account/refresh-token</p>
+<h2 id="刷新第三方token"><a href="#刷新第三方token" class="headerlink" title="刷新第三方token"></a>刷新第三方token</h2><p><strong>请求地址</strong>：POST /{account-type}-account/refresh-token</p>
 <p><strong>请求参数</strong>：</p>
 <table>
 <thead>
@@ -371,7 +371,7 @@
 </tbody></table>
 <p>如果未传递 taxpayerId，则请求默认的第三方token。</p>
 <p><strong>请求响应</strong>：token字符串</p>
-<h2 id="获取第三方token"><a href="#获取第三方token" class="headerlink" title="获取第三方token"></a>获取第三方token</h2><p><strong>请求地址</strong>：POST /{accountType}-account/get-access-token</p>
+<h2 id="获取第三方token"><a href="#获取第三方token" class="headerlink" title="获取第三方token"></a>获取第三方token</h2><p><strong>请求地址</strong>：POST /{account-type}-account/get-access-token</p>
 <p><strong>请求参数</strong>：</p>
 <table>
 <thead>
@@ -391,8 +391,8 @@
 </tbody></table>
 <p>如果未传递 taxpayerId，则请求默认的第三方token；如果在指定时间内，未返回第三方token，则抛出错误提示：获取第三方token超时。</p>
 <p><strong>请求响应</strong>：token字符串</p>
-<h2 id="初始化所有的第三方token"><a href="#初始化所有的第三方token" class="headerlink" title="初始化所有的第三方token"></a>初始化所有的第三方token</h2><p><strong>请求地址</strong>：POST /{accountType}-account/init-all-token</p>
-<h2 id="刷新所有的第三方token"><a href="#刷新所有的第三方token" class="headerlink" title="刷新所有的第三方token"></a>刷新所有的第三方token</h2><p><strong>请求地址</strong>：POST /{accountType}-account/refresh-all-token</p>
+<h2 id="初始化所有的第三方token"><a href="#初始化所有的第三方token" class="headerlink" title="初始化所有的第三方token"></a>初始化所有的第三方token</h2><p><strong>请求地址</strong>：POST /{account-type}-account/init-all-token</p>
+<h2 id="刷新所有的第三方token"><a href="#刷新所有的第三方token" class="headerlink" title="刷新所有的第三方token"></a>刷新所有的第三方token</h2><p><strong>请求地址</strong>：POST /{account-type}-account/refresh-all-token</p>
 <h1 id="接口实现UML类图"><a href="#接口实现UML类图" class="headerlink" title="接口实现UML类图"></a>接口实现UML类图</h1><p><img src="/images/architecture/%E7%AC%AC%E4%B8%89%E6%96%B9%E7%99%BB%E5%BD%95%E6%8E%88%E6%9D%83%E6%8E%A5%E5%8F%A3%E5%AE%9E%E7%8E%B0UML%E7%B1%BB%E5%9B%BE.png" alt="接口实现UML类图"></p>
 <ul>
 <li>ThirdAccountController：第三方账号 Controller 抽象类</li>
