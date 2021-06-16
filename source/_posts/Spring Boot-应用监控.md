@@ -176,3 +176,27 @@ management:
 
 ## 监控示例
 ![Grafana监控示例.png](/images/springboot/Grafana监控示例.png)
+
+# 监控 Mysql
+1. 拉取 mysqld-exporter镜像并启动容器
+```cmd
+docker run -d `
+    --network op_net `
+    --hostname mysqld-exporter `
+    --hostname mysqld-exporter `
+    -p 9104:9104 `
+    -e DATA_SOURCE_NAME="root:root@(host.docker.internal:3306)/" `
+    prom/mysqld-exporter
+```
+
+2. 补充 prometheus.yaml
+```yaml
+scrape_configs:
+  - job_name: 'mysql'
+    static_configs:
+      - targets: ['host.docker.internal:9104']
+        labels:
+          instance: mysql
+```
+
+3. 创建 [MySQL Overview](https://grafana.com/grafana/dashboards/7362) Dashboard
