@@ -171,6 +171,164 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/07/28/%E6%82%A0%E6%82%A0%E5%95%86%E5%9F%8E--%E5%95%86%E5%93%81%E7%A7%92%E6%9D%80/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="晴天">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="OnePiece">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/2019/07/28/%E6%82%A0%E6%82%A0%E5%95%86%E5%9F%8E--%E5%95%86%E5%93%81%E7%A7%92%E6%9D%80/" class="post-title-link" itemprop="url">悠悠商城--web安全</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-07-28 10:59:34" itemprop="dateCreated datePublished" datetime="2019-07-28T10:59:34+08:00">2019-07-28</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-05-06 15:11:29" itemprop="dateModified" datetime="2021-05-06T15:11:29+08:00">2021-05-06</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%82%A0%E6%82%A0%E5%95%86%E5%9F%8E/" itemprop="url" rel="index">
+                    <span itemprop="name">悠悠商城</span>
+                  </a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="架构原则"><a href="#架构原则" class="headerlink" title="架构原则"></a>架构原则</h2><h3 id="数据量尽量少"><a href="#数据量尽量少" class="headerlink" title="数据量尽量少"></a>数据量尽量少</h3><p>数据在网络上传输需要时间，且不管是请求数据还是返回数据都需要服务器做处理，而服务器在写网络时通常都要做压缩和字符编码，这些都非常消耗 CPU，所以减少传输的数据量可以显著减少 CPU 的使用。</p>
+<ul>
+<li>简化秒杀页面的大小，去掉不必要的页面装修效果</li>
+<li>JS/CSS压缩，减少流量</li>
+</ul>
+<h3 id="请求数要尽量少"><a href="#请求数要尽量少" class="headerlink" title="请求数要尽量少"></a>请求数要尽量少</h3><p>浏览器每发出一个请求都多少会有一些消耗，例如建立连接要做三次握手，有的时候有页面依赖或者连接数限制，一些请求（例如 JavaScript）还需要串行加载等。另外，如果不同请求的域名不一样的话，还涉及这些域名的 DNS 解析，可能会耗时更久。因此减少请求数可以显著减少以上这些因素导致的资源消耗。</p>
+<ul>
+<li>合并 CSS 和 JavaScript 文件，以减少请求数</li>
+</ul>
+<h3 id="路径要尽量短"><a href="#路径要尽量短" class="headerlink" title="路径要尽量短"></a>路径要尽量短</h3><p>所谓“路径”，就是用户发出请求到返回数据这个过程中，需求经过的中间的节点数。<br>每增加一个连接都会增加新的不确定性。从概率统计上来说，假如一次请求经过 5 个节点，每个节点的可用性是 99.9% 的的话，那么整个请求的可用性是：99.9% 的 5 次方，约等99.5%。<br>所以缩短请求路径不仅可以增加可用性，同样可以有效提升性能（减少中间节点可以减少数据的序列化与反序列化），并减少延时（可以减少网络传输耗时）。</p>
+<ul>
+<li>将多个相互强依赖的应用合并部署在一起，把远程过程调用（RPC）变成 JVM 内部之间的方法调用。</li>
+</ul>
+<h3 id="依赖要尽量少"><a href="#依赖要尽量少" class="headerlink" title="依赖要尽量少"></a>依赖要尽量少</h3><p>所谓依赖，指的是要完成一次用户请求必须依赖的系统或者服务，这里的依赖指的是强依赖。<br>要减少依赖，我们可以给系统进行分级，比如 0 级系统、1 级级系统、2 级系统、3 级系统，0 级系统如果是最重要的系统，以此类推。<br>注意，0 级系统要尽量减少对 1 级系统的强依赖，防止重要的系统被不重要的系统拖垮。例如支付系统是 0 级系统，而优惠券是 1 级系统的话，在极端情况下可以把优惠券给降级，防止支付系统被优惠券这个 1 级系统给拖垮。</p>
+<ul>
+<li>次级系统服务降级</li>
+</ul>
+<h3 id="不要有单点"><a href="#不要有单点" class="headerlink" title="不要有单点"></a>不要有单点</h3><p>单点意味着没有备份，风险不可控，我们设计分布式系统最重要的原则就是“消除单点”。<br>要避免单点，关键点是避免将服务的状态和机器绑定，即把服务无状态化，这样服务就可以在机器中随意移动。</p>
+<ul>
+<li>部署配置中心，实现配置动态化</li>
+</ul>
+<h2 id="动静分离"><a href="#动静分离" class="headerlink" title="动静分离"></a>动静分离</h2><p>所谓“动静分离”，其实就是把用户请求的数据（如 HTML 页面）划分为“动态数据”和“静态数据”。<br>简单来说，“动态数据”和“静态数据”的主要区别就是看页面中输出的数据是否和 URL、浏览者、时间、地域相关，以及是否含有Cookie 等私密数据。<br>强调一下，我们所说的静态数据，不能仅仅理解为传统意义上完全存在磁盘上的 HTML 页面，它也可能是经过 Java 系统产生的页面，但是它输出的页面本身不包含上面所说的那些因素。也就是所谓“动态”还是“静态”，并不是说数据本身是否动静，而是数据中是否含有和访问者相关的个性化数据。</p>
+<ol>
+<li>把静态数据缓存到离用户最近的地方</li>
+</ol>
+<ul>
+<li>用户浏览器</li>
+<li>服务器缓存</li>
+<li>CDN</li>
+</ul>
+<ol start="2">
+<li><p>静态化改造就是要直接缓存 HTTP 连接<br>Web 代理服务器根据请求 URL，直接取出对应的 HTTP 连接而不是仅仅缓存数据。Web 代理服务器根据请求 URL，直接取出对应的 HTTP 响应头和响应体然后直接返回，这个响应过程简单得连 HTTP 协议都不用重新组装，甚至连 HTTP 请求头也不需要解析。</p>
+</li>
+<li><p>选择合适的缓存框架</p>
+</li>
+</ol>
+<ul>
+<li>Java</li>
+<li>Nginx</li>
+<li>Apache</li>
+<li>Varnish</li>
+</ul>
+<h2 id="流量削峰"><a href="#流量削峰" class="headerlink" title="流量削峰"></a>流量削峰</h2><p>削峰的存在，一是可以让服务端处理变得更加平稳，二是可以节省服务器的资源成本。</p>
+<ul>
+<li>排队</li>
+<li>答题</li>
+<li>分层过滤</li>
+</ul>
+<h2 id="减库存"><a href="#减库存" class="headerlink" title="减库存"></a>减库存</h2><ol>
+<li><p>基于数据库行锁</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">update</span> goods <span class="keyword">set</span> inventory = inventory<span class="number">-1</span> <span class="keyword">where</span> <span class="keyword">id</span> = <span class="comment">#&#123;goodsId&#125; and inventory &gt; 0</span></span><br></pre></td></tr></table></figure>
+<p>问题：大量锁竞争时，会影响数据库性能。</p>
+</li>
+<li><p>使用数据库乐观锁</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">update</span> goods <span class="keyword">set</span> inventory = inventory<span class="number">-1</span> <span class="keyword">where</span> <span class="keyword">id</span> = <span class="comment">#&#123;goodsId&#125; and inventory &gt; 0 and version = #&#123;version&#125;</span></span><br></pre></td></tr></table></figure>
+<p>问题：库存100，且同时只有100人抢购商品时，实际卖出的商品可能少于100。</p>
+</li>
+<li><p>使用redis令牌桶<br>预先创建n个令牌桶，n等于商品的个数。请求到来时，先获取令牌桶，只有获取了令牌桶的请求才能实际购买商品。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 创建令牌桶</span></span><br><span class="line">List&lt;String&gt; tokens = LongStream.range(<span class="number">0</span>, number)</span><br><span class="line">        .mapToObj(index -&gt; <span class="string">"spike_"</span> + UUID.randomUUID().toString().replace(<span class="string">"-"</span>, <span class="string">""</span>))</span><br><span class="line">        .collect(Collectors.toList());</span><br><span class="line">redisTemplate.opsForList().leftPushAll(String.valueOf(goodsId), tokens);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 获取令牌桶</span></span><br><span class="line">String token = redisTemplate.opsForList().leftPop(String.valueOf(goodsId));</span><br><span class="line"><span class="keyword">if</span> (StringUtils.isEmpty(token)) &#123;</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(String.format(<span class="string">"商品：%s已经售空"</span>, goodsId));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>问题：实际卖出的商品可能少于100。</p>
+</li>
+<li><p>使用redis预减库存</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; 判断redis中库存是否小于0</span><br><span class="line">Long stock &#x3D; redisTemplate.opsForValue().decrement(&quot;spike_&quot; + goodsId);</span><br><span class="line">if (stock &#x3D;&#x3D; null || stock &lt; 0) &#123;</span><br><span class="line">    &#x2F;&#x2F; 内存标记商品已售空</span><br><span class="line">    goodsOverMap.put(goodsId, true);</span><br><span class="line">    throw new RuntimeException(String.format(&quot;商品已经售空，商品id：%s&quot;, goodsId));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>异步减库存/创建订单</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">String token &#x3D; redisTemplate.opsForList().leftPop(String.valueOf(goodsId));</span><br><span class="line">if (StringUtils.isEmpty(token)) &#123;</span><br><span class="line">    throw new RuntimeException(String.format(&quot;商品：%s已经售空&quot;, goodsId));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; 异步发送秒杀消息</span><br><span class="line">sendSpikeMsg(goodsId, userId);</span><br></pre></td></tr></table></figure>
+
+</li>
+</ol>
+<h2 id="兜底方案"><a href="#兜底方案" class="headerlink" title="兜底方案"></a>兜底方案</h2><h3 id="降级"><a href="#降级" class="headerlink" title="降级"></a>降级</h3><p>所谓“降级”，就是当系统的容量达到一定程度时，限制或者关闭系统的某些非核心功能，从而把有限的资源保留给更核心的业务。</p>
+<h3 id="限流"><a href="#限流" class="headerlink" title="限流"></a>限流</h3><p>限流就是当系统容量达到瓶颈时，我们需要通过限制一部分流量来保护系统，并做到既可以人工执行开关，也支持自动化保护的措施。</p>
+<h3 id="拒绝服务"><a href="#拒绝服务" class="headerlink" title="拒绝服务"></a>拒绝服务</h3><p>当系统负载达到一定阈值时，例如 CPU 使用率达到 90% 或者系统 load 值达到 2*CPU 核数时，系统直接拒绝所有请求，这种方式是最暴力但也最有效的保护方式。</p>
+<h2 id="优化"><a href="#优化" class="headerlink" title="优化"></a>优化</h2><h3 id="静态资源优化"><a href="#静态资源优化" class="headerlink" title="静态资源优化"></a>静态资源优化</h3><ul>
+<li>JS/CSS压缩，减少流量</li>
+<li>CDN就近访问</li>
+</ul>
+<h3 id="缓存"><a href="#缓存" class="headerlink" title="缓存"></a>缓存</h3><ul>
+<li>页面缓存</li>
+<li>对象缓存</li>
+</ul>
+<h3 id="其它"><a href="#其它" class="headerlink" title="其它"></a>其它</h3><ul>
+<li>隐藏秒杀地址</li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/07/19/%E6%82%A0%E6%82%A0%E5%95%86%E5%9F%8E--web%E5%AE%89%E5%85%A8/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1228,94 +1386,6 @@
   
   
 
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/02/22/ijz%E5%90%8E%E7%AB%AF%E6%A1%86%E6%9E%B6(%E4%B9%9D)%E5%BC%95%E7%94%A8%E5%80%BC%E5%BA%8F%E5%88%97%E5%8C%96&%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="晴天">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="OnePiece">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/2019/02/22/ijz%E5%90%8E%E7%AB%AF%E6%A1%86%E6%9E%B6(%E4%B9%9D)%E5%BC%95%E7%94%A8%E5%80%BC%E5%BA%8F%E5%88%97%E5%8C%96&%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/" class="post-title-link" itemprop="url">ijz后端框架(九)引用值序列化&反序列化</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2019-02-22 14:41:34" itemprop="dateCreated datePublished" datetime="2019-02-22T14:41:34+08:00">2019-02-22</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-05-06 15:11:29" itemprop="dateModified" datetime="2021-05-06T15:11:29+08:00">2021-05-06</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/ijz%E5%90%8E%E7%AB%AF%E6%A1%86%E6%9E%B6/" itemprop="url" rel="index">
-                    <span itemprop="name">ijz后端框架</span>
-                  </a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>当存在实体引用时，我们会在前后端数据传递过程中做对引用字段做序列化与反序列化，也会在审批流弃审时做引用校验，本文主要是谈谈我对引用值序列化&amp;反序列化的理解，弃审校验将在文章<a href="https://cdrcool.github.io/2019/02/22/ijz后端框架%28十%29审批扩展/" target="_blank" rel="noopener">审批扩展</a>中再分析。</p>
-<h2 id="反序列化"><a href="#反序列化" class="headerlink" title="反序列化"></a>反序列化</h2><p>我认为反序列化是可以不要的，因为它就是把前端传递的值（字符串|json对象|json数组）解析成字符串，前端同样可以完成，无非是在表单保存的时候多一行赋值代码（封装到前端组件后，一样不必每处手动赋值）。<br>现在有点奇怪的是，假如我想保存冗余字段名称或编码，尽管前端已经传递了对象<code>{&quot;id&quot;: &quot;xx&quot;, &quot;code&quot;: &quot;xx&quot;, &quot;name&quot;: &quot;xx&quot;}</code>，但由于反序列化后后端只会接收到id，这样前端还得另外传递名称或编码。</p>
-<h2 id="序列化"><a href="#序列化" class="headerlink" title="序列化"></a>序列化</h2><p>同样，我认为序列化也可以不要，或者可以换一种实现方式。虽然它给开发者提供了便利，但如果服务调用者只是看我们API文档，他并不清楚某个外键字段到底是返回String、JSON Object还是JSON Array，JSON对象里面除了id、code、name外又包含哪些额外的字段。<br>我认为vo返回哪些字段应该明确在类里面定义，所以如果一定要做序列化，我会采用下面的方式：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@JsonSerialize</span>(using = ReferSerializer<span class="class">.<span class="keyword">class</span>)</span></span><br><span class="line"><span class="class"><span class="title">public</span> <span class="title">static</span> <span class="title">class</span> <span class="title">ExampleVO</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Refer</span>(billTypes = <span class="string">"company"</span>, foreignKey = <span class="string">"id"</span>)</span><br><span class="line">    <span class="keyword">private</span> String companyId;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@ByRefer</span>(referField = <span class="string">"companyId"</span>, fieldName = <span class="string">"name"</span>)</span><br><span class="line">    <span class="keyword">private</span> String companyName;</span><br><span class="line">    <span class="meta">@ByRefer</span>(referField = <span class="string">"companyId"</span>, fieldName = <span class="string">"code"</span>)</span><br><span class="line">    <span class="keyword">private</span> String companyCode;</span><br><span class="line">    <span class="meta">@ByRefer</span>(referField = <span class="string">"companyId"</span>, fieldName = <span class="string">"type"</span>)</span><br><span class="line">    <span class="keyword">private</span> String companyType;</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>@Refer注解指定哪个字段是外键，从哪些单据类型对应的实体中去查找，以及外键字段在原实体中的属性名。@ByRefer注解则指定要返回哪些字段，及两个实体间字段的对应关系。</p>
-<h2 id="缓存使用方式"><a href="#缓存使用方式" class="headerlink" title="缓存使用方式"></a>缓存使用方式</h2><p>由于序列化时首先会去缓存中查，缓存中没有再去查数据库，所以目前我们保存数据时会同步保存到redis中。<br>我认为缓存应该只缓存热点数据，而不是所有的数据都存里面，且我们应该考虑缓存过期策略。<br>有人会说只是同步缓存了id、code和name，影响不大，且不考虑是否真影响不大，其实我们并不只是同步缓存了id、code和name。比如在上面的ExampleVO类中,除了id、code和name外，我们还用到了companyType。按目前实现方式，要想序列化时得到companyType的值，我们会在注解@ReferSerialTransfer中设置extraFileds属性，这时有3种可能情况：</p>
-<ul>
-<li>缓存中没有数据，companyType有值</li>
-<li>缓存中有数据，但只有id、code和name，companyType没值</li>
-<li>缓存中有数据，但除id、code和name外，只有companyLevel（其他实体写入缓存的），companyType没值</li>
-</ul>
-<p>由此可见，除非我们分析每个实体，把其可能被用的字段都写入缓存，否则很可能序列化中某个想要的字段查不到值，但是这样一是麻烦，二是会浪费大量内存。<br>我的实现里是在查数据之后再把数据写入缓存，并设置一个过期时限。</p>
-<h2 id="兼容性"><a href="#兼容性" class="headerlink" title="兼容性"></a>兼容性</h2><p>在公有云合约系统中，像contractName、contractCode等字段都是在公共表里，但现在更新状态都是直接去更新合同表，所以我在各类合同表里也存了份字段。不过如果升级Hibernate到最新版本，又有新的问题：hibernate不会再自动同步更新公共表和实体表，<br>所以在改造后的实现中，我会依据属性<code>ijz.bill.persistenceType</code>的值（jpa|jdbc）来决定是使用<code>EntityManager</code>还是<code>JdbcTemplate</code>更新表字段。</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
   </div>
 
   
@@ -1386,7 +1456,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">198</span>
+          <span class="site-state-item-count">199</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>

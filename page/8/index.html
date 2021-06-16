@@ -171,6 +171,105 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/02/04/ZooKeeper%202PC%E4%BA%8B%E5%8A%A1%E6%8F%90%E4%BA%A4/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="晴天">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="OnePiece">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/2020/02/04/ZooKeeper%202PC%E4%BA%8B%E5%8A%A1%E6%8F%90%E4%BA%A4/" class="post-title-link" itemprop="url">ZooKeeper 2PC事务提交</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-02-04 10:54:00" itemprop="dateCreated datePublished" datetime="2020-02-04T10:54:00+08:00">2020-02-04</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-05-06 15:11:29" itemprop="dateModified" datetime="2021-05-06T15:11:29+08:00">2021-05-06</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/ZooKeeper/" itemprop="url" rel="index">
+                    <span itemprop="name">ZooKeeper</span>
+                  </a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="关于-2PC-提交"><a href="#关于-2PC-提交" class="headerlink" title="关于 2PC 提交"></a>关于 2PC 提交</h2><p>当一个事务需要跨多个分布式节点的时候，为了保持事务处理的 ACID 特性，就需要引入一个协调者（TM）来统一调度所有分布式节点的执行逻辑。</p>
+<h3 id="案例"><a href="#案例" class="headerlink" title="案例"></a>案例</h3><p>有两个参与者和一个协调者，参与者 1 操作成功后，参与者 2 也必须操作成功。参与者 1 和参与者 2 属于两台不同的机器，现在需要跨节点提交事务，也就是分布式事务提交。</p>
+<h3 id="参与者成功提交事务"><a href="#参与者成功提交事务" class="headerlink" title="参与者成功提交事务"></a>参与者成功提交事务</h3><p><img src="/images/zookeeper/2PC%E4%BA%8B%E5%8A%A1%E6%8F%90%E4%BA%A4%E7%A4%BA%E4%BE%8B1.png" alt="2PC事务提交示例1"></p>
+<p>过程：</p>
+<ol>
+<li>协调者给每一个参与者发起一个事务提交请求。</li>
+<li>各个参与者收到请求后，给出回应：要么执行该事务成功，要么执行该事务失败。</li>
+<li>如果所有参与者都回复成功执行该事务，那么协调者发起 commit 请求。</li>
+<li>参与者提交事务后，给协调者一个反馈。</li>
+</ol>
+<h3 id="某些参与者提交事务失败"><a href="#某些参与者提交事务失败" class="headerlink" title="某些参与者提交事务失败"></a>某些参与者提交事务失败</h3><p><img src="/images/zookeeper/2PC%E4%BA%8B%E5%8A%A1%E6%8F%90%E4%BA%A4%E7%A4%BA%E4%BE%8B2.png" alt="2PC事务提交示例2"></p>
+<p>过程：</p>
+<ol>
+<li>协调者给每一个参与者发起一个事务提交请求。</li>
+<li>各个参与者收到请求后，给出回应：要么执行该事务成功，要么执行该事务失败。</li>
+<li>参与者 2 执行事务失败，协调者直接给所有参与者发送回滚请求。（只要有一个参与者执行事务失败，那么都要回滚。）</li>
+<li>参与者回滚事务后，给协调者一个反馈。</li>
+</ol>
+<h2 id="ZooKeeper-的-2PC-提交"><a href="#ZooKeeper-的-2PC-提交" class="headerlink" title="ZooKeeper 的 2PC 提交"></a>ZooKeeper 的 2PC 提交</h2><p>在 ZooKeeper 中，客户端会随机连接到 ZooKeeper 集群中的一个节点，<strong>如果是读请求，就直接从当前节点中读取数据，如果是写请求，那么请求会被转发给 Leader 提交事务，然后 Leader 会广播事务，只要有超过半数节点写入成功，那么写请求就会被提交</strong>。（类似 2PC 事务）<br>所有事务请求必须由一个全局唯一的服务器来协调处理，这个服务器就是 Leader 服务器，其它的服务器就是 Follower。</p>
+<p><img src="/images/zookeeper/ZooKeeper%E7%9A%842PC%E4%BA%8B%E5%8A%A1%E6%8F%90%E4%BA%A4%E7%A4%BA%E4%BE%8B.png" alt="ZooKeeper的2PC事务提交示例"></p>
+<h2 id="事务及ZXID"><a href="#事务及ZXID" class="headerlink" title="事务及ZXID"></a>事务及ZXID</h2><p><strong>事务是指能够改变 Zookeeper 服务器状态的操作，一般包括数据节点的创建与删除、数据节点内容更新和客户端会话创建与失效等操作。</strong>对于每个事务请求，Zookeeper 都会为其分配一个全局唯一的事务 ID，即 ZXID，是一个 64 位的数字，高 32 位表示该事务发生的集群选举周期（集群每发生一次 Leader 选举，值加 1），低 32 位表示该事务在当前选择周期内的递增次序（Leader 每处理一个事务请求，值加 1，发生一次 Leader 选择，低 32 位要清 0）。</p>
+<h2 id="参考资料："><a href="#参考资料：" class="headerlink" title="参考资料："></a>参考资料：</h2><ol>
+<li><a href="https://blog.csdn.net/fu123123fu/article/details/81175680" target="_blank" rel="noopener">zookeeper的2PC事务提交</a></li>
+</ol>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/02/03/ZooKeeper%20Leader%E9%80%89%E4%B8%BE/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1257,111 +1356,6 @@
   
   
 
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/01/31/ZooKeeper%E7%AE%80%E4%BB%8B/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="晴天">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="OnePiece">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/2020/01/31/ZooKeeper%E7%AE%80%E4%BB%8B/" class="post-title-link" itemprop="url">ZooKeeper 简介</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2020-01-31 10:52:00" itemprop="dateCreated datePublished" datetime="2020-01-31T10:52:00+08:00">2020-01-31</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-05-06 15:11:29" itemprop="dateModified" datetime="2021-05-06T15:11:29+08:00">2021-05-06</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/ZooKeeper/" itemprop="url" rel="index">
-                    <span itemprop="name">ZooKeeper</span>
-                  </a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>ZooKeeper 是一个开源的分布式协同服务系统。ZooKeeper 的设计目标是将那些复杂且容易出错的分布式协同服务封装起来，抽象出一个高效可靠的原语集，并以一系列简单的接口提供给用户使用。</p>
-<h2 id="特性"><a href="#特性" class="headerlink" title="特性"></a>特性</h2><h3 id="最终一致性"><a href="#最终一致性" class="headerlink" title="最终一致性"></a>最终一致性</h3><p>客户端不论连接到哪个 Zookeeper 的哪一个节点，都会收到同一份状态。这是zookeeper最重要的性能。</p>
-<h3 id="可靠性"><a href="#可靠性" class="headerlink" title="可靠性"></a>可靠性</h3><p>Zookeeper 集群具有简单、健壮、良好的性能，如果消息被到一台 server 接受，那么它将被所有的 server 接受。</p>
-<h3 id="实时性"><a href="#实时性" class="headerlink" title="实时性"></a>实时性</h3><p>Zookeeper 保证 client 将在一个时间间隔范围内获得 server 的更新信息，或者 server 失效的信息。但由于网络延时等原因，Zookeeper 不能保证两个 client 能同时得到刚更新的数据，如果需要最新数据，应该在读数据之前调用 sync() 接口。</p>
-<h3 id="等待无关（wait-free）"><a href="#等待无关（wait-free）" class="headerlink" title="等待无关（wait-free）"></a>等待无关（wait-free）</h3><p>慢的或者失效的 client 不得干预快速的 client 的请求，使得每个 client 都能有效的等待。</p>
-<h3 id="原子性"><a href="#原子性" class="headerlink" title="原子性"></a>原子性</h3><p>更新只能成功或者失败，没有中间状态。</p>
-<h3 id="顺序性"><a href="#顺序性" class="headerlink" title="顺序性"></a>顺序性</h3><p>包括全局有序和偏序两种：全局有序是指如果在一台 server 上消息 a 在消息 b 前发布，则在所有 Server 上消息 a 都将在消息 b 前被发布；偏序是指如果一个消息 b 在消息 a 后被同一个发送者发布，a 必将排在 b 前面。</p>
-<h2 id="数据模型"><a href="#数据模型" class="headerlink" title="数据模型"></a>数据模型</h2><p>ZooKeeper 的数据模型是<strong>层次模型</strong>。层次模型常见于文件系统。层次模型和 key-value 模型是两种主流的数据模型。ZooKeeper 使用文件系统模型主要基于以下两点考虑：</p>
-<ol>
-<li>文件系统的树形结构便于表达数据之间的层次关系</li>
-<li>文件系统的属性结构便于为不同的应用分配独立的命名空间（namespace）</li>
-</ol>
-<p><img src="/images/zookeeper/ZooKeeper%E6%95%B0%E6%8D%AE%E6%A8%A1%E5%9E%8B.png" alt="ZooKeeper数据模型"></p>
-<p>ZooKeeper 的层次模型称作 Data tree。Data tree 的每个节点叫做 znode。不同于文件系统，每个节点都可以保存数据。每个节点都有一个版本（version）。版本从 0 开始计数。</p>
-<h3 id="节点类型"><a href="#节点类型" class="headerlink" title="节点类型"></a>节点类型</h3><p>一个 znode 可以是持久性的，也可以是临时性的；可以是顺序性的，也可以是非顺序性的。</p>
-<ol>
-<li>PERSISTENT<br>持久性的 znode，在创建之后即使发生 ZooKeeper 集群宕机或者 client 宕机也不会丢失。</li>
-<li>EPHEMERAL<br>临时性的 znode，client 宕机或者 client 在指定的 timeout 时间内没有给 ZooKeeper 集群发消息，这样的节点就会消失。</li>
-<li>PERSISTENT_SEQUENTIAL<br>持久顺序性的 znode，除了具备持久性 znode 的特点之外，znode 的名字具备顺序性。</li>
-<li>EPHEMERAL_SEQUENTIAL<br>临时顺序性的 znode，除了具备临时性 znode 的特点之外，znode 的名字具备顺序性。</li>
-</ol>
-<p>每一个顺序性的 znode 关联一个唯一的单调递增整数。这个单调递增整数是 znode 名字的后缀。</p>
-<p>其实除了以上 4 中节点类型，还有另外一类节点：container 节点。<br>container 节点是一种新引入的 znode，目的在于下挂子节点。当一个 container 节点的所有子节点被删除之后，ZooKeeper 会删除掉这个 container 节点。服务发现的 base path 节点和服务节点就是 container 节点。</p>
-<h3 id="Data-tree"><a href="#Data-tree" class="headerlink" title="Data tree"></a>Data tree</h3><p>接口<br>ZooKeeper 对外提供一个用来访问 Data tree 的简化文件系统 API：</p>
-<ul>
-<li>使用 UNIX 风格的路径名来定位 znode，例如 /A/X 表示 znode A 的子节点 X。</li>
-<li>znode 的数据只支持全量写入和读取，没有像通用文件系统那样支持部分写入和读取。</li>
-<li>Data tree 的所有 API 都是 wait-free 的。正在执行中的 API 调用不会影响其他 API 的完成。</li>
-<li>Data tree 的 API 都是对文件系统的 wait-free 操作，不直接提供锁这样的分布式协同机制。但是 Data tree 的 API 非常强大，可以用来实现多种分布式协同机制。</li>
-</ul>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
   </div>
 
   
@@ -1432,7 +1426,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">198</span>
+          <span class="site-state-item-count">199</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>

@@ -171,6 +171,125 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/03/17/Ant%20Design%20Pro%E5%BC%80%E5%8F%91%E5%AE%9E%E8%B7%B5/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="晴天">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="OnePiece">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/2020/03/17/Ant%20Design%20Pro%E5%BC%80%E5%8F%91%E5%AE%9E%E8%B7%B5/" class="post-title-link" itemprop="url">Ant Design Pro 开发实践</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-03-17 14:37:00" itemprop="dateCreated datePublished" datetime="2020-03-17T14:37:00+08:00">2020-03-17</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-05-06 15:11:29" itemprop="dateModified" datetime="2021-05-06T15:11:29+08:00">2021-05-06</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/React/" itemprop="url" rel="index">
+                    <span itemprop="name">React</span>
+                  </a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="开始使用"><a href="#开始使用" class="headerlink" title="开始使用"></a>开始使用</h2><h3 id="前序准备"><a href="#前序准备" class="headerlink" title="前序准备"></a>前序准备</h3><p>本地环境需要安装 yarn、node 和 git。我们的技术栈基于 ES2015+、React、UmiJS、dva、g2 和 antd，提前了解和学习这些知识会非常有帮助。</p>
+<h3 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h3><p>新建一个空的文件夹作为项目目录，并在目录下执行：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">yarn</span> <span class="string">create</span> <span class="string">umi</span></span><br></pre></td></tr></table></figure>
+
+<p>选择 ant-design-pro：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Select the boilerplate <span class="built_in">type</span> (Use arrow keys)</span><br><span class="line">❯ ant-design-pro  - Create project with an layout-only ant-design-pro boilerplate, use together with umi block.</span><br><span class="line">  app             - Create project with a simple boilerplate, support typescript.</span><br><span class="line">  block           - Create a umi block.</span><br><span class="line">  library         - Create a library with umi.</span><br><span class="line">  plugin          - Create a umi plugin.</span><br></pre></td></tr></table></figure>
+
+<p>Ant Design Pro 脚手架将会自动安装。</p>
+<h3 id="目录结构"><a href="#目录结构" class="headerlink" title="目录结构"></a>目录结构</h3><p>Ant Design Pro 已经为我们生成了一个完整的开发框架，提供了涵盖中后台开发的各类功能和坑位，下面是整个项目的目录结构。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">├── config                   # umi 配置，包含路由，构建等配置</span><br><span class="line">├── mock                     # 本地模拟数据</span><br><span class="line">├── public</span><br><span class="line">│   └── favicon.png          # Favicon</span><br><span class="line">├── src</span><br><span class="line">│   ├── assets               # 本地静态资源</span><br><span class="line">│   ├── components           # 业务通用组件</span><br><span class="line">│   ├── e2e                  # 集成测试用例</span><br><span class="line">│   ├── layouts              # 通用布局</span><br><span class="line">│   ├── models               # 全局 dva model</span><br><span class="line">│   ├── pages                # 业务页面入口和常用模板</span><br><span class="line">│   ├── services             # 后台接口服务</span><br><span class="line">│   ├── utils                # 工具库</span><br><span class="line">│   ├── locales              # 国际化资源</span><br><span class="line">│   ├── global.less          # 全局样式</span><br><span class="line">│   └── global.tsx           # 全局 JS</span><br><span class="line">├── tests                    # 测试工具</span><br><span class="line">├── README.md</span><br><span class="line">└── package.json</span><br></pre></td></tr></table></figure>
+
+<h3 id="本地开发"><a href="#本地开发" class="headerlink" title="本地开发"></a>本地开发</h3><p>安装依赖：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">yarn install</span><br></pre></td></tr></table></figure>
+
+<p>启动：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">yarn start</span><br></pre></td></tr></table></figure>
+
+<p>启动完成后会自动打开浏览器访问 localhost:8000，看到下面的页面就代表成功了。</p>
+<p><img src="../images/react/Ant%20Design%20Pro%E9%A2%84%E8%A7%88.png" alt="Ant Design Pro预览"></p>
+<p>接下来我们可以修改代码进行业务开发了，Ant Design Pro 内建了模拟数据、HMR 实时预览、状态管理、国际化、全局路由等等各种实用的功能辅助开发，我们可以继续阅读和探索其他文档。</p>
+<h2 id="个性化调整"><a href="#个性化调整" class="headerlink" title="个性化调整"></a>个性化调整</h2><h3 id="更换地址栏-logo和标题"><a href="#更换地址栏-logo和标题" class="headerlink" title="更换地址栏 logo和标题"></a>更换地址栏 logo和标题</h3><p>更改 logo：<br>该 logo 位于 /public/favicon.svg，可以用其它 logo 将其替换掉，或者修改 /src/pages/document.ejs 中的 link 元素的 href 属性。</p>
+<p>更换标题：<br>修改 /src/pages/document.ejs 中的 title 内容。</p>
+<h3 id="更换主页-logo-和标题"><a href="#更换主页-logo-和标题" class="headerlink" title="更换主页 logo 和标题"></a>更换主页 logo 和标题</h3><p>更换 logo：<br>该 logo 位于 /src/assets/logo.svg，可以用其它 logo 将其替换掉，或者修改 BasicLayout.tsx 中的 ProLayout 组件的 logo 属性。</p>
+<p>更换标题：<br>修改 /config/defaultSetting.ts 中的 title 属性。</p>
+<h3 id="更换启动时-logo-和标题"><a href="#更换启动时-logo-和标题" class="headerlink" title="更换启动时 logo 和标题"></a>更换启动时 logo 和标题</h3><p>修改 /src/pages/document.ejs 中第 2 个 img 元素的 src 属性和紧跟 img 后的内容。</p>
+<h3 id="更换首页刷新时-logo"><a href="#更换首页刷新时-logo" class="headerlink" title="更换首页刷新时 logo"></a>更换首页刷新时 logo</h3><p>该 logo 位于 /public/pro_icon.svg，可以用其它 logo 将其替换掉，或者修改 /src/pages/document.ejs 中的第 1 个 img 元素的 src 属性。</p>
+<h3 id="修改页脚内容"><a href="#修改页脚内容" class="headerlink" title="修改页脚内容"></a>修改页脚内容</h3><p>修改 /src/layouts/BasicLayout.tsx 中的 DefaultFooter 组件的 copyright 和 links 属性。</p>
+<h3 id="更换主题"><a href="#更换主题" class="headerlink" title="更换主题"></a>更换主题</h3><p>Ant Design Pro 默认提供了 dark(默认) 和 light 这两种主题，可以通过修改 /config/defaultSetting.js 中的 navTheme 属性来更换主题。</p>
+<h3 id="更换导航模式"><a href="#更换导航模式" class="headerlink" title="更换导航模式"></a>更换导航模式</h3><p>Ant Design Pro 同时支持侧边栏和顶部栏显示导航，可以通过修改 /config/defaultSetting.js 中的 layout 属性来更换导航模式。</p>
+<h3 id="移除头部不必要的小组件"><a href="#移除头部不必要的小组件" class="headerlink" title="移除头部不必要的小组件"></a>移除头部不必要的小组件</h3><p>在实际开发过程中，我们的项目可能不需要 “全局搜索”、”使用文档” 、”国际化切换”这些组件，可以到 /src/components/GlobalHeader/RightContent.js 中注释掉 HeaderSearch、Tooltipown、SelectLang 这几个组件的使用。</p>
+<h3 id="显示个人中心-设置菜单"><a href="#显示个人中心-设置菜单" class="headerlink" title="显示个人中心/设置菜单"></a>显示个人中心/设置菜单</h3><p>在 /src/components/GlobalHeader/RightContent.tsx 中引用 AvatarDropdown 组件的地方添加 menu 属性。</p>
+<h3 id="显示通知-消息-代办"><a href="#显示通知-消息-代办" class="headerlink" title="显示通知/消息/代办"></a>显示通知/消息/代办</h3><p>在 /src/components/GlobalHeader/RightContent.js 中引入并使用 NoticeIconView 组件。</p>
+<h3 id="调整用户登录页"><a href="#调整用户登录页" class="headerlink" title="调整用户登录页"></a>调整用户登录页</h3><p>对于用户登录页的 logo、标题、描述、登录方式、页脚和国际化支持，也可以到 /src/layouts/UserLayout.tsx 中做相应调整。</p>
+<h3 id="不显示页面-title"><a href="#不显示页面-title" class="headerlink" title="不显示页面 title"></a>不显示页面 title</h3><p>每个页面都由 PageHeaderWrapper 封装，PageHeaderWrapper 默认会显示页面 title，但是 title 已经在面包屑中显示了，因此可以隐藏掉 PageHeaderWrapper 中的 title，具体做法是给其传递 title = false。</p>
+<h3 id="未登录跳转到登录页"><a href="#未登录跳转到登录页" class="headerlink" title="未登录跳转到登录页"></a>未登录跳转到登录页</h3><p>默认情况下，用户未登录也会跳转到欢迎页，如果要实现未登录时跳转到登录页，只需在 /config/config.js 中的 routes 列表里的 ../layouts/SecurityLayout 那一项中添加 Routes: [‘src/pages/Authorized’]。<br>还有一点需要注意，默认在用户退出登录后，Ant Design Pro 并没有清理掉用户权限信息，我们需要在 /src/models/login.ts 的 logout 方法中添加 localStorage.removeItem(‘antd-pro-authority’) 。</p>
+<h3 id="不启动-Umi-UI"><a href="#不启动-Umi-UI" class="headerlink" title="不启动 Umi UI"></a>不启动 Umi UI</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">yarn start:no-ui</span><br></pre></td></tr></table></figure>
+
+<h3 id="关闭-Mock-数据"><a href="#关闭-Mock-数据" class="headerlink" title="关闭 Mock 数据"></a>关闭 Mock 数据</h3><ol>
+<li>启动命令改为：<code>yarn start:no-mock</code>。</li>
+<li>修改 /config/proxy.ts：<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">...</span><br><span class="line">dev: &#123;</span><br><span class="line">    &#39;&#x2F;api&#x2F;&#39;: &#123;</span><br><span class="line">      target: &#39;http:&#x2F;&#x2F;localhost:8080&#x2F;&#39;,</span><br><span class="line">      changeOrigin: true,</span><br><span class="line">      pathRewrite: &#123;&#39;^&#x2F;api&#x2F;&#39;: &#39;&#39;&#125;,</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+</li>
+</ol>
+<p>注意：查看控制台，会发现请求的地址还是 localhost:8000/，但实际上已经请求到后端地址了。</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/03/14/Spring%20Cloud%20Stream%E5%BC%80%E5%8F%91%E5%AE%9E%E8%B7%B5/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -2090,147 +2209,6 @@
   
   
 
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/02/29/Spring%20Cloud%20Consul%E5%BC%80%E5%8F%91%E5%AE%9E%E8%B7%B5/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="晴天">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="OnePiece">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/2020/02/29/Spring%20Cloud%20Consul%E5%BC%80%E5%8F%91%E5%AE%9E%E8%B7%B5/" class="post-title-link" itemprop="url">Spring Cloud Consul 开发实践</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2020-02-29 11:13:00" itemprop="dateCreated datePublished" datetime="2020-02-29T11:13:00+08:00">2020-02-29</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-05-06 15:11:29" itemprop="dateModified" datetime="2021-05-06T15:11:29+08:00">2021-05-06</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Spring-Cloud/" itemprop="url" rel="index">
-                    <span itemprop="name">Spring Cloud</span>
-                  </a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h2 id="服务发现"><a href="#服务发现" class="headerlink" title="服务发现"></a>服务发现</h2><h3 id="Maven-依赖"><a href="#Maven-依赖" class="headerlink" title="Maven 依赖"></a>Maven 依赖</h3><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!-- 服务注册与发现 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.cloud<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-cloud-starter-consul-discovery<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="配置属性"><a href="#配置属性" class="headerlink" title="配置属性"></a>配置属性</h3><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">spring:</span></span><br><span class="line">  <span class="attr">application:</span></span><br><span class="line">    <span class="attr">name:</span> <span class="string">account</span></span><br><span class="line">  <span class="attr">cloud:</span></span><br><span class="line">    <span class="attr">loadbalancer:</span></span><br><span class="line">      <span class="attr">ribbon:</span></span><br><span class="line">        <span class="comment"># 由于未使用 Eureka，需要禁用掉默认的 Ribbon 负载均衡</span></span><br><span class="line">        <span class="attr">enabled:</span> <span class="literal">false</span></span><br><span class="line">    <span class="attr">consul:</span></span><br><span class="line">      <span class="comment"># 启用服务发现</span></span><br><span class="line">      <span class="attr">enabled:</span> <span class="literal">true</span></span><br><span class="line">      <span class="comment"># 集群地址</span></span><br><span class="line">      <span class="attr">host:</span> <span class="string">localhost</span></span><br><span class="line">      <span class="comment"># 集群端口</span></span><br><span class="line">      <span class="attr">port:</span> <span class="number">8500</span></span><br><span class="line">      <span class="attr">discovery:</span></span><br><span class="line">        <span class="comment"># 启用服务注册</span></span><br><span class="line">        <span class="attr">register:</span> <span class="literal">true</span></span><br><span class="line">        <span class="comment"># 服务注册名称</span></span><br><span class="line">        <span class="attr">serviceName:</span> <span class="string">$&#123;spring.application.name&#125;</span></span><br><span class="line">        <span class="comment"># 服务注册 ID</span></span><br><span class="line">        <span class="attr">instanceId:</span> <span class="string">$&#123;spring.application.name&#125;:$&#123;spring.cloud.consul.port&#125;</span></span><br><span class="line">        <span class="comment"># 服务健康检查地址</span></span><br><span class="line">        <span class="attr">healthCheckPath:</span> <span class="string">/actuator/health</span></span><br><span class="line">        <span class="comment"># 服务健康检查时间间隔</span></span><br><span class="line">        <span class="attr">healthCheckInterval:</span> <span class="string">10s</span></span><br><span class="line">        <span class="comment"># 连接不上 Consul，则抛出异常，终止应用程序启动</span></span><br><span class="line">        <span class="comment"># 本地开发时，可能需要设置为 false</span></span><br><span class="line">        <span class="attr">failFast:</span> <span class="literal">true</span></span><br></pre></td></tr></table></figure>
-
-<ul>
-<li>在上例中，consul 相关配置都是使用的默认值，即不配置也可以运行。</li>
-<li>由于 Spring Cloud 默认会采用 Ribbon 作为负载均衡实现，而这里没有使用 Eureka，所以需要禁用到 Ribbon 负载均衡。</li>
-<li>如果使用了 Spring Cloud Config，属性 spring.application.name 需配置在 bootstrap.yml 中。</li>
-<li>如果使用了 Spring Cloud Consul Config，consul 相关属性需配置在 bootstrap.yml 中。</li>
-</ul>
-<h3 id="查找服务"><a href="#查找服务" class="headerlink" title="查找服务"></a>查找服务</h3><h4 id="使用-Feign"><a href="#使用-Feign" class="headerlink" title="使用 Feign"></a>使用 Feign</h4><p><strong>定义 API 接口：</strong></p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@FeignClient</span>(name = <span class="string">"account"</span>, path = <span class="string">"account"</span>)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">AccountApi</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 获取用户名</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> 用户名</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@GetMapping</span>(<span class="string">"username"</span>)</span><br><span class="line">    <span class="function">String <span class="title">getUsername</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><strong>调用 API 接口：</strong></p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Slf</span>4j</span><br><span class="line"><span class="meta">@RequestMapping</span>(<span class="string">"seckill"</span>)</span><br><span class="line"><span class="meta">@RestController</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SeckillController</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="keyword">private</span> AccountApi accountApi;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@GetMapping</span>(<span class="string">"orderId"</span>)</span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getOrderId</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        log.info(<span class="string">"Username: &#123;&#125;"</span>, accountApi.getUsername());</span><br><span class="line">        <span class="keyword">return</span> UUID.randomUUID().toString();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h4 id="使用-RestTemplate"><a href="#使用-RestTemplate" class="headerlink" title="使用 RestTemplate"></a>使用 RestTemplate</h4><p><strong>声明负载均衡 RestTemplate：</strong></p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@LoadBalanced</span></span><br><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> RestTemplate <span class="title">loadbalancedRestTemplate</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> RestTemplate();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><strong>使用 RestTemplate：</strong></p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Slf</span>4j</span><br><span class="line"><span class="meta">@RequestMapping</span>(<span class="string">"seckill"</span>)</span><br><span class="line"><span class="meta">@RestController</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SeckillController</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="keyword">private</span> RestTemplate restTemplate;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@GetMapping</span>(<span class="string">"orderId"</span>)</span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getOrderId</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        log.info(<span class="string">"Username: &#123;&#125;"</span>, restTemplate.getForObject(<span class="string">"http://account/account/username"</span>, String<span class="class">.<span class="keyword">class</span>))</span>;</span><br><span class="line">        <span class="keyword">return</span> UUID.randomUUID().toString();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="使用-DiscoveryClient"><a href="#使用-DiscoveryClient" class="headerlink" title="使用 DiscoveryClient"></a>使用 DiscoveryClient</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Autowired</span></span><br><span class="line"><span class="keyword">private</span> DiscoveryClient discoveryClient;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> String <span class="title">serviceUrl</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    List&lt;ServiceInstance&gt; list = discoveryClient.getInstances(<span class="string">"STORES"</span>);</span><br><span class="line">    <span class="keyword">if</span> (list != <span class="keyword">null</span> &amp;&amp; list.size() &gt; <span class="number">0</span> ) &#123;</span><br><span class="line">        URI uri = list.get(<span class="number">0</span>).getUri();</span><br><span class="line">        ...</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="HTTP-健康检查"><a href="#HTTP-健康检查" class="headerlink" title="HTTP 健康检查"></a>HTTP 健康检查</h3><p>健康检查默认为 /actuator/health，时间间隔默认为 10s。我们可以通过以下属性进行修改：</p>
-<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">spring:</span></span><br><span class="line">  <span class="attr">cloud:</span></span><br><span class="line">    <span class="attr">consul:</span></span><br><span class="line">      <span class="attr">discovery:</span></span><br><span class="line">        <span class="comment"># 服务健康检查地址</span></span><br><span class="line">        <span class="attr">healthCheckPath:</span> <span class="string">/actuator/health</span></span><br><span class="line">        <span class="comment"># 服务健康检查时间间隔</span></span><br><span class="line">        <span class="attr">healthCheckInterval:</span> <span class="string">10s</span></span><br></pre></td></tr></table></figure>
-
-<p>可以通过设置 <code>management.health.consun.enabled=false</code> 来禁用运行状况检查。</p>
-<h2 id="配置中心"><a href="#配置中心" class="headerlink" title="配置中心"></a>配置中心</h2><h3 id="Maven-依赖-1"><a href="#Maven-依赖-1" class="headerlink" title="Maven 依赖"></a>Maven 依赖</h3><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!-- 服务注册与发现 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.cloud<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-cloud-starter-consul-discovery<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="配置属性-1"><a href="#配置属性-1" class="headerlink" title="配置属性"></a>配置属性</h3><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">spring:</span></span><br><span class="line">  <span class="attr">application:</span></span><br><span class="line">    <span class="attr">name:</span> <span class="string">account</span></span><br><span class="line">  <span class="attr">cloud:</span></span><br><span class="line">    <span class="attr">consul:</span></span><br><span class="line">      <span class="comment"># 启用 consul</span></span><br><span class="line">      <span class="attr">enabled:</span> <span class="literal">true</span></span><br><span class="line">      <span class="comment"># 集群地址</span></span><br><span class="line">      <span class="attr">host:</span> <span class="string">localhost</span></span><br><span class="line">      <span class="comment"># 集群端口</span></span><br><span class="line">      <span class="attr">port:</span> <span class="number">8500</span></span><br><span class="line">      <span class="comment"># 配置中心</span></span><br><span class="line">      <span class="attr">config:</span></span><br><span class="line">        <span class="comment"># 启用配置中心</span></span><br><span class="line">        <span class="attr">enabled:</span> <span class="literal">true</span></span><br><span class="line">        <span class="comment"># 根文件夹</span></span><br><span class="line">        <span class="attr">prefix:</span> <span class="string">config</span></span><br><span class="line">        <span class="comment"># 文件格式，默认值 KEY_VALUE</span></span><br><span class="line">        <span class="attr">format:</span> <span class="string">YAML</span></span><br><span class="line">        <span class="comment"># 文件名</span></span><br><span class="line">        <span class="attr">data-key:</span> <span class="string">data</span></span><br><span class="line">        <span class="comment"># 应用名和环境分隔符，默认值 ,</span></span><br><span class="line">        <span class="attr">profile-separator:</span> <span class="string">'-'</span></span><br><span class="line">        <span class="comment"># 连接不上 Consul，则抛出异常，终止应用程序启动</span></span><br><span class="line">        <span class="comment"># 本地开发时，可能需要设置为 false</span></span><br><span class="line">        <span class="attr">failFast:</span> <span class="literal">true</span></span><br></pre></td></tr></table></figure>
-
-<ul>
-<li>配置属性需放在 bootstrap.yml 文件中。</li>
-<li>在上例中，除 format 和 profile-separator 属性外，其它 consul 相关配置都是使用的默认值，即不配置也可以运行。</li>
-</ul>
-<h3 id="创建配置文件"><a href="#创建配置文件" class="headerlink" title="创建配置文件"></a>创建配置文件</h3><ol>
-<li>在 Consul 界面 Key/Value 菜单下创建目录：</li>
-</ol>
-<ul>
-<li>config/account/data account 应用的默认配置</li>
-<li>config/account-dev/data account 应用的 dev 环境配置</li>
-</ul>
-<p>我们也可以创建另外两个目录：</p>
-<ul>
-<li>config/application/data 所有应用的默认配置</li>
-<li>config/application-dev/data 所有应用的 dev 环境配置</li>
-</ul>
-<ol start="2">
-<li>在 data 路径下添加配置属性：<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">server:</span></span><br><span class="line">  <span class="attr">port:</span> <span class="number">8082</span></span><br><span class="line"></span><br><span class="line"><span class="attr">spring:</span></span><br><span class="line">  <span class="attr">application:</span></span><br><span class="line">    <span class="attr">name:</span> <span class="string">account</span></span><br><span class="line">  <span class="attr">cloud:</span></span><br><span class="line">    <span class="attr">loadbalancer:</span></span><br><span class="line">      <span class="attr">ribbon:</span></span><br><span class="line">        <span class="comment"># 由于未使用 Eureka，需要禁用掉默认的 Ribbon 负载均衡</span></span><br><span class="line">        <span class="attr">enabled:</span> <span class="literal">false</span></span><br><span class="line">    <span class="attr">consul:</span></span><br><span class="line">      <span class="comment"># 启用 consul</span></span><br><span class="line">      <span class="attr">enabled:</span> <span class="literal">true</span></span><br><span class="line">      <span class="comment"># 集群地址</span></span><br><span class="line">      <span class="attr">host:</span> <span class="string">localhost</span></span><br><span class="line">      <span class="comment"># 集群端口</span></span><br><span class="line">      <span class="attr">port:</span> <span class="number">8500</span></span><br><span class="line">      <span class="comment"># 服务发现</span></span><br><span class="line">      <span class="attr">discovery:</span></span><br><span class="line">        <span class="comment"># 启用服务发现</span></span><br><span class="line">        <span class="attr">enabled:</span> <span class="literal">true</span></span><br><span class="line">        <span class="comment"># 启用服务注册</span></span><br><span class="line">        <span class="attr">register:</span> <span class="literal">true</span></span><br><span class="line">        <span class="comment"># 服务注册名称</span></span><br><span class="line">        <span class="attr">serviceName:</span> <span class="string">$&#123;spring.application.name&#125;</span></span><br><span class="line">        <span class="comment"># 服务注册 ID</span></span><br><span class="line">        <span class="attr">instanceId:</span> <span class="string">$&#123;spring.application.name&#125;:$&#123;spring.cloud.consul.port&#125;</span></span><br><span class="line">        <span class="comment"># 服务健康检查地址</span></span><br><span class="line">        <span class="attr">healthCheckPath:</span> <span class="string">/actuator/health</span></span><br><span class="line">        <span class="comment"># 服务健康检查时间间隔</span></span><br><span class="line">        <span class="attr">healthCheckInterval:</span> <span class="string">10s</span></span><br><span class="line">        <span class="comment"># 连接不上 Consul，则抛出异常，终止应用程序启动</span></span><br><span class="line">        <span class="comment"># 本地开发时，可能需要设置为 false</span></span><br><span class="line">        <span class="attr">failFast:</span> <span class="literal">true</span></span><br><span class="line">      <span class="attr">watch:</span></span><br><span class="line">        <span class="comment"># 启动 watch</span></span><br><span class="line">        <span class="attr">enabled:</span> <span class="literal">true</span></span><br><span class="line">        <span class="comment"># watch 调用频率，单位：毫秒</span></span><br><span class="line">        <span class="attr">delay:</span> <span class="number">1000</span></span><br><span class="line">        <span class="comment"># watch 查询阻塞时间，单位：秒</span></span><br><span class="line">        <span class="comment"># 默认值 55 秒，这意味着连续两次快速的修改配置属性，属性不会立即更新为最新的值，因为前面的 watch 查询阻塞了后面的查询</span></span><br><span class="line">        <span class="attr">wait-time:</span> <span class="number">55</span></span><br><span class="line"></span><br><span class="line"><span class="attr">management:</span></span><br><span class="line">  <span class="attr">endpoints:</span></span><br><span class="line">    <span class="attr">web:</span></span><br><span class="line">      <span class="comment"># 默认只暴露了 health/info 端点</span></span><br><span class="line">      <span class="attr">exposure:</span></span><br><span class="line">        <span class="attr">include:</span> <span class="string">health,info,metrics,refresh,gateway</span></span><br></pre></td></tr></table></figure>
-
-</li>
-</ol>
-<p>经过以上两步操作之后，在启动应用程序之后，便会从 Consul 中加载配置属性。</p>
-<h3 id="动态刷新配置属性"><a href="#动态刷新配置属性" class="headerlink" title="动态刷新配置属性"></a>动态刷新配置属性</h3><p>如果 Consul 中配置属性发生了变化，我们可以通过向 /refresh 端点发送 HTTP POST 请求，来重新加载配置。 /refresh 端点会将发生变化（新增、修改或删除）的属性列表返回给我们。</p>
-<p>但是， /refresh 端点并不能动态刷新应用程序中的属性，要做到这点，还需在用到属性的 bean 上添加 @RefreshScope 注解，如下所示：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Slf</span>4j</span><br><span class="line"><span class="meta">@RefreshScope</span></span><br><span class="line"><span class="meta">@RequestMapping</span>(<span class="string">"account"</span>)</span><br><span class="line"><span class="meta">@RestController</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">AccountController</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Value</span>(<span class="string">"$&#123;username:admin&#125;"</span>)</span><br><span class="line">    <span class="keyword">private</span> String username;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@GetMapping</span>(<span class="string">"username"</span>)</span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getUsername</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> username;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>其实，即使我们不调用 /refresh 端点，配置属性也会自动刷新，这是因为 Consul Config Watch 利用 Consul 的能力来监控配置属性是否发生变化。我们可以通过设置 watch 相关属性，来启用或关闭 watch，及调整 watch 频率等，如下所示：</p>
-<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">spring:</span></span><br><span class="line">  <span class="attr">cloud:</span></span><br><span class="line">    <span class="attr">consul:</span></span><br><span class="line">      <span class="attr">watch:</span></span><br><span class="line">        <span class="comment"># 启动 watch</span></span><br><span class="line">        <span class="attr">enabled:</span> <span class="literal">true</span></span><br><span class="line">        <span class="comment"># watch 调用频率，单位：毫秒</span></span><br><span class="line">        <span class="attr">delay:</span> <span class="number">1000</span></span><br><span class="line">        <span class="comment"># watch 查询阻塞时间，单位：秒</span></span><br><span class="line">        <span class="comment"># 默认值 55 秒，这意味着连续两次快速的修改配置属性，属性不会立即更新为最新的值，因为前面的 watch 查询阻塞了后面的查询</span></span><br><span class="line">        <span class="attr">wait-time:</span> <span class="number">55</span></span><br></pre></td></tr></table></figure>
-
-<h2 id="Consul-重试"><a href="#Consul-重试" class="headerlink" title="Consul 重试"></a>Consul 重试</h2><p>在应用程序启动时，如果遇到 Consul Agent 连接不上，可以设置重试次数。只需引入以下 2 个依赖：</p>
-<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.retry<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-retry<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">    </span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-aop<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-<p>默认情况下，会重试 6 次，初始回退间隔为 1000 ms，后续回退的指数乘数为 1.1。我们可以使用 spring.cloud.consul.retry.* 配置属性来配置这些属性(以及其它属性)。</p>
-<p>Consul 重试既可以在服务发现中使用，也可以在配置中心中使用。</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
   </div>
 
   
@@ -2301,7 +2279,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">198</span>
+          <span class="site-state-item-count">199</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
