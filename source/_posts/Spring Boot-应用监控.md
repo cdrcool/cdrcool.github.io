@@ -82,6 +82,6 @@ management:
 
 启用 server 与 client 两个工程之后，访问 http://localhost:8081/，即可看到以下信息：
 
-![Spring Boot Admin 示例1.png](/images/SpringBootAdmin示例1.png)
-![Spring Boot Admin 示例2.png](/images/SpringBootAdmin示例2.png)
-![Spring Boot Admin 示例3.png](/images/SpringBootAdmin示例3.png)
+![Spring Boot Admin 示例1.png](/images/springboot/SpringBootAdmin示例1.png)
+![Spring Boot Admin 示例2.png](/images/springboot/SpringBootAdmin示例2.png)
+![Spring Boot Admin 示例3.png](/images/springboot/SpringBootAdmin示例3.png)
