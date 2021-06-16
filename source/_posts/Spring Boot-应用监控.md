@@ -178,7 +178,7 @@ management:
 ![Grafana监控示例.png](/images/springboot/Grafana监控示例.png)
 
 # 监控 Mysql
-1. 拉取 mysqld-exporter镜像并启动容器
+1. 拉取 mysqld-exporter 镜像并启动容器
 ```cmd
 docker run -d `
     --network op_net `
@@ -200,3 +200,25 @@ scrape_configs:
 ```
 
 3. 创建 [MySQL Overview](https://grafana.com/grafana/dashboards/7362) Dashboard
+
+# 监控 Redis
+1. 拉取 redis_exporter 镜像并启动容器
+```cmd
+docker run -d `
+    --network op_net `
+    --hostname redis_exporter `
+    --hostname redis_exporter `
+    -p 9121:9121 `
+    oliver006/redis_exporter `
+    --redis.addr redis://host.docker.internal:6379
+```
+
+2. 补充 prometheus.yaml
+```yaml
+scrape_configs:
+  - job_name: 'redis'
+    static_configs:
+      - targets: [ 'host.docker.internal:9121' ]
+```
+
+3. 创建 [Redis Exporter](https://grafana.com/grafana/dashboards/11835) Dashboard
