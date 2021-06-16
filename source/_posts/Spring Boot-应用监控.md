@@ -172,7 +172,7 @@ management:
 访问[Grafana Labs](https://grafana.com/grafana/dashboards)，搜索 **JVM (Micrometer)(4701)**，下载 Json 数据。
    
 4. 导入 Dashboard Json
-![Grafana 导入 Dashboard Json.png](/images/springboot/Grafana导入Dashboard Json.png)
+![Grafana 导入 Dashboard Json.png](/images/springboot/Grafana导入DashboardJson.png)
 
 ## 监控示例
 ![Grafana监控示例.png](/images/springboot/Grafana监控示例.png)
