@@ -178,7 +178,7 @@ management:
 ![Grafana监控示例.png](/images/springboot/Grafana监控示例.png)
 
 # 监控 Mysql
-1. 拉取 mysqld-exporter 镜像并启动容器
+1. 拉取 [mysqld-exporter](https://github.com/prometheus/mysqld_exporter) 镜像并启动容器
 ```cmd
 docker run -d `
     --network op_net `
@@ -202,7 +202,7 @@ scrape_configs:
 3. 创建 [MySQL Overview](https://grafana.com/grafana/dashboards/7362) Dashboard
 
 # 监控 Redis
-1. 拉取 redis_exporter 镜像并启动容器
+1. 拉取 [redis_exporter](https://github.com/oliver006/redis_exporter) 镜像并启动容器
 ```cmd
 docker run -d `
     --network op_net `
@@ -222,3 +222,13 @@ scrape_configs:
 ```
 
 3. 创建 [Redis Exporter](https://grafana.com/grafana/dashboards/11835) Dashboard
+
+# 监控 RabbitMQ
+1. 启用 rabbitmq_prometheus 插件
+```cmd
+docker exec -it rabbitmq bash
+rabbitmq-plugins list
+rabbitmq-plugins enable rabbitmq_prometheus
+```
+
+3. 创建 [RabbitMQ-Overview](https://grafana.com/grafana/dashboards/10991) Dashboard
